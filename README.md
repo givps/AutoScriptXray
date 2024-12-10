@@ -90,6 +90,8 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 
 # Telegram
 [![Telegram-grup](https://img.shields.io/badge/Telegram-Grup-blue)](https://t.me/givpn_grup/)
+# Donate
+[![Ethereum donate button](https://img.shields.io/badge/Donate-Ethereum-blue)](https://www.blockchain.com/explorer/addresses/eth/0xb35631b4105a51182f661f6d6eeae8B57E2F2EC1)
 
 # ATTENTION (MUST READ) CAREFULLY
 - PROHIBITED FOR SALE BECAUSE I GET FREE FROM THE INTERNET
