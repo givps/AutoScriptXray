@@ -24,7 +24,7 @@ domen=$(cat /etc/xray/domain)
 subsl=$(</dev/urandom tr -dc a-x0-9 | head -c5)
 DOMAIN=ipgivpn.my.id
 SUB_DOMAIN=${domen}
-NS_DOMAIN=asxns-${subsl}.${DOMAIN}
+NS_DOMAIN=asxns-${subsl}.ipgivpn.my.id
 echo $NS_DOMAIN > /root/nsdomain
 CF_ID=admin@ipgivpn.my.id
 CF_KEY=df51a369af75b0f37f90bb7bf025ee3d2cc54
