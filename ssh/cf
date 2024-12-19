@@ -12,7 +12,7 @@ mkdir -p /root/xray
 clear
 sub=$(</dev/urandom tr -dc a-z0-9 | head -c5)
 DOMAIN=ipgivpn.my.id
-SUB_DOMAIN=asx-${sub}.${DOMAIN}
+SUB_DOMAIN=asx-${sub}.ipgivpn.my.id
 CF_ID=admin@ipgivpn.my.id
 CF_KEY=df51a369af75b0f37f90bb7bf025ee3d2cc54
 set -euo pipefail
