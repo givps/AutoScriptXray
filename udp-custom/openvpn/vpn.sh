@@ -1,5 +1,4 @@
 #!/bin/bash
-# =========================================
 
 export DEBIAN_FRONTEND=noninteractive
 OS=$(uname -m)
