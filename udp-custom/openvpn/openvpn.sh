@@ -3,20 +3,118 @@
 BGreen='\e[1;32m'
 NC='\e[0m'
 
-# get domain
-domain=$(cat /etc/xray/domain)
-echo "$domain" > /root/domain
-clear
-
+# Get VPS Public IP
 MYIP=$(wget -qO- ipv4.icanhazip.com);
-MYIP2="s/xxxxxxxxx/$MYIP/g";
+DOMAIN=""
+if [ -f "/etc/xray/domain" ]; then
+DOMAIN=$(cat /etc/xray/domain)
+echo "$DOMAIN" > /root/domain
+fi
 
-# =========================================
-# install squid
-echo -e "\e[1;32m Installing Squid Proxy.. \e[0m"
-apt -y install squid
-wget -O /etc/squid/squid.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/openvpn/squid3.conf"
-sed -i $MYIP2 /etc/squid/squid.conf
+# Detect squid package name
+PKG="squid"
+COREDIR="/var/spool/squid"
+if apt-cache show squid3 >/dev/null 2>&1; then
+    PKG="squid3"
+    COREDIR="/var/spool/squid3"
+fi
+
+echo "[INFO] Installing package: $PKG"
+apt update -y
+apt install -y $PKG
+
+# Backup default config
+if [ -f "/etc/$PKG/squid.conf" ]; then
+    mv /etc/$PKG/squid.conf /etc/$PKG/squid.conf.bak
+fi
+
+# Create new config
+cat > /etc/$PKG/squid.conf <<-END
+# =============================
+# Squid Proxy Configuration
+# AutoScriptXray Edition
+# =============================
+
+acl manager proto cache_object
+acl localhost src 127.0.0.1/32 ::1
+acl to_localhost dst 127.0.0.0/8 0.0.0.0/32 ::1
+
+# Allowed Ports
+acl SSL_ports port 443
+acl SSL_ports port 442
+acl Safe_ports port 80
+acl Safe_ports port 21
+acl Safe_ports port 443
+acl Safe_ports port 70
+acl Safe_ports port 210
+acl Safe_ports port 1025-65535
+acl Safe_ports port 280
+acl Safe_ports port 488
+acl Safe_ports port 591
+acl Safe_ports port 777
+
+# Methods
+acl CONNECT method CONNECT
+
+# Allow SSH Tunnel via IP
+acl SSH dst ${MYIP}
+
+# Allow SSH Tunnel via domain (if available)
+END
+
+if [ -n "$DOMAIN" ]; then
+cat >> /etc/$PKG/squid.conf <<-END
+acl SSHDOMAIN dst_domain ${DOMAIN}
+http_access allow SSHDOMAIN
+END
+fi
+
+cat >> /etc/$PKG/squid.conf <<-END
+
+# Access rules
+http_access allow SSH
+http_access allow manager localhost
+http_access deny manager
+http_access allow localhost
+http_access deny all
+
+# Ports
+http_port 8000
+http_port 3128
+
+# Cache / Storage
+coredump_dir $COREDIR
+
+refresh_pattern ^ftp:        1440    20%    10080
+refresh_pattern ^gopher:     1440     0%     1440
+refresh_pattern -i (/cgi-bin/|\?) 0  0%        0
+refresh_pattern .            0       20%     4320
+
+# Hostname
+visible_hostname givps-proxy
+END
+
+# Init cache dir
+mkdir -p $COREDIR
+squid -z -f /etc/$PKG/squid.conf
+
+# Restart service
+systemctl restart $PKG
+systemctl enable $PKG
+
+echo "===================================="
+echo " Squid Proxy Installed Successfully "
+echo "------------------------------------"
+echo " VPS IP     : $MYIP"
+if [ -n "$DOMAIN" ]; then
+echo " Domain     : $DOMAIN"
+fi
+echo " Port       : 3128, 8000"
+echo " Package    : $PKG"
+echo " Config     : /etc/$PKG/squid.conf"
+echo " Status     : systemctl status $PKG"
+echo "===================================="
+sleep 5
 
 # =========================================
 # install openvpn
