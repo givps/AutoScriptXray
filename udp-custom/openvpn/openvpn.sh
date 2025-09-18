@@ -35,8 +35,10 @@ echo -e "$BGreen[SERVICE]$NC Restart All service SSH & OVPN"
 /etc/init.d/nginx restart >/dev/null 2>&1
 sleep 0.5
 echo -e "[ ${BGreen}ok${NC} ] Restarting nginx"
-/etc/init.d/openvpn restart >/dev/null 2>&1
+#/etc/init.d/openvpn restart >/dev/null 2>&1
+#systemctl restart openvpn@server >/dev/null 2>&1
 systemctl restart openvpn@server >/dev/null 2>&1
+systemctl enable openvpn@server >/dev/null 2>&1
 sleep 0.5
 echo -e "[ ${BGreen}ok${NC} ] Restarting cron "
 /etc/init.d/ssh restart >/dev/null 2>&1
