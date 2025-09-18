@@ -37,6 +37,7 @@ echo -e "$BGreen[SERVICE]$NC Restart All service SSH & OVPN"
 sleep 0.5
 echo -e "[ ${BGreen}ok${NC} ] Restarting nginx"
 /etc/init.d/openvpn restart >/dev/null 2>&1
+systemctl restart openvpn@server >/dev/null 2>&1
 sleep 0.5
 echo -e "[ ${BGreen}ok${NC} ] Restarting cron "
 /etc/init.d/ssh restart >/dev/null 2>&1
@@ -62,9 +63,9 @@ echo "-----------------------------------------Service Information--------------
 echo "=================================================================="  | tee -a log-install.txt
 echo ""
 echo "   >>> Service & Port"  | tee -a log-install.txt
-echo "   - OpenSSH                  : 22"  | tee -a log-install.txt
-echo "   - OpenVPN TCP          : 1194"  | tee -a log-install.txt
-echo "   - OpenVPN UDP          : 2200"  | tee -a log-install.txt
+echo "   - OpenSSH                  : 22/110"  | tee -a log-install.txt
+echo "   - OpenVPN TCP              : 1194"  | tee -a log-install.txt
+echo "   - OpenVPN UDP              : 2200"  | tee -a log-install.txt
 echo "   - Squid Proxy              : 3128, 8000"  | tee -a log-install.txt
 echo "   - SSH Websocket            : 80" | tee -a log-install.txt
 echo "   - SSH SSL Websocket        : 443" | tee -a log-install.txt
@@ -92,7 +93,6 @@ echo -e ""
 echo ""
 echo "" | tee -a log-install.txt
 clear
-rm -rf openvpn.sh
 sleep 5
 cd
 clear
