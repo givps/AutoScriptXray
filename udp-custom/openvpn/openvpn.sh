@@ -14,7 +14,6 @@ clear
 MYIP=$(wget -qO- ipv4.icanhazip.com);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
 # // install squid for ubuntu 18/20
-apt -y install squid3
 apt -y install squid
 
 # install squid for debian 11
