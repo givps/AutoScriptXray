@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 
 export DEBIAN_FRONTEND=noninteractive
 OS=$(uname -m)
@@ -32,80 +33,49 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 
 # =========================================
-# Generate client configs
+# Generate client configs with embedded CA + login prompt
+CA_CONTENT=$(cat /etc/openvpn/server/ca.crt)
+
+make_ovpn() {
+  local NAME=$1
+  local PROTO=$2
+  local PORT=$3
+  local EXTRA=$4
+
+  cat > /etc/openvpn/${NAME}.ovpn <<-EOF
+setenv FRIENDLY_NAME "${NAME^^}"
+client
+dev tun
+proto $PROTO
+remote $DOMAIN $PORT
+resolv-retry infinite
+nobind
+remote-cert-tls server
+cipher AES-256-CBC
+auth SHA256
+persist-key
+persist-tun
+auth-user-pass
+comp-lzo
+verb 3
+$EXTRA
+<ca>
+$CA_CONTENT
+</ca>
+EOF
+
+  sed -i $MYIP2 /etc/openvpn/${NAME}.ovpn
+  cp /etc/openvpn/${NAME}.ovpn /home/vps/public_html/${NAME}.ovpn
+}
 
 # TCP 1194
-cat > /etc/openvpn/client-tcp-1194.ovpn <<-EOF
-setenv FRIENDLY_NAME "OVPN TCP"
-client
-dev tun
-proto tcp
-remote $DOMAIN 1194
-http-proxy xxxxxxxxx 8000
-resolv-retry infinite
-nobind
-remote-cert-tls server
-cipher AES-256-CBC
-auth SHA256
-persist-key
-persist-tun
-auth-user-pass
-comp-lzo
-verb 3
-<ca>
-$(cat /etc/openvpn/server/ca.crt)
-</ca>
-EOF
-sed -i $MYIP2 /etc/openvpn/client-tcp-1194.ovpn
-cp /etc/openvpn/client-tcp-1194.ovpn /home/vps/public_html/
+make_ovpn "client-tcp-1194" "tcp" "1194" "http-proxy xxxxxxxxx 8000"
 
 # UDP 2200
-cat > /etc/openvpn/client-udp-2200.ovpn <<-EOF
-setenv FRIENDLY_NAME "OVPN UDP"
-client
-dev tun
-proto udp
-remote $DOMAIN 2200
-resolv-retry infinite
-nobind
-remote-cert-tls server
-cipher AES-256-CBC
-auth SHA256
-persist-key
-persist-tun
-auth-user-pass
-comp-lzo
-verb 3
-<ca>
-$(cat /etc/openvpn/server/ca.crt)
-</ca>
-EOF
-sed -i $MYIP2 /etc/openvpn/client-udp-2200.ovpn
-cp /etc/openvpn/client-udp-2200.ovpn /home/vps/public_html/
+make_ovpn "client-udp-2200" "udp" "2200"
 
-# SSL (TCP 443 instead of 442, adjust if needed)
-cat > /etc/openvpn/client-tcp-ssl.ovpn <<-EOF
-setenv FRIENDLY_NAME "OVPN SSL"
-client
-dev tun
-proto tcp
-remote $DOMAIN 443
-resolv-retry infinite
-nobind
-remote-cert-tls server
-cipher AES-256-CBC
-auth SHA256
-persist-key
-persist-tun
-auth-user-pass
-comp-lzo
-verb 3
-<ca>
-$(cat /etc/openvpn/server/ca.crt)
-</ca>
-EOF
-sed -i $MYIP2 /etc/openvpn/client-tcp-ssl.ovpn
-cp /etc/openvpn/client-tcp-ssl.ovpn /home/vps/public_html/
+# SSL (TCP 443)
+make_ovpn "client-tcp-ssl" "tcp" "443"
 
 # =========================================
 # Firewall rules for VPN subnets
