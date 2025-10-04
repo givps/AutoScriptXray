@@ -1,10 +1,12 @@
 #!/bin/bash
 # =========================================
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.2 (Wildcard API)
+# Quick Setup | Cloudflare Wildcard SSL + A Record
+# Edition : Stable 1.3
 # Author  : givps
 # License : MIT
 # =========================================
+
+set -euo pipefail
 
 # Pewarna
 RED='\033[0;31m'
@@ -18,84 +20,93 @@ MYIP=$(wget -qO- ipv4.icanhazip.com)
 echo -e "[ ${GREEN}INFO${NC} ] Detected VPS IP: $MYIP"
 sleep 1
 
-if grep -qw "XRAY" /root/log-install.txt; then
-    domainlama=$(cat /etc/xray/domain 2>/dev/null)
-else
-    domainlama=$(cat /etc/v2ray/domain 2>/dev/null)
-fi
-
 # ===== DOMAIN CONFIG =====
 DEFAULT_DOMAIN="givps.com"
-
-# Baca dari file jika ada
-if [[ -f /var/lib/ipvps.conf ]]; then
-    domain=$(cat /var/lib/ipvps.conf | cut -d'=' -f2)
-fi
-
-# Jika kosong, minta input manual
-if [[ -z "${domain:-}" ]]; then
-    read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
-    domain="${input_domain:-$DEFAULT_DOMAIN}"
-fi
+read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
+DOMAIN="${input_domain:-$DEFAULT_DOMAIN}"
 
 clear
-echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $domain"
+echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $DOMAIN"
 sleep 1
 
-# ===== Pastikan Cloudflare API token tersedia =====
-CF_TOKEN="BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k"
+# ===== Cloudflare API Token =====
+read -rp "Masukkan Cloudflare API Token (scoped DNS Edit) : " CF_Token
+export CF_Token="$CF_Token"
 
-if [[ -z "$CF_TOKEN" ]]; then
-    echo ""
-    echo -e "[ ${ORANGE}WARNING${NC} ] Cloudflare API Token belum ditemukan."
-    read -rp "Masukkan Cloudflare API Token kamu: " CF_TOKEN
-    echo ""
+# ===== Buat/Update A Record otomatis =====
+SUB_DOMAIN="t1.$DOMAIN"   # Bisa diganti sesuai kebutuhan
+echo -e "[ ${GREEN}INFO${NC} ] Membuat/Update A record: $SUB_DOMAIN → $MYIP"
+
+# ===== GET ZONE ID =====
+ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN&status=active" \
+  -H "Authorization: Bearer $CF_Token" \
+  -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+if [[ -z "$ZONE_ID" || "$ZONE_ID" == "null" ]]; then
+    echo -e "[${RED}ERROR${NC}] Gagal mengambil Zone ID $DOMAIN"
+    exit 1
 fi
 
-export CF_TOKEN="$CF_TOKEN"
+# ===== Cek Record =====
+RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$SUB_DOMAIN" \
+  -H "Authorization: Bearer $CF_Token" \
+  -H "Content-Type: application/json" | jq -r '.result[0].id')
 
-# ===== Stop service yang pakai port 80 (kalau ada) =====
-Cek=$(lsof -i:80 | awk 'NR==2 {print $1}')
-if [[ ! -z "$Cek" ]]; then
-    echo -e "[ ${ORANGE}WARNING${NC} ] Port 80 digunakan oleh: $Cek"
-    systemctl stop $Cek
-    sleep 1
+if [[ -z "$RECORD_ID" || "$RECORD_ID" == "null" ]]; then
+    echo -e "[ ${GREEN}INFO${NC} ] Membuat A record baru..."
+    RECORD_ID=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+      -H "Authorization: Bearer $CF_Token" \
+      -H "Content-Type: application/json" \
+      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$MYIP"'","ttl":120,"proxied":false}' | jq -r '.result.id')
+else
+    echo -e "[ ${GREEN}INFO${NC} ] Update A record..."
+    curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+      -H "Authorization: Bearer $CF_Token" \
+      -H "Content-Type: application/json" \
+      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$MYIP"'","ttl":120,"proxied":false}' >/dev/null
 fi
 
-systemctl stop nginx >/dev/null 2>&1
+# ===== Cek hasil =====
+if [[ -z "$RECORD_ID" || "$RECORD_ID" == "null" ]]; then
+    echo -e "[${RED}ERROR${NC}] Gagal membuat/update A record!"
+    exit 1
+fi
+
+echo -e "[ ${GREEN}SUCCESS${NC} ] A record siap: $SUB_DOMAIN → $MYIP"
 
 # ===== Mulai proses wildcard SSL =====
-echo -e "[ ${GREEN}INFO${NC} ] Mengeluarkan wildcard SSL untuk *.$domain ..."
+echo -e "[ ${GREEN}INFO${NC} ] Mengeluarkan wildcard SSL untuk *.$DOMAIN ..."
 sleep 1
 
 /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-
 /root/.acme.sh/acme.sh --issue \
   --dns dns_cf \
-  -d "$domain" \
-  -d "*.$domain" \
+  -d "$DOMAIN" \
+  -d "*.$DOMAIN" \
   --keylength ec-256
 
-# ===== Pasang sertifikat ke direktori Xray =====
-/root/.acme.sh/acme.sh --install-cert -d "$domain" \
+# ===== Pasang sertifikat ke direktori Xray/V2Ray =====
+mkdir -p /etc/xray /etc/v2ray /etc/utama
+/root/.acme.sh/acme.sh --install-cert -d "$DOMAIN" \
   --fullchainpath /etc/xray/xray.crt \
   --keypath /etc/xray/xray.key \
   --ecc
 
 # ===== Simpan domain =====
-mkdir -p /etc/xray /etc/v2ray
-echo "$domain" > /etc/xray/domain
-echo "$domain" > /etc/v2ray/domain
+echo "$DOMAIN" > /etc/xray/domain
+echo "$DOMAIN" > /etc/v2ray/domain
+echo "$DOMAIN" > /etc/utama/domain
 
 # ===== Restart service =====
-systemctl restart nginx >/dev/null 2>&1
-systemctl restart xray >/dev/null 2>&1
+systemctl restart nginx >/dev/null 2>&1 || true
+systemctl restart xray >/dev/null 2>&1 || true
 
 echo ""
 echo -e "[ ${GREEN}SUCCESS${NC} ] Wildcard SSL berhasil dibuat!"
-echo -e "Domain   : *.$domain"
-echo -e "Cert     : /etc/xray/xray.crt"
-echo -e "Key      : /etc/xray/xray.key"
+echo -e "Domain       : *.$DOMAIN"
+echo -e "A Record     : $SUB_DOMAIN → $MYIP"
+echo -e "Cert         : /etc/xray/xray.crt"
+echo -e "Key          : /etc/xray/xray.key"
 echo ""
 read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
 m-domain
