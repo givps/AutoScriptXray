@@ -24,11 +24,12 @@ else
     domainlama=$(cat /etc/v2ray/domain 2>/dev/null)
 fi
 
-# Ambil domain
-domain=$(cat /var/lib/ipvps.conf | cut -d'=' -f2)
-if [[ -z "$domain" ]]; then
-    read -rp "Masukkan domain utama (tanpa www): " domain
-fi
+# ===== DOMAIN CONFIG =====
+DEFAULT_DOMAIN="givps.com"
+
+# Minta input manual jika mau ganti, default givps.com
+read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
+domain="${input_domain:-$DEFAULT_DOMAIN}"
 
 clear
 echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $domain"
