@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =========================================
-# Auto Cloudflare DNS Updater (API Token Only)
+# Auto Cloudflare DNS Updater (API Token)
 # Author: givps
 # License: MIT
 # =========================================
@@ -17,50 +17,50 @@ SUB_DOMAIN="givps1-$(tr -dc a-z0-9 </dev/urandom | head -c5).$DOMAIN"
 # Cloudflare API Token (scoped)
 CF_API_TOKEN="BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k"
 
-# Get VPS Public IP
-IP=$(wget -qO- ipv4.icanhazip.com)
+echo "🔑 Using Cloudflare API Token: $CF_API_TOKEN"
+echo "🌐 Domain: $SUB_DOMAIN"
 
-echo "🔧 Creating/Updating DNS record for: ${SUB_DOMAIN}"
+# ===== GET VPS PUBLIC IP =====
+IP=$(wget -qO- ipv4.icanhazip.com)
+echo "📡 VPS Public IP: $IP"
 
 # ===== AUTH HEADER =====
-AUTH_HEADER=(-H "Authorization: Bearer $CF_API_TOKEN")
+AUTH_HEADER=(-H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json")
 
-# ===== GET ZONE =====
+# ===== GET ZONE ID =====
 ZONE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN&status=active" \
-  "${AUTH_HEADER[@]}" \
-  -H "Content-Type: application/json" | jq -r '.result[0].id')
+    "${AUTH_HEADER[@]}" | jq -r '.result[0].id')
 
 if [[ -z "$ZONE" || "$ZONE" == "null" ]]; then
     echo "❌ Failed to fetch Zone ID for $DOMAIN"
     exit 1
 fi
+echo "🗂 Zone ID: $ZONE"
 
-# ===== GET RECORD =====
+# ===== CHECK EXISTING DNS RECORD =====
 RECORD=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records?name=$SUB_DOMAIN" \
-  "${AUTH_HEADER[@]}" \
-  -H "Content-Type: application/json" | jq -r '.result[0].id')
+    "${AUTH_HEADER[@]}" | jq -r '.result[0].id')
 
-# ===== CREATE or UPDATE =====
+# ===== CREATE OR UPDATE RECORD =====
 if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
     echo "🆕 Creating new DNS record..."
     RECORD=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
-      "${AUTH_HEADER[@]}" \
-      -H "Content-Type: application/json" \
-      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}' \
-      | jq -r '.result.id')
+        "${AUTH_HEADER[@]}" \
+        --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}' \
+        | jq -r '.result.id')
+    if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
+        echo "❌ Failed to create DNS record!"
+        exit 1
+    fi
 else
     echo "♻️  Updating existing DNS record..."
-    curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records/$RECORD" \
-      "${AUTH_HEADER[@]}" \
-      -H "Content-Type: application/json" \
-      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}' \
-      >/dev/null
-fi
-
-# ===== VALIDATE =====
-if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
-    echo "❌ Failed to create or update DNS record!"
-    exit 1
+    UPDATE_RESULT=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records/$RECORD" \
+        "${AUTH_HEADER[@]}" \
+        --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}')
+    if [[ $(echo "$UPDATE_RESULT" | jq -r '.success') != "true" ]]; then
+        echo "❌ Failed to update DNS record!"
+        exit 1
+    fi
 fi
 
 echo "✅ DNS Record set: $SUB_DOMAIN → $IP"
