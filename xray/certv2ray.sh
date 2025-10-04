@@ -36,14 +36,16 @@ echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $domain"
 sleep 1
 
 # ===== Pastikan Cloudflare API token tersedia =====
-if [[ -z "$CF_Token" ]]; then
+CF_TOKEN="BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k"
+
+if [[ -z "$CF_TOKEN" ]]; then
     echo ""
     echo -e "[ ${ORANGE}WARNING${NC} ] Cloudflare API Token belum ditemukan."
-    echo "Masukkan Cloudflare API Token kamu:"
-    read -rp "CF_Token : " CF_Token
+    read -rp "Masukkan Cloudflare API Token kamu: " CF_TOKEN
     echo ""
 fi
-export CF_Token="$CF_Token"
+
+export CF_TOKEN="$CF_TOKEN"
 
 # ===== Stop service yang pakai port 80 (kalau ada) =====
 Cek=$(lsof -i:80 | awk 'NR==2 {print $1}')
