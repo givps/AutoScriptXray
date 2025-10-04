@@ -1,34 +1,29 @@
 #!/bin/bash
 set -euo pipefail
 
-# Dependencies
-command -v jq >/dev/null 2>&1 || apt-get install -y jq curl
+# =========================================
+# Auto Cloudflare DNS Updater (API Token Only)
+# Author: givps
+# License: MIT
+# =========================================
+
+# --- Install dependencies ---
+command -v jq >/dev/null 2>&1 || apt-get install -y jq curl >/dev/null 2>&1
 
 # ===== CONFIG =====
 DOMAIN="givps.com"
 SUB_DOMAIN="givps1-$(tr -dc a-z0-9 </dev/urandom | head -c5).$DOMAIN"
 
-# --- Choose ONE of the two auth methods ---
-# Option 1: Scoped API Token (Recommended)
+# Cloudflare API Token (scoped)
 CF_API_TOKEN="BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k"
 
-# Option 2: Global API Key
-CF_EMAIL=""
-CF_API_KEY=""
-
+# Get VPS Public IP
 IP=$(wget -qO- ipv4.icanhazip.com)
 
 echo "🔧 Creating/Updating DNS record for: ${SUB_DOMAIN}"
 
 # ===== AUTH HEADER =====
-if [[ -n "$CF_API_TOKEN" ]]; then
-    AUTH_HEADER=(-H "Authorization: Bearer $CF_API_TOKEN")
-elif [[ -n "$CF_API_KEY" && -n "$CF_EMAIL" ]]; then
-    AUTH_HEADER=(-H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_API_KEY")
-else
-    echo "❌ No Cloudflare API credentials configured!"
-    exit 1
-fi
+AUTH_HEADER=(-H "Authorization: Bearer $CF_API_TOKEN")
 
 # ===== GET ZONE =====
 ZONE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN&status=active" \
@@ -40,42 +35,43 @@ if [[ -z "$ZONE" || "$ZONE" == "null" ]]; then
     exit 1
 fi
 
-# ===== GET/CREATE RECORD =====
+# ===== GET RECORD =====
 RECORD=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records?name=$SUB_DOMAIN" \
   "${AUTH_HEADER[@]}" \
   -H "Content-Type: application/json" | jq -r '.result[0].id')
 
+# ===== CREATE or UPDATE =====
 if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
+    echo "🆕 Creating new DNS record..."
     RECORD=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
       "${AUTH_HEADER[@]}" \
       -H "Content-Type: application/json" \
       --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}' \
       | jq -r '.result.id')
-fi
-
-if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
-    echo "❌ Failed to create DNS record"
-    exit 1
-fi
-
-# ===== UPDATE RECORD =====
-RESULT=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records/$RECORD" \
-  "${AUTH_HEADER[@]}" \
-  -H "Content-Type: application/json" \
-  --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}')
-
-if echo "$RESULT" | grep -q '"success":true'; then
-    echo "✅ DNS Record updated: $SUB_DOMAIN → $IP"
 else
-    echo "❌ Failed to update DNS record!"
+    echo "♻️  Updating existing DNS record..."
+    curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records/$RECORD" \
+      "${AUTH_HEADER[@]}" \
+      -H "Content-Type: application/json" \
+      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$IP"'","ttl":120,"proxied":false}' \
+      >/dev/null
+fi
+
+# ===== VALIDATE =====
+if [[ -z "$RECORD" || "$RECORD" == "null" ]]; then
+    echo "❌ Failed to create or update DNS record!"
     exit 1
 fi
+
+echo "✅ DNS Record set: $SUB_DOMAIN → $IP"
 
 # ===== SAVE DOMAIN =====
 for f in /root/domain /root/scdomain /etc/xray/domain /etc/v2ray/domain; do
+    mkdir -p "$(dirname "$f")"
     echo "$SUB_DOMAIN" > "$f"
 done
+
 echo "IP=$SUB_DOMAIN" > /var/lib/ipvps.conf
+
 clear
 echo -e "🎉 Done. VPS Domain = ${SUB_DOMAIN}"
-sleep 5
