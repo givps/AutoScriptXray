@@ -1,60 +1,91 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-# pewarna hidup
+# Quick Setup | Script Setup Manager
+# Edition : Stable Edition 1.2 (Wildcard API)
+# Author  : givps
+# License : MIT
+# =========================================
+
+# Pewarna
 RED='\033[0;31m'
 NC='\033[0m'
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
+
 # ==========================================
-# Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
 clear
-cekray=`cat /root/log-install.txt | grep -ow "XRAY" | sort | uniq`
-if [ "$cekray" = "XRAY" ]; then
-domainlama=`cat /etc/xray/domain`
+MYIP=$(wget -qO- ipv4.icanhazip.com)
+echo -e "[ ${GREEN}INFO${NC} ] Detected VPS IP: $MYIP"
+sleep 1
+
+if grep -qw "XRAY" /root/log-install.txt; then
+    domainlama=$(cat /etc/xray/domain 2>/dev/null)
 else
-domainlama=`cat /etc/v2ray/domain`
+    domainlama=$(cat /etc/v2ray/domain 2>/dev/null)
+fi
+
+# Ambil domain
+domain=$(cat /var/lib/ipvps.conf | cut -d'=' -f2)
+if [[ -z "$domain" ]]; then
+    read -rp "Masukkan domain utama (tanpa www): " domain
 fi
 
 clear
-echo -e "[ ${green}INFO${NC} ] Start " 
-sleep 0.5
-systemctl stop nginx
-domain=$(cat /var/lib/ipvps.conf | cut -d'=' -f2)
-Cek=$(lsof -i:80 | cut -d' ' -f1 | awk 'NR==2 {print $1}')
-if [[ ! -z "$Cek" ]]; then
+echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $domain"
 sleep 1
-echo -e "[ ${red}WARNING${NC} ] Detected port 80 used by $Cek " 
-systemctl stop $Cek
-sleep 2
-echo -e "[ ${green}INFO${NC} ] Processing to stop $Cek " 
-sleep 1
+
+# ===== Pastikan Cloudflare API token tersedia =====
+if [[ -z "$CF_Token" ]]; then
+    echo ""
+    echo -e "[ ${ORANGE}WARNING${NC} ] Cloudflare API Token belum ditemukan."
+    echo "Masukkan Cloudflare API Token kamu:"
+    read -rp "CF_Token : " CF_Token
+    echo ""
 fi
-echo -e "[ ${green}INFO${NC} ] Starting renew cert... " 
-sleep 2
+export CF_Token="$CF_Token"
+
+# ===== Stop service yang pakai port 80 (kalau ada) =====
+Cek=$(lsof -i:80 | awk 'NR==2 {print $1}')
+if [[ ! -z "$Cek" ]]; then
+    echo -e "[ ${ORANGE}WARNING${NC} ] Port 80 digunakan oleh: $Cek"
+    systemctl stop $Cek
+    sleep 1
+fi
+
+systemctl stop nginx >/dev/null 2>&1
+
+# ===== Mulai proses wildcard SSL =====
+echo -e "[ ${GREEN}INFO${NC} ] Mengeluarkan wildcard SSL untuk *.$domain ..."
+sleep 1
+
 /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-/root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
-~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
-echo -e "[ ${green}INFO${NC} ] Renew cert done... " 
-sleep 2
-echo -e "[ ${green}INFO${NC} ] Starting service $Cek " 
-sleep 2
-echo $domain > /etc/xray/domain
-echo $domain > /etc/v2ray/domain
-systemctl restart $Cek
-systemctl restart nginx
-echo -e "[ ${green}INFO${NC} ] All finished... " 
-sleep 0.5
+
+/root/.acme.sh/acme.sh --issue \
+  --dns dns_cf \
+  -d "$domain" \
+  -d "*.$domain" \
+  --keylength ec-256
+
+# ===== Pasang sertifikat ke direktori Xray =====
+/root/.acme.sh/acme.sh --install-cert -d "$domain" \
+  --fullchainpath /etc/xray/xray.crt \
+  --keypath /etc/xray/xray.key \
+  --ecc
+
+# ===== Simpan domain =====
+mkdir -p /etc/xray /etc/v2ray
+echo "$domain" > /etc/xray/domain
+echo "$domain" > /etc/v2ray/domain
+
+# ===== Restart service =====
+systemctl restart nginx >/dev/null 2>&1
+systemctl restart xray >/dev/null 2>&1
+
 echo ""
-read -n 1 -s -r -p "Press any key to back on menu"
+echo -e "[ ${GREEN}SUCCESS${NC} ] Wildcard SSL berhasil dibuat!"
+echo -e "Domain   : *.$domain"
+echo -e "Cert     : /etc/xray/xray.crt"
+echo -e "Key      : /etc/xray/xray.key"
+echo ""
+read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
 m-domain
