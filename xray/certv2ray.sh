@@ -6,6 +6,8 @@
 # License : MIT
 # =========================================
 
+# API Token = BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k
+
 set -euo pipefail
 
 # Pewarna
