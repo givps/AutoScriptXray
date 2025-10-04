@@ -27,9 +27,16 @@ fi
 # ===== DOMAIN CONFIG =====
 DEFAULT_DOMAIN="givps.com"
 
-# Minta input manual jika mau ganti, default givps.com
-read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
-domain="${input_domain:-$DEFAULT_DOMAIN}"
+# Baca dari file jika ada
+if [[ -f /var/lib/ipvps.conf ]]; then
+    domain=$(cat /var/lib/ipvps.conf | cut -d'=' -f2)
+fi
+
+# Jika kosong, minta input manual
+if [[ -z "${domain:-}" ]]; then
+    read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
+    domain="${input_domain:-$DEFAULT_DOMAIN}"
+fi
 
 clear
 echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $domain"
