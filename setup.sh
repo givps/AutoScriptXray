@@ -1,48 +1,27 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-cd
+# setup
+# =========================================
 rm -rf setup.sh
 clear
+# --- Colors ---
 red='\e[1;31m'
 green='\e[0;32m'
-yell='\e[1;33m'
-tyblue='\e[1;36m'
-BRed='\e[1;31m'
-BGreen='\e[1;32m'
-BYellow='\e[1;33m'
-BBlue='\e[1;34m'
-NC='\e[0m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+nc='\e[0m'
 purple() { echo -e "\\033[35;1m${*}\\033[0m"; }
 tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
 yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 cd /root
-#System version number
+# cek root
 if [ "${EUID}" -ne 0 ]; then
 		echo "You need to run this script as root"
-  sleep 5
-		exit 1
-fi
-if [ "$(systemd-detect-virt)" == "openvz" ]; then
-		echo "OpenVZ is not supported"
-  clear
-                echo "For VPS with KVM and VMWare virtualization ONLY"
-  sleep 5
 		exit 1
 fi
 
-localip=$(hostname -I | cut -d\  -f1)
-hst=( `hostname` )
-dart=$(cat /etc/hosts | grep -w `hostname` | awk '{print $2}')
-if [[ "$hst" != "$dart" ]]; then
-echo "$localip $(hostname)" >> /etc/hosts
-fi
 # buat folder
 mkdir -p /etc/xray
 mkdir -p /etc/v2ray
