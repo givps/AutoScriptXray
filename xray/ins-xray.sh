@@ -41,6 +41,11 @@ ntpdate pool.ntp.org
 echo -e "[ ${green}INFO${nc} ] Configuring chrony..."
 systemctl enable chrony
 
+# Verify time sync
+echo -e "[ ${green}INFO${nc} ] Verifying time synchronization..."
+chronyc sourcestats -v
+chronyc tracking -v
+
 echo -e "[ ${green}SUCCESS${nc} ] Basic system configuration completed!"
 
 # install xray
@@ -139,7 +144,7 @@ cat > /etc/cron.d/acme-renew <<EOF
 0 3 1 */2 * root $ACME_HOME/acme.sh --cron --home $ACME_HOME > /var/log/acme-renew.log 2>&1
 EOF
 chmod 644 /etc/cron.d/acme-renew
-systemctl restart cron
+systemctl enable cron
 
 echo -e "${green}✅ ACME.sh + Cloudflare DNS setup completed.${nc}"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
