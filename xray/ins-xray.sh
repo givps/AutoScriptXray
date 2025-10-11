@@ -33,9 +33,6 @@ echo -e "[ ${green}INFO${nc} ] Configuring time settings..."
 systemctl stop chronyd 2>/dev/null
 systemctl stop chrony 2>/dev/null
 
-# Set timezone
-timedatectl set-timezone Asia/Jakarta
-
 # Sync time with ntp
 echo -e "[ ${green}INFO${nc} ] Syncing time with NTP servers..."
 ntpdate pool.ntp.org
