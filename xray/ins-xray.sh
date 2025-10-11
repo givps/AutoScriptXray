@@ -36,7 +36,6 @@ systemctl stop chrony 2>/dev/null
 # Sync time with ntp
 echo -e "[ ${green}INFO${nc} ] Syncing time with NTP servers..."
 ntpdate pool.ntp.org
-timedatectl set-ntp true
 
 # Enable and start chrony (choose one)
 echo -e "[ ${green}INFO${nc} ] Configuring chrony..."
@@ -48,11 +47,7 @@ echo -e "[ ${green}INFO${nc} ] Verifying time synchronization..."
 chronyc sourcestats -v
 chronyc tracking -v
 
-echo -e "[ ${green}INFO${nc} ] Current time: $(date)"
-echo -e "[ ${green}INFO${nc} ] Timezone: $(timedatectl | grep "Time zone")"
-
 echo -e "[ ${green}SUCCESS${nc} ] Basic system configuration completed!"
-
 
 # install xray
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
@@ -698,5 +693,4 @@ wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/
 
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
-
 
