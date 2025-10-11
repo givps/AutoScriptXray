@@ -365,7 +365,6 @@ wget -O lock-unlock "https://raw.githubusercontent.com/givps/AutoScriptXray/mast
 wget -O m-system "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-system.sh"
 wget -O m-domain "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-domain.sh"
 wget -O certv2ray "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/certv2ray.sh"
-wget -O speedtest "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/speedtest_cli.py"
 wget -O auto-reboot "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/auto-reboot.sh"
 wget -O restart "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/restart.sh"
 wget -O bw "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/bw.sh"
@@ -399,7 +398,6 @@ chmod +x lock-unlock
 chmod +x m-system
 chmod +x m-domain
 chmod +x certv2ray
-chmod +x speedtest
 chmod +x auto-reboot
 chmod +x restart
 chmod +x bw
