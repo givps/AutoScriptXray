@@ -25,20 +25,6 @@ if [ "${EUID}" -ne 0 ]; then
 		exit 1
 fi
 
-# time
-secs_to_human() {
-  local T=$1
-  local D=$((T/60/60/24))
-  local H=$((T/60/60%24))
-  local M=$((T/60%60))
-  local S=$((T%60))
-  (( D > 0 )) && printf '%d days ' $D
-  (( H > 0 )) && printf '%d hours ' $H
-  (( M > 0 )) && printf '%d minutes ' $M
-  printf '%d seconds\n' $S
-}
-start=$(date +%s)
-
 # set time zone
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 apt install -y ntp
@@ -134,8 +120,6 @@ echo ""
 echo -e "${red}=========================================${nc}" | tee -a log-install.txt
 echo -e "${blue}              t.me/givps_com             ${nc}"  | tee -a log-install.txt
 echo -e "${red}=========================================${nc}" | tee -a log-install.txt
-echo ""
-echo "Installation completed in $(secs_to_human "$(($(date +%s) - ${start}))")" | tee -a log-install.txt
 echo ""
 echo -e "${yellow} Auto reboot in 10 second...${nc}"
 sleep 10
