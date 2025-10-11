@@ -28,7 +28,7 @@ fi
 # set time zone
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 apt install -y ntp
-systemctl enable --now ntp
+systemctl enable ntp
 
 # disable ipv6
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
