@@ -40,10 +40,10 @@ mkdir -p /etc/log
 
 echo ""
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}           SETUP DOMAIN VPS               $NC"
+echo -e "${blue}           SETUP DOMAIN VPS               ${nc}"
 echo -e "${red}=========================================${nc}"
-echo -e "${white} 1 = Use Domain Random $NC"
-echo -e "${white} 2 = Choose Your Own Domain $NC"
+echo -e "${white} 1 = Use Domain Random ${nc}"
+echo -e "${white} 2 = Choose Your Own Domain ${nc}"
 echo -e "${red}=========================================${nc}"
 read -rp " input 1 or 2 / pilih 1 atau 2 : " dns
 if test $dns -eq 1; then
@@ -58,19 +58,19 @@ fi
 echo -e "${green}Done${nc}"
 
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}       Install SSH VPN           $NC"
+echo -e "${blue}       Install SSH VPN           ${nc}"
 echo -e "${red}=========================================${nc}"
 #install ssh vpn
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/ssh-vpn.sh && chmod +x ssh-vpn.sh && ./ssh-vpn.sh
 
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}          Install XRAY              $NC"
+echo -e "${blue}          Install XRAY              ${nc}"
 echo -e "${red}=========================================${nc}"
 #Instal Xray
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
 
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}      Install SSH Websocket           $NC"
+echo -e "${blue}      Install SSH Websocket           ${nc}"
 echo -e "${red}=========================================${nc}"
 # install sshws
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/insshws.sh && chmod +x insshws.sh && ./insshws.sh
