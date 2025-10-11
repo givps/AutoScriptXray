@@ -1,108 +1,181 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# SSH AUTOKILL MENU
+# =========================================
+
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
+
+# Configuration
+AUTOKILL_SCRIPT="/usr/bin/autokick"  # Configurable path
+
 clear
-Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
-Info="${Green_font_prefix}[ON]${Font_color_suffix}"
-Error="${Red_font_prefix}[OFF]${Font_color_suffix}"
-cek=$(grep -c -E "^# Autokill" /etc/cron.d/tendang)
-if [[ "$cek" = "1" ]]; then
-sts="${Info}"
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}             AUTOKILL SSH MENU          ${nc}"
+echo -e "${red}=========================================${nc}"
+
+# Check status with better detection
+if [ -f "/etc/cron.d/autokick" ] && grep -q -E "^# Autokill" "/etc/cron.d/autokick" 2>/dev/null; then
+    echo -e "Status Autokill   : ${green}[ACTIVE]${nc}"
+    
+    # Show current settings
+    cron_line=$(grep -E "^\*/[0-9]+" /etc/cron.d/autokick | head -1)
+    if [[ $cron_line =~ \*/[0-9]+\ \*\ \*\ \*\ \*\ root\ $AUTOKILL_SCRIPT\ ([0-9]+) ]]; then
+        interval=${cron_line#*/}
+        interval=${interval%% *}
+        max_conn=${BASH_REMATCH[1]}
+        echo -e "Check Interval    : ${yellow}Every $interval minutes${nc}"
+        echo -e "Max Connections   : ${yellow}$max_conn${nc}"
+    fi
 else
-sts="${Error}"
+    echo -e "Status Autokill   : ${red}[INACTIVE]${nc}"
 fi
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m             AUTOKILL SSH          \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "Status Autokill : $sts        "
+
 echo -e ""
-echo -e "[1]  AutoKill After 5 Minutes"
-echo -e "[2]  AutoKill After 10 Minutes"
-echo -e "[3]  AutoKill After 15 Minutes"
-echo -e "[4]  Turn Off AutoKill/MultiLogin"
-echo ""
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${white}1${nc} AutoKill Every 5 Minutes"
+echo -e "${white}2${nc} AutoKill Every 10 Minutes"
+echo -e "${white}3${nc} AutoKill Every 15 Minutes"
+echo -e "${white}4${nc} AutoKill Every 30 Minutes"
+echo -e "${white}5${nc} Custom Interval"
+echo -e "${white}6${nc} Turn Off AutoKill"
+echo -e "${white}0${nc} Back to SSH Menu"
+echo -e "${white}x${nc} Exit"
 echo -e ""
-read -p "Select From Options [1-4 or ctrl+c to exit] :  " AutoKill
-if [ -z $AutoKill ]; then
-autokill
+echo -e "${red}=========================================${nc}"
+echo -e ""
+
+read -p "Select option [0-6 or x]: " AutoKill
+
+# Validate autokill script exists
+if [[ "$AutoKill" =~ ^[1-5]$ ]] && [ ! -f "$AUTOKILL_SCRIPT" ]; then
+    echo -e "${red}Error: Autokill script not found at $AUTOKILL_SCRIPT${nc}"
+    echo -e "${yellow}Please ensure the autokill script is installed.${nc}"
+    read -n 1 -s -r -p "Press any key to continue..."
+    $0
+    exit 1
 fi
-read -p "Multilogin Maximum Number Of Allowed: " max
-echo -e ""
+
 case $AutoKill in
-                1)
-                echo -e ""
-                sleep 1
-                clear
-                echo > /etc/cron.d/tendang
-                echo "# Autokill" >/etc/cron.d/tendang
-                echo "*/5 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
-                echo -e ""
-                echo -e "======================================"
-                echo -e ""
-                echo -e "      Allowed MultiLogin : $max"
-                echo -e "      AutoKill Every     : 5 Minutes"      
-                echo -e ""
-                echo -e "======================================"                                                                                                                                 
-                service cron restart >/dev/null 2>&1
-                service cron reload >/dev/null 2>&1                                                                  
-                ;;
-                2)
-                echo -e ""
-                sleep 1
-                clear
-                echo > /etc/cron.d/tendang
-                echo "# Autokill" >/etc/cron.d/tendang
-                echo "*/10 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
-                echo -e ""
-                echo -e "======================================"
-                echo -e ""
-                echo -e "      Allowed MultiLogin : $max"
-                echo -e "      AutoKill Every     : 10 Minutes"
-                echo -e ""
-                echo -e "======================================"
-                service cron restart >/dev/null 2>&1
-                service cron reload >/dev/null 2>&1
-                ;;
-                3)
-                echo -e ""
-                sleep 1
-                clear
-                echo > /etc/cron.d/tendang
-                echo "# Autokill" >/etc/cron.d/tendang
-                echo "*/15 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
-                echo -e ""
-                echo -e "======================================"
-                echo -e ""
-                echo -e "      Allowed MultiLogin : $max"
-                echo -e "      AutoKill Every     : 15 Minutes"
-                echo -e ""
-                echo -e "======================================"
-                service cron restart >/dev/null 2>&1
-                service cron reload >/dev/null 2>&1
-                ;;
-                4)
-                clear
-                rm /etc/cron.d/tendang
-                echo -e ""
-                echo -e "======================================"
-                echo -e ""
-                echo -e "      AutoKill MultiLogin Turned Off  "
-                echo -e ""
-                echo -e "======================================"
-                service cron restart >/dev/null 2>&1
-                service cron reload >/dev/null 2>&1
-                ;;
-                x)
-                clear
-                exit
-                ;;
-                esac
-                
+    1|2|3)
+        case $AutoKill in
+            1) interval=5 ;;
+            2) interval=10 ;;
+            3) interval=15 ;;
+        esac
+        
+        while true; do
+            read -p "Max connections allowed [1-10]: " max
+            if [[ "$max" =~ ^[1-9]$|^10$ ]]; then
+                break
+            else
+                echo -e "${red}Please enter a number between 1-10${nc}"
+            fi
+        done
+        
+        # Create cron entry safely
+        cat > /etc/cron.d/autokick << EOF
+# Autokill - Do not edit manually
+# Check every $interval minutes, max $max connections
+*/$interval * * * * root $AUTOKILL_SCRIPT $max
+EOF
+        
+        echo -e "${green}✓ AutoKill activated${nc}"
+        echo -e "  Check interval : Every $interval minutes"
+        echo -e "  Max connections: $max"
+        ;;
+        
+    4)
+        while true; do
+            read -p "Max connections allowed [1-10]: " max
+            if [[ "$max" =~ ^[1-9]$|^10$ ]]; then
+                break
+            else
+                echo -e "${red}Please enter a number between 1-10${nc}"
+            fi
+        done
+        
+        cat > /etc/cron.d/autokick << EOF
+# Autokill - Do not edit manually
+# Check every 30 minutes, max $max connections
+*/30 * * * * root $AUTOKILL_SCRIPT $max
+EOF
+        
+        echo -e "${green}✓ AutoKill activated${nc}"
+        echo -e "  Check interval : Every 30 minutes"
+        echo -e "  Max connections: $max"
+        ;;
+        
+    5)
+        while true; do
+            read -p "Check interval in minutes [1-60]: " interval
+            if [[ "$interval" =~ ^[1-9]$|^[1-5][0-9]$|^60$ ]]; then
+                break
+            else
+                echo -e "${red}Please enter a number between 1-60${nc}"
+            fi
+        done
+        
+        while true; do
+            read -p "Max connections allowed [1-10]: " max
+            if [[ "$max" =~ ^[1-9]$|^10$ ]]; then
+                break
+            else
+                echo -e "${red}Please enter a number between 1-10${nc}"
+            fi
+        done
+        
+        cat > /etc/cron.d/autokick << EOF
+# Autokill - Do not edit manually
+# Check every $interval minutes, max $max connections
+*/$interval * * * * root $AUTOKILL_SCRIPT $max
+EOF
+        
+        echo -e "${green}✓ AutoKill activated${nc}"
+        echo -e "  Check interval : Every $interval minutes"
+        echo -e "  Max connections: $max"
+        ;;
+        
+    6)
+        if [ -f "/etc/cron.d/autokick" ]; then
+            rm -f /etc/cron.d/autokick
+            echo -e "${yellow}✓ AutoKill disabled${nc}"
+        else
+            echo -e "${yellow}AutoKill was already inactive${nc}"
+        fi
+        ;;
+        
+    0)
+        echo -e "${green}Returning to SSH Menu...${nc}"
+        sleep 1
+        m-sshovpn
+        exit 0
+        ;;
+        
+    x)
+        clear
+        exit 0
+        ;;
+        
+    *)
+        echo -e "${red}Invalid option!${nc}"
+        sleep 2
+        $0
+        ;;
+esac
+
+# Reload cron configuration
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl reload cron >/dev/null 2>&1 || systemctl reload crond >/dev/null 2>&1
+else
+    service cron reload >/dev/null 2>&1 || service crond reload >/dev/null 2>&1
+fi
+
+echo ""
+read -n 1 -s -r -p "Press any key to return to AutoKill menu..."
+$0

@@ -1,139 +1,231 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
-# =========================================
-MYIP=$(curl -sS ipv4.icanhazip.com)
-echo "Checking VPS"
-clear
-# Color Validation
-DF='\e[39m'
-Bold='\e[1m'
-Blink='\e[5m'
-yell='\e[33m'
-red='\e[31m'
-green='\e[32m'
-blue='\e[34m'
-PURPLE='\e[35m'
-cyan='\e[36m'
-Lred='\e[91m'
-Lgreen='\e[92m'
-Lyellow='\e[93m'
-BGreen='\e[1;32m'
-BYellow='\e[1;33m'
-BBlue='\e[1;34m'
-BPurple='\e[1;35m'
-BCyan='\e[1;36m'
-NC='\e[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-LIGHT='\033[0;37m'
-# VPS Information
-#Domain
-domain=$(cat /etc/xray/domain)
-#Status certificate
-modifyTime=$(stat $HOME/.acme.sh/${domain}_ecc/${domain}.key | sed -n '7,6p' | awk '{print $2" "$3" "$4" "$5}')
-modifyTime1=$(date +%s -d "${modifyTime}")
-currentTime=$(date +%s)
-stampDiff=$(expr ${currentTime} - ${modifyTime1})
-days=$(expr ${stampDiff} / 86400)
-remainingDays=$(expr 90 - ${days})
-tlsStatus=${remainingDays}
-if [[ ${remainingDays} -le 0 ]]; then
-	tlsStatus="expired"
-fi
-# OS Uptime
-uptime="$(uptime -p | cut -d " " -f 2-10)"
-# Download
-#Download/Upload today
-dtoday="$(vnstat -i eth0 | grep "today" | awk '{print $2" "substr ($3, 1, 1)}')"
-utoday="$(vnstat -i eth0 | grep "today" | awk '{print $5" "substr ($6, 1, 1)}')"
-ttoday="$(vnstat -i eth0 | grep "today" | awk '{print $8" "substr ($9, 1, 1)}')"
-#Download/Upload yesterday
-dyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $2" "substr ($3, 1, 1)}')"
-uyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $5" "substr ($6, 1, 1)}')"
-tyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $8" "substr ($9, 1, 1)}')"
-#Download/Upload current month
-dmon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $3" "substr ($4, 1, 1)}')"
-umon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $6" "substr ($7, 1, 1)}')"
-tmon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $9" "substr ($10, 1, 1)}')"
-# user
-Exp2=$"Lifetime"
-Name=$"VIP-MEMBERS"
-# Getting CPU Information
-cpu_usage1="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
-cpu_usage="$((${cpu_usage1/\.*} / ${corediilik:-1}))"
-cpu_usage+=" %"
-ISP=$(curl -s https://ipapi.co/org | cut -d " " -f 2-10 )
-CITY=$(curl -s https://ipinfo.io/city )
-#WKT=$(curl -s ipinfo.io/timezone?token=ce3da57536810d )
-DAY=$(date +%A)
-DATE=$(date +%m/%d/%Y)
-DATE2=$(date -R | cut -d " " -f -5)
-IPVPS=$(curl -s ipv4.icanhazip.com )
-LOC=$(curl -s https://ipapi.co/country_code )
-cname=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo )
-cores=$( awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo )
-freq=$( awk -F: ' /cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo )
-tram=$( free -m | awk 'NR==2 {print $2}' )
-uram=$( free -m | awk 'NR==2 {print $3}' )
-fram=$( free -m | awk 'NR==2 {print $4}' )
-clear 
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                      VPS INFO                    \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;32m OS            \e[0m: "`hostnamectl | grep "Operating System" | cut -d ' ' -f5-`	
-echo -e "\e[1;32m Uptime        \e[0m: $uptime"
-echo -e "\e[1;32m Public IP     \e[0m: $IPVPS"
-echo -e "\e[1;32m CITY          \e[0m: $CITY"
-echo -e "\e[1;32m Country       \e[0m: $LOC"
-echo -e "\e[1;32m ASN           \e[0m: $ISP"
-echo -e "\e[1;32m DOMAIN        \e[0m: $domain"
-echo -e "\e[1;32m DATE & TIME   \e[0m: $DATE2"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                      RAM INFO                    \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e ""
-echo -e "\e[1;32m RAM USED   \e[0m: $uram MB"	
-echo -e "\e[1;32m RAM TOTAL  \e[0m: $tram MB"
-echo -e ""
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                       MENU                       \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e   ""
-echo -e "\e[1;36m 1 \e[0m: Menu SSH"
-echo -e "\e[1;36m 2 \e[0m: Menu Vmess"
-echo -e "\e[1;36m 3 \e[0m: Menu Vless"
-echo -e "\e[1;36m 4 \e[0m: Menu Trojan"
-echo -e "\e[1;36m 5 \e[0m: Menu Shadowsocks"
-echo -e "\e[1;36m 6 \e[0m: Menu Setting"
-echo -e "\e[1;36m 7 \e[0m: Status Service"
-echo -e "\e[1;36m 8 \e[0m: Clear RAM Cache"
-echo -e "\e[1;36m 9 \e[0m: Reboot VPS"
-echo -e "\e[1;36m x \e[0m: Exit Script and to start again use: menu"
-echo -e   ""
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;32m Client Name \e[0m: $Name"
-echo -e "\e[1;32m Expired     \e[0m: $Exp2"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e   ""
-echo -e "\e[1;36m --------------------t.me/givpn_grup-------------------\e[0m"
-echo -e   ""
-read -p " Select menu :  "  opt
-echo -e   ""
-case $opt in
-1) clear ; m-sshovpn ;;
-2) clear ; m-vmess ;;
-3) clear ; m-vless ;;
-4) clear ; m-trojan ;;
-5) clear ; m-ssws ;;
-6) clear ; m-system ;;
-7) clear ; running ;;
-8) clear ; clearcache ;;
-9) clear ; reboot ; /sbin/reboot ;;
-x) exit ;;
-*) echo "You pressed it wrong " ; sleep 1 ; menu ;;
-esac
+# ==========================================
+# VPS Management Menu - Xray & SSL
+# ==========================================
 
+# Initialize with error handling
+set -euo pipefail
+
+# Color definitions
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+white='\e[1;37m'
+cyan='\e[1;36m'
+nc='\e[0m'
+
+# Function to get IP with fallbacks
+get_ip() {
+    ip=$(curl -s -4 --connect-timeout 5 ifconfig.me 2>/dev/null || \
+         wget -qO- --timeout=5 ipv4.icanhazip.com 2>/dev/null || \
+         echo "Unknown")
+    echo "$ip"
+}
+
+# Function to get domain safely
+get_domain() {
+    if [[ -f "/usr/local/etc/xray/domain" ]] && [[ -r "/usr/local/etc/xray/domain" ]]; then
+        domain=$(cat /usr/local/etc/xray/domain 2>/dev/null | head -n1)
+    elif [[ -f "/root/domain" ]] && [[ -r "/root/domain" ]]; then
+        domain=$(cat /root/domain 2>/dev/null | head -n1)
+    else
+        domain="Not Configured"
+    fi
+    echo "$domain"
+}
+
+# Function to check certificate status
+check_cert_status() {
+    local domain=$1
+    local cert_file="$HOME/.acme.sh/${domain}_ecc/${domain}.key"
+    
+    if [[ ! -f "$cert_file" ]]; then
+        echo "Not Found"
+        return
+    fi
+    
+    # More reliable certificate check
+    if modifyTime=$(stat -c %y "$cert_file" 2>/dev/null); then
+        modifyTime1=$(date +%s -d "$modifyTime")
+        currentTime=$(date +%s)
+        stampDiff=$((currentTime - modifyTime1))
+        days=$((stampDiff / 86400))
+        remainingDays=$((90 - days))
+        
+        if [[ $remainingDays -le 0 ]]; then
+            echo "expired"
+        else
+            echo "${remainingDays} days"
+        fi
+    else
+        echo "Unknown"
+    fi
+}
+
+# Function to get CPU usage accurately
+get_cpu_usage() {
+    cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
+    echo "$cpu_usage"
+}
+
+# Function to display header
+display_header() {
+    clear
+    # Get all system information
+    MYIP=$(get_ip)
+    domain=$(get_domain)
+    tlsStatus=$(check_cert_status "$domain")
+    uptime=$(uptime -p | cut -d " " -f 2-10)
+    DATE2=$(date -R | cut -d " " -f -5)
+    cpu_usage=$(get_cpu_usage)
+    
+    # Memory information
+    tram=$(free -m | awk 'NR==2 {print $2}')
+    uram=$(free -m | awk 'NR==2 {print $3}')
+    fram=$(free -m | awk 'NR==2 {print $4}')
+    
+    # OS information
+    os_info=$(hostnamectl | grep "Operating System" | cut -d ' ' -f5-)
+    
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}                      VPS INFO                    ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${white} OS            ${nc}: $os_info"
+    echo -e "${white} Uptime        ${nc}: $uptime"
+    echo -e "${white} IP            ${nc}: $MYIP"
+    echo -e "${white} DOMAIN        ${nc}: $domain"
+    echo -e "${white} TLS Status    ${nc}: $tlsStatus"
+    echo -e "${white} CPU Usage     ${nc}: $cpu_usage"
+    echo -e "${white} DATE & TIME   ${nc}: $DATE2"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}                      RAM INFO                    ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e ""
+    echo -e "${white} RAM USED     ${nc}: $uram MB"
+    echo -e "${white} RAM FREE     ${nc}: $fram MB"	
+    echo -e "${white} RAM TOTAL    ${nc}: $tram MB"
+    echo -e "${white} USAGE        ${nc}: $((uram * 100 / tram))%"
+    echo -e ""
+}
+
+# Function to display menu
+display_menu() {
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}                       MENU                       ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e ""
+    echo -e "${white} 1 ${nc} : Menu SSH"
+    echo -e "${white} 2 ${nc} : Menu Vmess"
+    echo -e "${white} 3 ${nc} : Menu Vless"
+    echo -e "${white} 4 ${nc} : Menu Trojan"
+    echo -e "${white} 5 ${nc} : Menu Shadowsocks"
+    echo -e "${white} 6 ${nc} : Menu Setting"
+    echo -e "${white} 7 ${nc} : Xray Log"
+    echo -e "${white} 8 ${nc} : Status Service"
+    echo -e "${white} 9 ${nc} : Clear RAM Cache"
+    echo -e "${white}10 ${nc} : Reboot VPS"
+    echo -e "${white} x ${nc} : Exit Script"
+    echo -e ""
+    echo -e "${red}=========================================${nc}"
+    echo -e "${white} Client Name ${nc}: VIP-MEMBERS"
+    echo -e "${white} Expired     ${nc}: Lifetime"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}         t.me/givps_com ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e ""
+}
+
+# Function to clear RAM cache safely
+clear_ram_cache() {
+    echo -e "${yellow}Clearing RAM cache...${nc}"
+    sync
+    echo 3 > /proc/sys/vm/drop_caches
+    sleep 2
+    echo -e "${green}RAM cache cleared successfully!${nc}"
+    sleep 2
+}
+
+# Function to reboot system safely
+safe_reboot() {
+    echo -e "${yellow}Rebooting system...${nc}"
+    echo -e "${yellow}Please wait...${nc}"
+    sleep 3
+    /sbin/reboot
+}
+
+# Function to handle invalid input
+handle_invalid_input() {
+    echo -e "${red}Invalid option! Please select a valid menu option.${nc}"
+    sleep 2
+}
+
+# Main menu function
+main_menu() {
+    while true; do
+        display_header
+        display_menu
+        
+        read -p " Select menu [1-10, x]: " opt
+        
+        case $opt in
+            1) clear ; m-sshovpn ;;
+            2) clear ; m-vmess ;;
+            3) clear ; m-vless ;;
+            4) clear ; m-trojan ;;
+            5) clear ; m-ssws ;;
+            6) clear ; m-system ;;
+            7) clear ; xray-log ;;
+            8) clear ; running ;;
+            9) clear ; clear_ram_cache ;;
+            10) clear ; safe_reboot ;;
+            x|X) 
+                echo -e "${green}Goodbye! To restart the menu use: menu${nc}"
+                exit 0 
+                ;;
+            *) 
+                handle_invalid_input 
+                ;;
+        esac
+        
+        # After executing any command (except exit), ask to continue
+        if [[ $opt != "x" ]] && [[ $opt != "X" ]]; then
+            echo ""
+            read -p "Press Enter to return to main menu..."
+        fi
+    done
+}
+
+# Check if required commands are available
+check_dependencies() {
+    local missing_deps=()
+    
+    for cmd in wget curl; do
+        if ! command -v "$cmd" &> /dev/null; then
+            missing_deps+=("$cmd")
+        fi
+    done
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        echo -e "${red}Missing dependencies: ${missing_deps[*]}${nc}"
+        echo -e "${yellow}Please install them first.${nc}"
+        exit 1
+    fi
+}
+
+# Main execution
+main() {
+    # Check dependencies
+    check_dependencies
+    
+    # Trap Ctrl+C for graceful exit
+    trap 'echo -e "\n${yellow}Interrupted. Use Ctrl+D or type exit to quit properly.${nc}"; sleep 1' SIGINT
+    
+    # Start main menu
+    main_menu
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

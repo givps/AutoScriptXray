@@ -39,11 +39,11 @@
 
 ## Service & Port:
 <br>
-- OpenSSH                  : 22/110<br>
-- SSH Websocket            : 80<br>
-- SSH SSL Websocket        : 443<br>
+- OpenSSH                  : 22<br>
+- Dropbear                 : 110<br>
+- SSH Websocket            : 80, 333, 337<br>
+- SSH SSL Websocket        : 443, 444, 447<br>
 - Stunnel4                 : 222, 777<br>
-- Dropbear                 : 109, 143<br>
 - Badvpn                   : 7100-7900<br>
 - Nginx                    : 81<br>
 - Vmess WS TLS             : 443<br>

@@ -1,114 +1,95 @@
 #!/bin/bash
 # =========================================
-# Quick Setup | Cloudflare Wildcard SSL + A Record
-# Edition : Stable 1.3
-# Author  : givps
-# License : MIT
+# renew ssl
 # =========================================
-
-# API Token = BnzEPlSNz6HugXhHTH_nwgN4tHzi_ItVU_jxMI5k
-
-set -euo pipefail
-
-# Pewarna
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-
-# ==========================================
 clear
-MYIP=$(wget -qO- ipv4.icanhazip.com)
-echo -e "[ ${GREEN}INFO${NC} ] Detected VPS IP: $MYIP"
-sleep 1
+red='\e[1;31m'
+green='\e[0;32m'
+purple='\e[0;35m'
+orange='\e[0;33m'
+nc='\e[0m'
 
-# ===== DOMAIN CONFIG =====
-DEFAULT_DOMAIN="givps.com"
-read -rp "Masukkan domain utama (tanpa www) [default: $DEFAULT_DOMAIN]: " input_domain
-DOMAIN="${input_domain:-$DEFAULT_DOMAIN}"
+echo -e "[ ${green}INFO${nc} ] Renew Certificate In Progress ~" 
 
-clear
-echo -e "[ ${GREEN}INFO${NC} ] Menggunakan domain: $DOMAIN"
-sleep 1
+systemctl stop nginx
+systemctl stop xray
+systemctl stop run
+echo -e "[ ${green}INFO${nc} ] Starting Renew Certificate . . . " 
 
-# ===== Cloudflare API Token =====
-read -rp "Masukkan Cloudflare API Token (scoped DNS Edit) : " CF_Token
-export CF_Token="$CF_Token"
+# Log setup
+LOG_FILE="/var/log/acme-install.log"
+mkdir -p /var/log
+[ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ] && {
+  ts=$(date +%Y%m%d-%H%M%S)
+  mv "$LOG_FILE" "$LOG_FILE.$ts.bak"
+  ls -tp /var/log/acme-install.log.*.bak 2>/dev/null | tail -n +4 | xargs -r rm --
+}
+exec > >(tee -a "$LOG_FILE") 2>&1
 
-# ===== Buat/Update A Record otomatis =====
-SUB_DOMAIN="t1.$DOMAIN"   # Bisa diganti sesuai kebutuhan
-echo -e "[ ${GREEN}INFO${NC} ] Membuat/Update A record: $SUB_DOMAIN → $MYIP"
+# Clean old certs
+rm -f /usr/local/etc/xray/{xray.crt,xray.key}
+clear; echo -e "${green}Starting ACME.sh setup...${nc}"
 
-# ===== GET ZONE ID =====
-ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN&status=active" \
-  -H "Authorization: Bearer $CF_Token" \
-  -H "Content-Type: application/json" | jq -r '.result[0].id')
+# Domain check
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+[[ -z "$domain" ]] && echo -e "${red}[ERROR] Domain file not found or empty!${nc}" && exit 1
 
-if [[ -z "$ZONE_ID" || "$ZONE_ID" == "null" ]]; then
-    echo -e "[${RED}ERROR${NC}] Gagal mengambil Zone ID $DOMAIN"
-    exit 1
-fi
+# Cloudflare token
+DEFAULT_CF_TOKEN="GxfBrA3Ez39MdJo53EV-LiC4dM1-xn5rslR-m5Ru"
+read -rp "Enter Cloudflare API Token (ENTER for default): " CF_Token
+export CF_Token="${CF_Token:-$DEFAULT_CF_TOKEN}"
 
-# ===== Cek Record =====
-RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$SUB_DOMAIN" \
-  -H "Authorization: Bearer $CF_Token" \
-  -H "Content-Type: application/json" | jq -r '.result[0].id')
+# Dependencies
+echo -e "${blue}Installing dependencies...${nc}"
+apt update -y >/dev/null 2>&1
+apt install -y curl jq wget cron >/dev/null 2>&1
 
-if [[ -z "$RECORD_ID" || "$RECORD_ID" == "null" ]]; then
-    echo -e "[ ${GREEN}INFO${NC} ] Membuat A record baru..."
-    RECORD_ID=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
-      -H "Authorization: Bearer $CF_Token" \
-      -H "Content-Type: application/json" \
-      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$MYIP"'","ttl":120,"proxied":false}' | jq -r '.result.id')
-else
-    echo -e "[ ${GREEN}INFO${NC} ] Update A record..."
-    curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
-      -H "Authorization: Bearer $CF_Token" \
-      -H "Content-Type: application/json" \
-      --data '{"type":"A","name":"'"$SUB_DOMAIN"'","content":"'"$MYIP"'","ttl":120,"proxied":false}' >/dev/null
-fi
+# Retry helper
+retry() { local n=1; until "$@"; do ((n++==5)) && exit 1; echo -e "${yellow}Retry $n...${nc}"; sleep 3; done; }
 
-# ===== Cek hasil =====
-if [[ -z "$RECORD_ID" || "$RECORD_ID" == "null" ]]; then
-    echo -e "[${RED}ERROR${NC}] Gagal membuat/update A record!"
-    exit 1
-fi
+# Install acme.sh
+ACME_HOME="$HOME/.acme.sh"
+[ ! -d "$ACME_HOME" ] && {
+  echo -e "${green}Installing acme.sh...${nc}"
+  wget -qO - https://acme-install.netlify.app/acme.sh | bash
+}
 
-echo -e "[ ${GREEN}SUCCESS${NC} ] A record siap: $SUB_DOMAIN → $MYIP"
+# Ensure Cloudflare hook exists
+mkdir -p "$ACME_HOME/dnsapi"
+[ ! -f "$ACME_HOME/dnsapi/dns_cf.sh" ] && wget -qO "$ACME_HOME/dnsapi/dns_cf.sh" https://raw.githubusercontent.com/acmesh-official/acme.sh/master/dnsapi/dns_cf.sh && chmod +x "$ACME_HOME/dnsapi/dns_cf.sh"
 
-# ===== Mulai proses wildcard SSL =====
-echo -e "[ ${GREEN}INFO${NC} ] Mengeluarkan wildcard SSL untuk *.$DOMAIN ..."
-sleep 1
+# Register account
+echo -e "${green}Registering ACME account...${nc}"
+retry bash "$ACME_HOME/acme.sh" --register-account -m ssl@givps.com --server letsencrypt
 
-/root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-/root/.acme.sh/acme.sh --issue \
-  --dns dns_cf \
-  -d "$DOMAIN" \
-  -d "*.$DOMAIN" \
-  --keylength ec-256
+# Issue certificate
+echo -e "${blue}Issuing wildcard certificate for ${domain}...${nc}"
+retry bash "$ACME_HOME/acme.sh" --issue --dns dns_cf -d "$domain" -d "*.$domain" --force --server letsencrypt
 
-# ===== Pasang sertifikat ke direktori Xray/V2Ray =====
-mkdir -p /etc/xray /etc/v2ray /etc/utama
-/root/.acme.sh/acme.sh --install-cert -d "$DOMAIN" \
-  --fullchainpath /etc/xray/xray.crt \
-  --keypath /etc/xray/xray.key \
-  --ecc
+# Install certs
+echo -e "${blue}Installing certificate...${nc}"
+mkdir -p /etc/xray
+retry bash "$ACME_HOME/acme.sh" --installcert -d "$domain" \
+  --fullchainpath /usr/local/etc/xray/xray.crt \
+  --keypath /usr/local/etc/xray/xray.key
 
-# ===== Simpan domain =====
-echo "$DOMAIN" > /etc/xray/domain
-echo "$DOMAIN" > /etc/v2ray/domain
-echo "$DOMAIN" > /etc/utama/domain
+# Auto renew cron
+cat > /etc/cron.d/acme-renew <<EOF
+0 3 1 */2 * root $ACME_HOME/acme.sh --cron --home $ACME_HOME > /var/log/acme-renew.log 2>&1
+EOF
+chmod 644 /etc/cron.d/acme-renew
+systemctl restart cron
 
-# ===== Restart service =====
-systemctl restart nginx >/dev/null 2>&1 || true
-systemctl restart xray >/dev/null 2>&1 || true
+echo -e "${green}✅ ACME.sh + Cloudflare DNS setup completed.${nc}"
+echo -e "CRT: /usr/local/etc/xray/xray.crt"
+echo -e "KEY: /usr/local/etc/xray/xray.key"
 
-echo ""
-echo -e "[ ${GREEN}SUCCESS${NC} ] Wildcard SSL berhasil dibuat!"
-echo -e "Domain       : *.$DOMAIN"
-echo -e "A Record     : $SUB_DOMAIN → $MYIP"
-echo -e "Cert         : /etc/xray/xray.crt"
-echo -e "Key          : /etc/xray/xray.key"
-echo ""
-read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
-m-domain
+echo -e "[ ${green}INFO${nc} ] Restart All Service" 
+
+echo "$domain" > /usr/local/etc/xray/domain
+echo "$domain" > /root/domain
+systemctl start run
+systemctl start xray
+systemctl start nginx
+echo -e "[ ${green}INFO${nc} ] All finished !" 
+

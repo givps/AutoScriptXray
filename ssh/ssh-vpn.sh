@@ -1,38 +1,133 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-apt dist-upgrade -y
-apt install netfilter-persistent -y
+# install ssh tool
+# =========================================
+
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
+
+# Function for logging
+log() {
+    echo -e "${green}[INFO]${nc} $1"
+}
+
+warn() {
+    echo -e "${yellow}[WARN]${nc} $1"
+}
+
+error() {
+    echo -e "${red}[ERROR]${nc} $1"
+}
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then 
+    error "Please run as root"
+    exit 1
+fi
+
+log "Starting installation..."
+
+# Update system first
+apt update -y
+apt upgrade -y
+
+# Install iptables directly
+apt install iptables iptables-persistent netfilter-persistent -y
 apt-get remove --purge ufw firewalld -y
-apt install -y screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzip git apt-transport-https build-essential -y
+apt-get remove --purge exim4 -y
+
+# Install all packages in single command (faster and more efficient)
+apt install -y \
+  shc wget curl figlet ruby python3 make cmake \
+  iptables iptables-persistent netfilter-persistent \
+  coreutils rsyslog net-tools htop screen \
+  zip unzip nano sed gnupg bc jq bzip2 gzip \
+  apt-transport-https build-essential dirmngr \
+  libxml-parser-perl neofetch git lsof vnstat iftop \
+  libsqlite3-dev libz-dev gcc g++ libreadline-dev \
+  zlib1g-dev libssl-dev dos2unix
+
+# Install Ruby gem
+gem install lolcat
+
+# Configure essential services
+systemctl enable rsyslog
+
+# Configure vnstat for network monitoring
+systemctl enable vnstat
+
+log "Installation completed successfully!"
 
 # initializing var
 export DEBIAN_FRONTEND=noninteractive
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-MYIP2="s/xxxxxxxxx/$MYIP/g";
-NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
+MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
+MYIP2="s/xxxxxxxxx/$MYIP/g"
+NET=$(ip -o -4 route show to default | awk '{print $5}')
 source /etc/os-release
 ver=$VERSION_ID
 
-#detail nama perusahaan
-country=ID
-state=Indonesia
-locality=Jakarta
-organization=none
-organizationalunit=none
-commonname=none
-email=none
+# =========================================
+# PAM CONFIGURATION
+# =========================================
+setup_secure_pam() {
+log "Setting up secure PAM configuration..."
 
-# simple password minimal
-curl -sS https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password | openssl aes-256-cbc -d -a -pass pass:scvps07gg -pbkdf2 > /etc/pam.d/common-password
-chmod +x /etc/pam.d/common-password
+# Backup original configuration
+if [ ! -f "/etc/pam.d/common-password.original" ]; then
+cp /etc/pam.d/common-password /etc/pam.d/common-password.original
+log "Original PAM configuration backed up"
+fi
 
-# go to root
-cd
+# Create secure PAM configuration
+cat > /etc/pam.d/common-password << 'EOF'
+#
+# /etc/pam.d/common-password - password-related modules common to all services
+#
+# This file is included from other service-specific PAM config files,
+# and should contain a list of modules that define the services to be
+# used to change user passwords.  The default is pam_unix.
+
+# Explanation of pam_unix options:
+#
+# The "sha512" option enables salted SHA512 passwords.  Without this option,
+# the default is Unix crypt.  Prior releases used the option "md5".
+#
+# The "obscure" option replaces the old `OBSCURE_CHECKS_ENAB' option in
+# login.defs.
+#
+# See the pam_unix manpage for other options.
+
+# As of pam 1.0.1-6, this file is managed by pam-auth-update by default.
+# To take advantage of this, it is recommended that you configure any
+# local modules either before or after the default block, and use
+# pam-auth-update to manage selection of other modules.  See
+# pam-auth-update(8) for details.
+
+# here are the per-package modules (the "Primary" block)
+password	[success=1 default=ignore]	pam_unix.so obscure sha512
+# here's the fallback if no module succeeds
+password	requisite			pam_deny.so
+# prime the stack with a positive return value if there isn't one already;
+# this avoids us returning an error just because nothing sets a success code
+# since the modules above will each just jump around
+password	required			pam_permit.so
+# and here are more per-package modules (the "Additional" block)
+# end of pam-auth-update config
+EOF
+
+# Set correct permissions
+chmod 644 /etc/pam.d/common-password
+log "Secure PAM configuration applied successfully"
+}
+
+# Run the secure PAM setup
+setup_secure_pam
 
 # Edit file /etc/systemd/system/rc-local.service
 cat > /etc/systemd/system/rc-local.service <<-END
@@ -63,269 +158,247 @@ chmod +x /etc/rc.local
 
 # enable rc local
 systemctl enable rc-local
-systemctl start rc-local.service
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 
-#update
-apt update -y
-apt upgrade -y
-apt dist-upgrade -y
-apt-get remove --purge ufw firewalld -y
-apt-get remove --purge exim4 -y
-
-#install jq
-apt -y install jq
-
-#install shc
-apt -y install shc
-
-# install wget and curl
-apt -y install wget curl
-
-#figlet
-apt-get install figlet -y
-apt-get install ruby -y
-apt install python -y
-apt install make -y
-apt install cmake -y
-apt install coreutils -y
-apt install rsyslog -y
-apt install net-tools -y
-apt install zip -y
-apt install unzip -y
-apt install nano -y
-apt install sed -y
-apt install gnupg -y
-apt install gnupg1 -y
-apt install bc -y
-apt install jq -y
-apt install apt-transport-https -y
-apt install build-essential -y
-apt install dirmngr -y
-apt install libxml-parser-perl -y
-apt install neofetch -y
-apt install git -y
-apt install lsof -y
-apt install libsqlite3-dev -y
-apt install libz-dev -y
-apt install gcc -y
-apt install g++ -y
-apt install libreadline-dev -y
-apt install zlib1g-dev -y
-apt install libssl-dev -y
-apt install libssl1.0-dev -y
-apt install dos2unix -y
-gem install lolcat
-
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
-# set locale
+# Remove old NGINX
+log "uninstall nginx..."
+apt remove -y nginx nginx-common
+apt purge -y nginx nginx-common
+apt autoremove -y
+apt update -y
+
+# Install Nginx
+log "install nginx..."
+apt update -y && apt install -y nginx
+
+# Remove default configs
+rm -f /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/sites-available/default
+rm -f /etc/nginx/conf.d/default.conf
+rm -f /etc/nginx/conf.d/vps.conf
+
+# Download custom configs
+wget -q -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
+wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
+
+# Add systemd override (fix for early startup)
+mkdir -p /etc/systemd/system/nginx.service.d
+printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
+
+# Restart Nginx
+systemctl enable nginx
+
+# Setup web root directory
+mkdir -p /home/vps/public_html
+
+# Download web files
+wget -q -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
+
+# Set ownership
+chown -R www-data:www-data /home/vps/public_html
+
+# Confirm
+log "✅ Nginx installation and configuration completed successfully."
+
+# install badvpn
+wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/install-udpgw.sh | bash
+
+# BadVPN Control Menu
+wget -O /usr/bin/m-badvpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/m-badvpn.sh"
+chmod +x /usr/bin/m-badvpn
+
+# =========================================
+# IMPROVED SSH SECURITY CONFIGURATION
+# =========================================
+log "configuring ssh security"
+
+# Enable password auth for initial setup, but consider disabling later
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
 sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
 
+# Additional security settings
+sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
+sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 600/g' /etc/ssh/sshd_config
+sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/g' /etc/ssh/sshd_config
 
-install_ssl(){
-    if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    apt-get install -y nginx certbot
-                    apt install -y nginx certbot
-                    sleep 3s
-            else
-                    apt-get install -y nginx certbot
-                    apt install -y nginx certbot
-                    sleep 3s
-            fi
-    else
-        yum install -y nginx certbot
-        sleep 3s
-    fi
+systemctl enable ssh
 
-    systemctl stop nginx.service
-
-    if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                    sleep 3s
-            else
-                    echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                    sleep 3s
-            fi
-    else
-        echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-        sleep 3s
-    fi
-}
-
-# install webserver
-apt -y install nginx
-cd
-rm /etc/nginx/sites-enabled/default
-rm /etc/nginx/sites-available/default
-wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
-rm /etc/nginx/conf.d/vps.conf
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
-/etc/init.d/nginx restart
-
-mkdir /etc/systemd/system/nginx.service.d
-printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
-rm /etc/nginx/conf.d/default.conf
-systemctl daemon-reload
-service nginx restart
-cd
-mkdir /home/vps
-mkdir /home/vps/public_html
-wget -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
-wget -O /home/vps/public_html/.htaccess "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/.htaccess"
-mkdir /home/vps/public_html/ss-ws
-mkdir /home/vps/public_html/clash-ws
-# install badvpn
-cd
-wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/newudpgw"
-chmod +x /usr/bin/badvpn-udpgw
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7400 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7600 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7700 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7800 --max-clients 500' /etc/rc.local
-sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7900 --max-clients 500' /etc/rc.local
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7400 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7600 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7700 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7800 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7900 --max-clients 500
-
-# setting port ssh
-cd
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 500' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 40000' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 81' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 51443' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 58080' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 666' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 200' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 22' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 2222' /etc/ssh/sshd_config
-sed -i '/Port 22/a Port 2269' /etc/ssh/sshd_config
-/etc/init.d/ssh restart
-
-echo "=== Install Dropbear ==="
+echo "=== install dropbear ==="
 # install dropbear
 apt -y install dropbear
-sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=143/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 50000 -p 109 -p 110 -p 69"/g' /etc/default/dropbear
+cat > /etc/default/dropbear << EOF
+# Dropbear configuration
+NO_START=0
+DROPBEAR_PORT=110
+EOF
+
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
-/etc/init.d/ssh restart
-/etc/init.d/dropbear restart
 
-cd
+systemctl enable dropbear
+
+log "=== install stunnel ==="
 # install stunnel
 apt install stunnel4 -y
 cat > /etc/stunnel/stunnel.conf <<-END
+pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
 client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
+foreground = no
+compression = zlib
+sslVersion = TLSv1.2
+options = NO_SSLv2
+options = NO_SSLv3
+options = NO_TLSv1
+options = NO_TLSv1.1
+renegotiation = no
+sessionCacheSize = 1000
+sessionTimeout = 300
 
-[dropbear]
+# =====================================
+# SSH Services
+# =====================================
+[openssh]
 accept = 222
 connect = 127.0.0.1:22
 
 [dropbear]
 accept = 777
-connect = 127.0.0.1:109
+connect = 127.0.0.1:110
+
+# =====================================
+# WebSocket SSL (WSS)
+# =====================================
+[ws-dropbear-ssl]
+accept = 444
+connect = 127.0.0.1:143
+
+[ws-stunnel-ssl]
+accept = 447
+connect = 127.0.0.1:144
+
+# =====================================
+# WebSocket Non-SSL (WS)
+# =====================================
+[ws-dropbear]
+accept = 333
+connect = 127.0.0.1:143
+protocol = none
 
 [ws-stunnel]
-accept = 2096
-connect = 700
-
-[openvpn]
-accept = 442
-connect = 127.0.0.1:1194
+accept = 337
+connect = 127.0.0.1:144
+protocol = none
 
 END
 
+# =========================================
+# Basic Firewall Setup (iptables)
+# =========================================
+
+# Allow loopback (localhost)
+iptables -A INPUT -i lo -j ACCEPT
+
+# Allow established / related connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Allow all used SSH ports
+iptables -A INPUT -p tcp -m multiport --dports 22,222 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 110,777 -j ACCEPT
+
+# HTTP/HTTPS
+iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
+
+# Websocket
+iptables -A INPUT -p tcp -m multiport --dports 143,333,444 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 144,337,447 -j ACCEPT
+
+# ICMP (ping)
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+
+# Drop all other connections that do not match the above rules
+iptables -A INPUT -j DROP
+
+# Save rules to rules.v4 file
+iptables-save > /etc/iptables/rules.v4
+
+# Save to persistent iptables configuration (auto restore on reboot)
+netfilter-persistent save
+
+# Reload to ensure active
+netfilter-persistent reload
+
+log "✅ Firewall successfully applied and saved permanently"
+
 # make a certificate
 openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
--subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
+openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
+-subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
+cat key.pem cert.pem > /etc/stunnel/stunnel.pem
+chmod 600 /etc/stunnel/stunnel.pem
 
-# konfigurasi stunnel4
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-/lib/systemd/systemd-sysv-install enable stunnel4
-systemctl start stunnel4
-/etc/init.d/stunnel4 restart
+cat > /etc/default/stunnel4 << EOF
+ENABLED=1
+FILES="/etc/stunnel/*.conf"
+OPTIONS=""
+PPP_RESTART=0
+EOF
 
+systemctl enable stunnel4
 
+log "=== install fail2ban ==="
 # install fail2ban
 apt -y install fail2ban
+cat > /etc/fail2ban/jail.local << 'EOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 3
+banaction = iptables-multiport
 
-# Instal DDOS Flate
-if [ -d '/usr/local/ddos' ]; then
-	echo; echo; echo "Please un-install the previous version first"
-	exit 0
-else
-	mkdir /usr/local/ddos
-fi
-clear
-echo; echo 'Installing DOS-Deflate 0.6'; echo
-echo; echo -n 'Downloading source files...'
-wget -q -O /usr/local/ddos/ddos.conf http://www.inetbase.com/scripts/ddos/ddos.conf
-echo -n '.'
-wget -q -O /usr/local/ddos/LICENSE http://www.inetbase.com/scripts/ddos/LICENSE
-echo -n '.'
-wget -q -O /usr/local/ddos/ignore.ip.list http://www.inetbase.com/scripts/ddos/ignore.ip.list
-echo -n '.'
-wget -q -O /usr/local/ddos/ddos.sh http://www.inetbase.com/scripts/ddos/ddos.sh
-chmod 0755 /usr/local/ddos/ddos.sh
-cp -s /usr/local/ddos/ddos.sh /usr/local/sbin/ddos
-echo '...done'
-echo; echo -n 'Creating cron to run script every minute.....(Default setting)'
-/usr/local/ddos/ddos.sh --cron > /dev/null 2>&1
-echo '.....done'
-echo; echo 'Installation has completed.'
-echo 'Config file is at /usr/local/ddos/ddos.conf'
-echo 'Please send in your comments and/or suggestions to zaf@vsnl.com'
+[sshd]
+enabled = true
+port = 22,110
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+
+[sshd-ddos]
+enabled = true
+port = 22,110
+logpath = /var/log/auth.log
+maxretry = 5
+bantime = 86400
+EOF
+
+systemctl enable fail2ban
+
+log "=== install ddos deflate ==="
+# Instal DDOS Deflate
+wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
 
 # // banner /etc/issue.net
 wget -O /etc/issue.net "https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
 echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
 
-# blokir torrent
-iptables -A FORWARD -m string --string "get_peers" --algo bm -j DROP
-iptables -A FORWARD -m string --string "announce_peer" --algo bm -j DROP
-iptables -A FORWARD -m string --string "find_node" --algo bm -j DROP
-iptables -A FORWARD -m string --algo bm --string "BitTorrent" -j DROP
-iptables -A FORWARD -m string --algo bm --string "BitTorrent protocol" -j DROP
-iptables -A FORWARD -m string --algo bm --string "peer_id=" -j DROP
-iptables -A FORWARD -m string --algo bm --string ".torrent" -j DROP
-iptables -A FORWARD -m string --algo bm --string "announce.php?passkey=" -j DROP
-iptables -A FORWARD -m string --algo bm --string "torrent" -j DROP
-iptables -A FORWARD -m string --algo bm --string "announce" -j DROP
-iptables -A FORWARD -m string --algo bm --string "info_hash" -j DROP
-iptables-save > /etc/iptables.up.rules
-iptables-restore -t < /etc/iptables.up.rules
-netfilter-persistent save
-netfilter-persistent reload
+systemctl enable sshd
+
+log "=== install block torrent ==="
+# install blokir torrent
+wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-torrent-blocker.sh | bash
 
 # download script
+log "=== download menu ==="
 cd /usr/bin
 # menu
 wget -O menu "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/menu.sh"
@@ -341,21 +414,19 @@ wget -O m-sshovpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master
 wget -O usernew "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/usernew.sh"
 wget -O trial "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/trial.sh"
 wget -O renew "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/renew.sh"
-wget -O hapus "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/hapus.sh"
+wget -O delete "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/delete.sh"
 wget -O cek "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/cek.sh"
 wget -O member "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/member.sh"
-wget -O delete "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/delete.sh"
+wget -O autodelete "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/autodelete.sh"
 wget -O autokill "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/autokill.sh"
 wget -O ceklim "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/ceklim.sh"
-wget -O tendang "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/tendang.sh"
+wget -O autokick "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/autokick.sh"
 wget -O sshws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/sshws.sh"
-wget -O user-lock "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/user-lock.sh"
-wget -O user-unlock "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/user-unlock.sh"
+wget -O lock-unlock "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/lock-unlock.sh"
 
 # menu system
 wget -O m-system "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-system.sh"
 wget -O m-domain "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-domain.sh"
-wget -O add-host "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/add-host.sh"
 wget -O certv2ray "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/certv2ray.sh"
 wget -O speedtest "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/speedtest_cli.py"
 wget -O auto-reboot "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/auto-reboot.sh"
@@ -378,20 +449,18 @@ chmod +x m-sshovpn
 chmod +x usernew
 chmod +x trial
 chmod +x renew
-chmod +x hapus
+chmod +x delete
 chmod +x cek
 chmod +x member
-chmod +x delete
+chmod +x autodelete
 chmod +x autokill
 chmod +x ceklim
-chmod +x tendang
+chmod +x autokick
 chmod +x sshws
-chmod +x user-lock
-chmod +x user-unlock
+chmod +x lock-unlock
 
 chmod +x m-system
 chmod +x m-domain
-chmod +x add-host
 chmod +x certv2ray
 chmod +x speedtest
 chmod +x auto-reboot
@@ -401,8 +470,11 @@ chmod +x m-tcp
 chmod +x xp
 chmod +x sshws
 chmod +x m-dns
-cd
 
+log "=== install speedtest ==="
+# Install speedtest (using modern method)
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+apt-get install -y speedtest || true
 
 cat > /etc/cron.d/re_otm <<-END
 SHELL=/bin/sh
@@ -420,12 +492,10 @@ cat > /home/re_otm <<-END
 7
 END
 
-service cron restart >/dev/null 2>&1
-service cron reload >/dev/null 2>&1
+systemctl enable cron
 
 # remove unnecessary files
-sleep 0.5
-echo -e "[ ${green}INFO$NC ] Clearing trash"
+log "clearing trash"
 apt autoclean -y >/dev/null 2>&1
 
 if dpkg -s unscd >/dev/null 2>&1; then
@@ -437,51 +507,4 @@ apt-get -y --purge remove apache2* >/dev/null 2>&1
 apt-get -y --purge remove bind9* >/dev/null 2>&1
 apt-get -y remove sendmail* >/dev/null 2>&1
 apt autoremove -y >/dev/null 2>&1
-# finishing
-cd
-chown -R www-data:www-data /home/vps/public_html
-sleep 0.5
-echo -e "$yell[SERVICE]$NC Restart All service SSH & OVPN"
-/etc/init.d/nginx restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting nginx"
-/etc/init.d/openvpn restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting cron "
-/etc/init.d/ssh restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting ssh "
-/etc/init.d/dropbear restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting dropbear "
-/etc/init.d/fail2ban restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting fail2ban "
-/etc/init.d/stunnel4 restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting stunnel4 "
-/etc/init.d/vnstat restart >/dev/null 2>&1
-sleep 0.5
-echo -e "[ ${green}ok${NC} ] Restarting vnstat "
-/etc/init.d/squid restart >/dev/null 2>&1
 
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7400 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7600 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7700 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7800 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7900 --max-clients 500
-history -c
-echo "unset HISTFILE" >> /etc/profile
-
-
-rm -f /root/key.pem
-rm -f /root/cert.pem
-rm -f /root/ssh-vpn.sh
-rm -f /root/bbr.sh
-
-# finihsing
-clear

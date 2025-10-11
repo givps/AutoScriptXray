@@ -1,52 +1,157 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
-clear
-               hariini=`date +%d-%m-%Y`
-               echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-               echo -e "\E[44;1;39m              ⇱ AUTO DELETE ⇲               \E[0m"
-               echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
-               echo "Thank you for removing the EXPIRED USERS"
-               echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
-               cat /etc/shadow | cut -d: -f1,8 | sed /:$/d > /tmp/expirelist.txt
-               totalaccounts=`cat /tmp/expirelist.txt | wc -l`
-               for((i=1; i<=$totalaccounts; i++ ))
-               do
-               tuserval=`head -n $i /tmp/expirelist.txt | tail -n 1`
-               username=`echo $tuserval | cut -f1 -d:`
-               userexp=`echo $tuserval | cut -f2 -d:`
-               userexpireinseconds=$(( $userexp * 86400 ))
-               tglexp=`date -d @$userexpireinseconds`             
-               tgl=`echo $tglexp |awk -F" " '{print $3}'`
-               while [ ${#tgl} -lt 2 ]
-               do
-               tgl="0"$tgl
-               done
-               while [ ${#username} -lt 15 ]
-               do
-               username=$username" " 
-               done
-               bulantahun=`echo $tglexp |awk -F" " '{print $2,$6}'`
-               echo "echo "Expired- User : $username Expire at : $tgl $bulantahun"" >> /usr/local/bin/alluser
-               todaystime=`date +%s`
-               if [ $userexpireinseconds -ge $todaystime ] ;
-               then
-		    	:
-               else
-               echo "echo "Expired- Username : $username are expired at: $tgl $bulantahun and removed : $hariini "" >> /usr/local/bin/deleteduser
-	           echo "Username $username that are expired at $tgl $bulantahun removed from the VPS $hariini"
-               userdel $username
-               fi
-               done
-               echo " "
-               echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
-               
-               read -n 1 -s -r -p "Press any key to back on menu"
-               m-sshovpn
+# DELETE SSH USER
+# =========================================
+
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
+
+# Function to delete user
+delete_user() {
+    clear
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}             DELETE USER                 ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo ""
+    
+    # Show current users
+    echo -e "${yellow}Current SSH Users:${nc}"
+    echo -e "${blue}=========================================${nc}"
+    getent passwd | grep -E "/home/.*:/bin/bash" | cut -d: -f1 | while read user; do
+        echo -e "${white}• $user${nc}"
+    done
+    echo -e "${blue}=========================================${nc}"
+    echo ""
+    
+    read -p "Username SSH to Delete : " Pengguna
+    
+    if [ -z "$Pengguna" ]; then
+        echo -e "${red}Error: Username cannot be empty!${nc}"
+        return 1
+    fi
+    
+    if getent passwd $Pengguna > /dev/null 2>&1; then
+        # Confirm deletion
+        echo ""
+        echo -e "${yellow}Are you sure you want to delete user: $Pengguna?${nc}"
+        read -p "Confirm deletion? [y/N]: " confirm
         
+        if [[ $confirm =~ ^[Yy]$ ]]; then
+            # Kill user processes
+            pkill -u $Pengguna 2>/dev/null
+            
+            # Delete user and home directory
+            userdel -r $Pengguna > /dev/null 2>&1
+            
+            # Remove from additional files if they exist
+            if [ -f "/etc/xray/config.json" ]; then
+                sed -i "/### $Pengguna ###/d" /etc/xray/config.json 2>/dev/null
+            fi
+            
+            if [ -f "/etc/xray/ssh.txt" ]; then
+                sed -i "/^$Pengguna:/d" /etc/xray/ssh.txt 2>/dev/null
+            fi
+            
+            echo -e "${green}✓ Success: User $Pengguna was removed.${nc}"
+            
+            # Log the deletion
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Deleted user: $Pengguna" >> /var/log/user-deletion.log
+        else
+            echo -e "${yellow}Deletion cancelled.${nc}"
+        fi
+    else
+        echo -e "${red}✗ Error: User $Pengguna does not exist.${nc}"
+    fi
+}
+
+# Function to show deletion log
+show_deletion_log() {
+    if [ -f "/var/log/user-deletion.log" ]; then
+        echo ""
+        echo -e "${yellow}Recent Deletion History:${nc}"
+        echo -e "${blue}=========================================${nc}"
+        tail -5 /var/log/user-deletion.log
+        echo -e "${blue}=========================================${nc}"
+    fi
+}
+
+# Main function
+main() {
+    delete_user
+    show_deletion_log
+    
+    echo ""
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}              MENU OPTIONS              ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${white}1${nc} Delete Another User"
+    echo -e "${white}2${nc} View Full Deletion Log"
+    echo -e "${white}3${nc} Clear Deletion Log"
+    echo -e "${white}4${nc} Back to SSH Menu"
+    echo -e "${white}5${nc} Exit"
+    echo -e "${red}=========================================${nc}"
+    echo ""
+    
+    read -p "Select option [1-5]: " option
+    
+    case $option in
+        1)
+            # Delete another user
+            exec $0
+            ;;
+        2)
+            # View full deletion log
+            clear
+            echo -e "${red}=========================================${nc}"
+            echo -e "${blue}          FULL DELETION LOG            ${nc}"
+            echo -e "${red}=========================================${nc}"
+            if [ -f "/var/log/user-deletion.log" ]; then
+                cat /var/log/user-deletion.log
+            else
+                echo -e "${yellow}No deletion history found${nc}"
+            fi
+            echo -e "${red}=========================================${nc}"
+            echo ""
+            read -n 1 -s -r -p "Press any key to continue..."
+            exec $0
+            ;;
+        3)
+            # Clear deletion log
+            if [ -f "/var/log/user-deletion.log" ]; then
+                rm -f /var/log/user-deletion.log
+                echo -e "${green}Deletion log cleared successfully!${nc}"
+            else
+                echo -e "${yellow}No deletion log to clear${nc}"
+            fi
+            sleep 2
+            exec $0
+            ;;
+        4)
+            # Back to SSH menu
+            echo -e "${green}Returning to SSH Menu...${nc}"
+            sleep 1
+            m-sshovpn
+            ;;
+        5)
+            # Exit
+            echo -e "${green}Exiting...${nc}"
+            sleep 1
+            clear
+            exit 0
+            ;;
+        *)
+            echo -e "${red}Invalid option! Returning to SSH Menu...${nc}"
+            sleep 2
+            m-sshovpn
+            ;;
+    esac
+}
+
+# Start the script
+main

@@ -1,11 +1,6 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-# pewarna hidup
+# pewarna
 BGreen='\e[1;32m'
 NC='\e[0m'
 clear

@@ -1,82 +1,143 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-# pewarna hidup
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
-# ==========================================
-# Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# add shadowsock
+# =========================================
 
-clear
-source /var/lib/ipvps.conf
-if [[ "$IP" = "" ]]; then
-domain=$(cat /etc/xray/domain)
-else
-domain=$IP
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+nc='\e[0m'
+
+# ==========================================
+# Getting system info
+MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+
+# Validate domain exists
+if [[ -z "$domain" ]]; then
+    echo -e "${red}ERROR${nc}: Domain not found. Please set domain first."
+    exit 1
 fi
 
-tls="$(cat ~/log-install.txt | grep -w "Shadowsocks WS TLS" | cut -d: -f2|sed 's/ //g')"
-ntls="$(cat ~/log-install.txt | grep -w "Shadowsocks WS none TLS" | cut -d: -f2|sed 's/ //g')"
-until [[ $user =~ ^[a-zA-Z0-9_]+$ && ${CLIENT_EXISTS} == '0' ]]; do
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\\E[0;41;36m      Add Shadowsocks Account    \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+# Get ports from log
+tls="$(cat ~/log-install.txt 2>/dev/null | grep -w "Shadowsocks WS TLS" | cut -d: -f2 | sed 's/ //g')"
+ntls="$(cat ~/log-install.txt 2>/dev/null | grep -w "Shadowsocks WS none TLS" | cut -d: -f2 | sed 's/ //g')"
 
-		read -rp "User: " -e user
-		CLIENT_EXISTS=$(grep -w $user /etc/xray/config.json | wc -l)
+# Validate ports
+if [[ -z "$tls" ]] || [[ -z "$ntls" ]]; then
+    echo -e "${red}ERROR${nc}: Could not find Shadowsocks ports in log file."
+    exit 1
+fi
 
-		if [[ ${CLIENT_EXISTS} == '1' ]]; then
-clear
-            echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-            echo -e "\\E[0;41;36m      Add Shadowsocks Account      \E[0m"
-            echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-			echo ""
-			echo "A client with the specified name was already created, please choose another name."
-			echo ""
-			echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-			read -n 1 -s -r -p "Press any key to back on menu"
-m-ssws
-		fi
-	done
+# Function to validate username
+validate_username() {
+    local user="$1"
+    if [[ ! $user =~ ^[a-zA-Z0-9_]+$ ]]; then
+        echo -e "${red}ERROR${nc}: Username can only contain letters, numbers and underscores"
+        return 1
+    fi
+    
+    local client_exists=$(grep -w "$user" /etc/xray/config.json 2>/dev/null | wc -l)
+    if [[ $client_exists -gt 0 ]]; then
+        echo -e "${red}ERROR${nc}: User $user already exists"
+        return 1
+    fi
+    
+    return 0
+}
 
+# Main user input loop
+while true; do
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}      Add Shadowsocks Account    ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${yellow}Info: Username must contain only letters, numbers, underscores${nc}"
+    echo ""
+    
+    read -rp "Username: " user
+    
+    if validate_username "$user"; then
+        break
+    fi
+    
+    echo ""
+    echo -e "${red}Please choose a different username${nc}"
+    echo ""
+    read -n 1 -s -r -p "Press any key to continue..."
+    clear
+done
+
+# Cipher and UUID
 cipher="aes-128-gcm"
 uuid=$(cat /proc/sys/kernel/random/uuid)
-read -p "Expired (days): " masaaktif
-exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
-sed -i '/#ssws$/a\### '"$user $exp"'\
-},{"password": "'""$uuid""'","method": "'""$cipher""'","email": "'""$user""'"' /etc/xray/config.json
-sed -i '/#ssgrpc$/a\### '"$user $exp"'\
-},{"password": "'""$uuid""'","method": "'""$cipher""'","email": "'""$user""'"' /etc/xray/config.json
-echo $cipher:$uuid > /tmp/log
+
+# Get expiry date with validation
+while true; do
+    read -p "Expired (days): " masaaktif
+    if [[ $masaaktif =~ ^[0-9]+$ ]] && [ $masaaktif -gt 0 ]; then
+        break
+    else
+        echo -e "${red}ERROR${nc}: Please enter a valid number of days"
+    fi
+done
+
+exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
+
+# Backup config file before modification
+cp /etc/xray/config.json /etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
+
+# Add user to config.json
+if ! sed -i '/#ssws$/a\### '"$user $exp"'\
+},{"password": "'"$uuid"'","method": "'"$cipher"'","email": "'"$user"'"' /etc/xray/config.json; then
+    echo -e "${red}ERROR${nc}: Failed to update config.json"
+    exit 1
+fi
+
+if ! sed -i '/#ssgrpc$/a\### '"$user $exp"'\
+},{"password": "'"$uuid"'","method": "'"$cipher"'","email": "'"$user"'"' /etc/xray/config.json; then
+    echo -e "${red}ERROR${nc}: Failed to update config.json for gRPC"
+    # Restore backup on error
+    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    exit 1
+fi
+
+# Create shadowsocks links
+echo "$cipher:$uuid" > /tmp/log
 shadowsocks_base64=$(cat /tmp/log)
 echo -n "${shadowsocks_base64}" | base64 > /tmp/log1
 shadowsocks_base64e=$(cat /tmp/log1)
+
 shadowsockslink="ss://${shadowsocks_base64e}@bug.com:$tls?path=ss-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
 shadowsockslink1="ss://${shadowsocks_base64e}@bug.com:$ntls?path=ss-ws&security=none&host=${domain}&type=ws#${user}"
 shadowsockslink2="ss://${shadowsocks_base64e}@${domain}:$tls?mode=gun&security=tls&type=grpc&serviceName=ss-grpc&sni=bug.com#${user}"
-systemctl restart xray
-rm -rf /tmp/log
-rm -rf /tmp/log1
-cat > /home/vps/public_html/ss-$user.txt <<-END
-# sodosok ws
-{ 
+
+# Restart services
+if ! systemctl restart xray; then
+    echo -e "${red}ERROR${nc}: Failed to restart Xray service"
+    exit 1
+fi
+
+# Cleanup temp files
+rm -rf /tmp/log /tmp/log1
+
+# Create client config file
+CLIENT_DIR="/home/vps/public_html"
+mkdir -p "$CLIENT_DIR"
+
+cat > "$CLIENT_DIR/ss-$user.txt" <<-END
+# ==========================================
+# Shadowsocks Client Configuration
+# Generated: $(date)
+# Username: $user
+# Expiry: $exp
+# ==========================================
+
+# Shadowsocks WS TLS Configuration
+{
  "dns": {
-    "servers": [
-      "8.8.8.8",
-      "8.8.4.4"
-    ]
+    "servers": ["1.1.1.1", "9.9.9.9"]
   },
  "inbounds": [
    {
@@ -88,10 +149,7 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
         "userLevel": 8
       },
       "sniffing": {
-        "destOverride": [
-          "http",
-          "tls"
-        ],
+        "destOverride": ["http", "tls"],
         "enabled": true
       },
       "tag": "socks"
@@ -99,20 +157,14 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
     {
       "port": 10809,
       "protocol": "http",
-      "settings": {
-        "userLevel": 8
-      },
+      "settings": {"userLevel": 8},
       "tag": "http"
     }
   ],
-  "log": {
-    "loglevel": "none"
-  },
+  "log": {"loglevel": "none"},
   "outbounds": [
     {
-      "mux": {
-        "enabled": true
-      },
+      "mux": {"enabled": true},
       "protocol": "shadowsocks",
       "settings": {
         "servers": [
@@ -133,9 +185,7 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
           "serverName": "bug.com"
         },
         "wsSettings": {
-          "headers": {
-            "Host": "$domain"
-          },
+          "headers": {"Host": "$domain"},
           "path": "/ss-ws"
         }
       },
@@ -148,11 +198,7 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
     },
     {
       "protocol": "blackhole",
-      "settings": {
-        "response": {
-          "type": "http"
-        }
-      },
+      "settings": {"response": {"type": "http"}},
       "tag": "block"
     }
   ],
@@ -172,20 +218,17 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
   },
   "routing": {
     "domainStrategy": "Asls",
-"rules": []
+    "rules": []
   },
   "stats": {}
- }
- 
- # SODOSOK grpc
+}
 
+# ==========================================
 
+# Shadowsocks gRPC Configuration
 {
     "dns": {
-    "servers": [
-      "8.8.8.8",
-      "8.8.4.4"
-    ]
+    "servers": ["1.1.1.1", "9.9.9.9"]
   },
  "inbounds": [
    {
@@ -197,10 +240,7 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
         "userLevel": 8
       },
       "sniffing": {
-        "destOverride": [
-          "http",
-          "tls"
-        ],
+        "destOverride": ["http", "tls"],
         "enabled": true
       },
       "tag": "socks"
@@ -208,20 +248,14 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
     {
       "port": 10809,
       "protocol": "http",
-      "settings": {
-        "userLevel": 8
-      },
+      "settings": {"userLevel": 8},
       "tag": "http"
     }
   ],
-  "log": {
-    "loglevel": "none"
-  },
+  "log": {"loglevel": "none"},
   "outbounds": [
     {
-      "mux": {
-        "enabled": true
-      },
+      "mux": {"enabled": true},
       "protocol": "shadowsocks",
       "settings": {
         "servers": [
@@ -255,11 +289,7 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
     },
     {
       "protocol": "blackhole",
-      "settings": {
-        "response": {
-          "type": "http"
-        }
-      },
+      "settings": {"response": {"type": "http"}},
       "tag": "block"
     }
   ],
@@ -279,38 +309,45 @@ cat > /home/vps/public_html/ss-$user.txt <<-END
   },
   "routing": {
     "domainStrategy": "Asls",
-"rules": []
+    "rules": []
   },
   "stats": {}
 }
 END
+
+# Restart services quietly
 systemctl restart xray > /dev/null 2>&1
 service cron restart > /dev/null 2>&1
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\\E[0;41;36m        Shadowsocks Account      \E[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Remarks        : ${user}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Domain         : ${domain}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Wildcard       : (bug.com).${domain}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Port TLS       : ${tls}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Port none TLS  : ${ntls}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Port gRPC      : ${tls}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Password       : ${uuid}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Ciphers        : ${cipher}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Network        : ws/grpc" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Path           : /ss-ws" | tee -a /etc/log-create-shadowsocks.log
-echo -e "ServiceName    : ss-grpc" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Link TLS       : ${shadowsockslink}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Link none TLS  : ${shadowsockslink1}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Link gRPC      : ${shadowsockslink2}" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo -e "Expired On     : $exp" | tee -a /etc/log-create-shadowsocks.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-shadowsocks.log
-echo "" | tee -a /etc/log-create-shadowsocks.log
-read -n 1 -s -r -p "Press any key to back on menu"
 
+# Display results
+clear
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "${blue}        Shadowsocks Account      ${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Remarks        : ${user}" | tee -a /var/log/create-shadowsocks.log
+echo -e "IP             : ${MYIP}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Domain         : ${domain}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Wildcard       : bug.com.${domain}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Port TLS       : ${tls}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Port none TLS  : ${ntls}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Port gRPC      : ${tls}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Password       : ${uuid}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Ciphers        : ${cipher}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Network        : ws/grpc" | tee -a /var/log/create-shadowsocks.log
+echo -e "Path           : /ss-ws" | tee -a /var/log/create-shadowsocks.log
+echo -e "ServiceName    : ss-grpc" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Link TLS       : ${shadowsockslink}" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Link none TLS  : ${shadowsockslink1}" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Link gRPC      : ${shadowsockslink2}" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo -e "Expired On     : $exp" | tee -a /var/log/create-shadowsocks.log
+echo -e "Config File    : $CLIENT_DIR/ss-$user.txt" | tee -a /var/log/create-shadowsocks.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-shadowsocks.log
+echo "" | tee -a /var/log/create-shadowsocks.log
+
+read -n 1 -s -r -p "Press any key to back on menu"
 m-ssws
+

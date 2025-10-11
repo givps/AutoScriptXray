@@ -1,16 +1,17 @@
 [Unit]
-Description=Websocket-Dropbear
-Documentation=https://google.com
+Description=SSH WebSocket over Dropbear Service
 After=network.target nss-lookup.target
+Documentation=man:ws-dropbear
 
 [Service]
 Type=simple
 User=root
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-NoNewPrivileges=true
-ExecStart=/usr/bin/python -O /usr/local/bin/ws-dropbear 2095
-Restart=on-failure
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 143
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+NoNewPrivileges=false
 
 [Install]
 WantedBy=multi-user.target

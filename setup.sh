@@ -2,144 +2,94 @@
 # =========================================
 # setup
 # =========================================
-rm -rf setup.sh
-clear
-# --- Colors ---
+set -euo pipefail
+
+# color
 red='\e[1;31m'
 green='\e[0;32m'
 yellow='\e[1;33m'
 blue='\e[1;34m'
+white='\e[1;37m'
 nc='\e[0m'
-purple() { echo -e "\\033[35;1m${*}\\033[0m"; }
-tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
-yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
-green() { echo -e "\\033[32;1m${*}\\033[0m"; }
-red() { echo -e "\\033[31;1m${*}\\033[0m"; }
-cd /root
+
+# delete old
+rm -f cf.sh >/dev/null 2>&1
+rm -f ssh-vpn.sh >/dev/null 2>&1
+rm -f ins-xray.sh >/dev/null 2>&1
+rm -f insshws.sh >/dev/null 2>&1
+
 # cek root
 if [ "${EUID}" -ne 0 ]; then
-		echo "You need to run this script as root"
+		echo "${yellow}You need to run this script as root${nc}"
+    sleep 5
 		exit 1
 fi
 
-# buat folder
-mkdir -p /etc/xray
-mkdir -p /etc/v2ray
-touch /etc/xray/domain
-touch /etc/v2ray/domain
-touch /etc/xray/scdomain
-touch /etc/v2ray/scdomain
-
-
-echo -e "[ ${BBlue}NOTES${NC} ] Before we go.. "
-sleep 0.5
-echo -e "[ ${BBlue}NOTES${NC} ] I need check your headers first.."
-sleep 0.5
-echo -e "[ ${BGreen}INFO${NC} ] Checking headers"
-sleep 0.5
-totet=`uname -r`
-REQUIRED_PKG="linux-headers-$totet"
-PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-echo Checking for $REQUIRED_PKG: $PKG_OK
-if [ "" = "$PKG_OK" ]; then
-  sleep 0.5
-  echo -e "[ ${BRed}WARNING${NC} ] Try to install ...."
-  echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-  apt-get --yes install $REQUIRED_PKG
-  sleep 0.5
-  echo ""
-  sleep 0.5
-  echo -e "[ ${BBlue}NOTES${NC} ] If error you need.. to do this"
-  sleep 0.5
-  echo ""
-  sleep 0.5
-  echo -e "[ ${BBlue}NOTES${NC} ] apt update && apt upgrade -y && reboot"
-  sleep 0.5
-  echo ""
-  sleep 0.5
-  echo -e "[ ${BBlue}NOTES${NC} ] After this"
-  sleep 0.5
-  echo -e "[ ${BBlue}NOTES${NC} ] Then run this script again"
-  echo -e "[ ${BBlue}NOTES${NC} ] enter now"
-  read
-else
-  echo -e "[ ${BGreen}INFO${NC} ] Oke installed"
-fi
-
-ttet=`uname -r`
-ReqPKG="linux-headers-$ttet"
-if ! dpkg -s $ReqPKG  >/dev/null 2>&1; then
-  rm /root/setup.sh >/dev/null 2>&1 
-  exit
-else
-  clear
-fi
-
-
+# time
 secs_to_human() {
-    echo "Installation time : $(( ${1} / 3600 )) hours $(( (${1} / 60) % 60 )) minute's $(( ${1} % 60 )) seconds"
+  local T=$1
+  local D=$((T/60/60/24))
+  local H=$((T/60/60%24))
+  local M=$((T/60%60))
+  local S=$((T%60))
+  (( D > 0 )) && printf '%d days ' $D
+  (( H > 0 )) && printf '%d hours ' $H
+  (( M > 0 )) && printf '%d minutes ' $M
+  printf '%d seconds\n' $S
 }
 start=$(date +%s)
+
+# set time zone
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+apt install -y ntp
+systemctl enable --now ntp
+
+# disable ipv6
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
-echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
-apt install git curl -y >/dev/null 2>&1
-apt install python -y >/dev/null 2>&1
-echo -e "[ ${BGreen}INFO${NC} ] Aight good ... installation file is ready"
-sleep 0.5
-echo -ne "[ ${BGreen}INFO${NC} ] Check permission : "
-
-echo -e "$BGreen Permission Accepted!$NC"
-sleep 2
-
-mkdir -p /var/lib/ >/dev/null 2>&1
-echo "IP=" >> /var/lib/ipvps.conf
+# create folder
+mkdir -p /usr/local/etc/xray
+mkdir -p /etc/log
 
 echo ""
-clear
-echo -e "$BBlue                     SETUP DOMAIN VPS     $NC"
-echo -e "$BYellow----------------------------------------------------------$NC"
-echo -e "$BGreen 1. Use Domain Random $NC"
-echo -e "$BGreen 2. Choose Your Own Domain $NC"
-echo -e "$BYellow----------------------------------------------------------$NC"
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}           SETUP DOMAIN VPS               $NC"
+echo -e "${red}=========================================${nc}"
+echo -e "${white} 1 = Use Domain Random $NC"
+echo -e "${white} 2 = Choose Your Own Domain $NC"
+echo -e "${red}=========================================${nc}"
 read -rp " input 1 or 2 / pilih 1 atau 2 : " dns
 if test $dns -eq 1; then
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/cf && chmod +x cf && ./cf
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/cf.sh && chmod +x cf.sh && ./cf.sh
 elif test $dns -eq 2; then
 read -rp "Enter Your Domain : " dom
-echo "IP=$dom" > /var/lib/ipvps.conf
-echo "$dom" > /root/scdomain
-echo "$dom" > /etc/xray/scdomain
-echo "$dom" > /etc/xray/domain
-echo "$dom" > /etc/v2ray/domain
-echo "$dom" > /root/domain
+echo "$dom" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 else 
-echo "Not Found Argument"
+echo "Wrong input"
 exit 1
 fi
-echo -e "${BGreen}Done!${NC}"
-sleep 2
-clear
-    
-#install ssh ovpn
-echo -e "\e[33m-----------------------------------\033[0m"
-echo -e "$BGreen      Install SSH Websocket           $NC"
-echo -e "\e[33m-----------------------------------\033[0m"
-sleep 0.5
-clear
+echo -e "${green}Done${nc}"
+
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}       Install SSH VPN           $NC"
+echo -e "${red}=========================================${nc}"
+#install ssh vpn
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/ssh-vpn.sh && chmod +x ssh-vpn.sh && ./ssh-vpn.sh
+
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}          Install XRAY              $NC"
+echo -e "${red}=========================================${nc}"
 #Instal Xray
-echo -e "\e[33m-----------------------------------\033[0m"
-echo -e "$BGreen          Install XRAY              $NC"
-echo -e "\e[33m-----------------------------------\033[0m"
-sleep 0.5
-clear
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
+
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}      Install SSH Websocket           $NC"
+echo -e "${red}=========================================${nc}"
+# install sshws
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/insshws.sh && chmod +x insshws.sh && ./insshws.sh
-clear
-cat> /root/.profile << END
+
+cat > /root/.profile << END
 # ~/.profile: executed by Bourne-compatible login shells.
 
 if [ "$BASH" ]; then
@@ -152,52 +102,20 @@ mesg n || true
 clear
 menu
 END
-chmod 644 /root/.profile
 
-if [ -f "/root/log-install.txt" ]; then
-rm /root/log-install.txt > /dev/null 2>&1
-fi
-if [ -f "/etc/afak.conf" ]; then
-rm /etc/afak.conf > /dev/null 2>&1
-fi
-if [ ! -f "/etc/log-create-ssh.log" ]; then
-echo "Log SSH Account " > /etc/log-create-ssh.log
-fi
-if [ ! -f "/etc/log-create-vmess.log" ]; then
-echo "Log Vmess Account " > /etc/log-create-vmess.log
-fi
-if [ ! -f "/etc/log-create-vless.log" ]; then
-echo "Log Vless Account " > /etc/log-create-vless.log
-fi
-if [ ! -f "/etc/log-create-trojan.log" ]; then
-echo "Log Trojan Account " > /etc/log-create-trojan.log
-fi
-if [ ! -f "/etc/log-create-shadowsocks.log" ]; then
-echo "Log Shadowsocks Account " > /etc/log-create-shadowsocks.log
-fi
-history -c
-serverV=$( curl -sS https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/versi  )
-echo $serverV > /opt/.ver
-aureb=$(cat /home/re_otm)
-b=11
-if [ $aureb -gt $b ]
-then
-gg="PM"
-else
-gg="AM"
-fi
-curl -sS ipv4.icanhazip.com > /etc/myipvps
+systemctl reload-daemon
+
 echo ""
-echo "=================================================================="  | tee -a log-install.txt
-echo "-----------------------------------------Service Information----------------------------------------------"  | tee -a log-install.txt
-echo "=================================================================="  | tee -a log-install.txt
+echo -e "${red}=========================================${nc}"  | tee -a log-install.txt
+echo -e "${blue}          Service Information            ${nc}"  | tee -a log-install.txt
+echo -e "${red}=========================================${nc}"  | tee -a log-install.txt
 echo ""
 echo "   >>> Service & Port"  | tee -a log-install.txt
-echo "   - OpenSSH                  : 22/110"  | tee -a log-install.txt
-echo "   - SSH Websocket            : 80" | tee -a log-install.txt
-echo "   - SSH SSL Websocket        : 443" | tee -a log-install.txt
-echo "   - Stunnel4                 : 222, 777" | tee -a log-install.txt
-echo "   - Dropbear                 : 109, 143" | tee -a log-install.txt
+echo "   - OpenSSH                  : 22"  | tee -a log-install.txt
+echo "   - Dropbear                 : 110" | tee -a log-install.txt
+echo "   - SSH Websocket            : 80, 333, 337" | tee -a log-install.txt
+echo "   - SSH SSL Websocket        : 443, 444, 447" | tee -a log-install.txt
+echo "   - Stunnel4                 : 222, 777," | tee -a log-install.txt
 echo "   - Badvpn                   : 7100-7900" | tee -a log-install.txt
 echo "   - Nginx                    : 81" | tee -a log-install.txt
 echo "   - Vmess WS TLS             : 443" | tee -a log-install.txt
@@ -213,19 +131,13 @@ echo "   - Vless gRPC               : 443" | tee -a log-install.txt
 echo "   - Trojan gRPC              : 443" | tee -a log-install.txt
 echo "   - Shadowsocks gRPC         : 443" | tee -a log-install.txt
 echo ""
-echo "==================================================================" | tee -a log-install.txt
-echo "-----------------------------------------------t.me/givpn_grup----------------------------------------------------" | tee -a log-install.txt
-echo "==================================================================" | tee -a log-install.txt
-echo -e ""
+echo -e "${red}=========================================${nc}" | tee -a log-install.txt
+echo -e "${blue}              t.me/givps_com             ${nc}"  | tee -a log-install.txt
+echo -e "${red}=========================================${nc}" | tee -a log-install.txt
 echo ""
-echo "" | tee -a log-install.txt
-rm /root/setup.sh >/dev/null 2>&1
-rm /root/ins-xray.sh >/dev/null 2>&1
-rm /root/insshws.sh >/dev/null 2>&1
-secs_to_human "$(($(date +%s) - ${start}))" | tee -a log-install.txt
-echo -e ""
-echo " Auto reboot in 10 Seconds "
+echo "Installation completed in $(secs_to_human "$(($(date +%s) - ${start}))")" | tee -a log-install.txt
+echo ""
+echo -e "${yellow} Auto reboot in 10 second...${nc}"
 sleep 10
-rm -rf setup.sh
 reboot
 

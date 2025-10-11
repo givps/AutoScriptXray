@@ -1,38 +1,48 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# SHADOWSOCKS MENU
+# =========================================
+
+# ---------- Warna ----------
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+white='\e[1;37m'
+nc='\e[0m'
+
 clear
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;100;33m      • Shadowsocks Account •          \E[0m"
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+# ---------- Tampilan Menu ----------
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}        Shadowsocks Account Menu          ${nc}"
+echo -e "${red}=========================================${nc}"
 echo -e ""
-echo -e " [\e[36m•1\e[0m] Create Account Shadowsocks "
-echo -e " [\e[36m•2\e[0m] Create Trial Shadowsocks "
-echo -e " [\e[36m•3\e[0m] Extending Account Shadowsocks "
-echo -e " [\e[36m•4\e[0m] Delete Account Shadowsocks "
-echo -e " [\e[36m•5\e[0m] User list created Account "
+echo -e " ${white}1${nc}) Create Shadowsocks Account"
+echo -e " ${white}2${nc}) Create Trial Shadowsocks"
+echo -e " ${white}3${nc}) Extend Shadowsocks Account"
+echo -e " ${white}4${nc}) Delete Shadowsocks Account"
+echo -e " ${white}5${nc}) Delete Shadowsocks Account"
+echo -e " ${white}6${nc}) View Created Shadowsocks Log"
 echo -e ""
-echo -e " [\e[31m•0\e[0m] \e[31mBack To Menu\033[0m"
-echo -e   ""
-echo -e   "Press x or [ Ctrl+C ] • To-Exit"
-echo ""
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${red}=========================================${nc}"
+echo -e " ${white}0${nc}) Back to Menu"
+echo -e " Press ${yellow}x${nc} or Ctrl+C to Exit"
+echo -e "${red}=========================================${nc}"
 echo -e ""
-read -p " Select menu : " opt
+
+# ---------- Input ----------
+read -rp " Select menu : " opt
 echo -e ""
+
+# ---------- Eksekusi ----------
 case $opt in
-1) clear ; add-ssws ;;
-2) clear ; trialssws ;;
-3) clear ; renew-ssws ;;
-4) clear ; del-ssws ;;
-5) clear ; cat /etc/log-create-shadowsocks.log ; exit ;;
-0) clear ; menu ;;
-x) exit ;;
-*) echo "You pressed it wrong" ; sleep 1 ; m-ssws ;;
+  1) clear; add-ssws ;;
+  2) clear; trial-ssws ;;
+  3) clear; renew-ssws ;;
+  4) clear; del-ssws ;;
+  5) clear; cek-ssws ;;
+  6) clear; cat /var/log/create-shadowsocks.log ;;
+  0) clear; menu ;;
+  x|X) exit ;;
+  *) echo -e "${red}You pressed it wrong!${nc}"; sleep 1; m-ssws ;;
 esac

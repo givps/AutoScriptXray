@@ -1,62 +1,125 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
-# =========================================
-# pewarna hidup
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
 # ==========================================
-# Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# Check VMess Users
+# ==========================================
+
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+nc='\e[0m'
+
+# Getting system info
+MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+
 clear
-echo -n > /tmp/other.txt
-data=( `cat /etc/xray/config.json | grep '^####' | cut -d ' ' -f 2`);
-echo "----------------------------------------";
-echo "---------=[ Vmess User Login ]=---------";
-echo "----------------------------------------";
-for akun in "${data[@]}"
-do
-if [[ -z "$akun" ]]; then
-akun="not found"
+
+# Function to extract VMess users from config
+get_vmess_users() {
+    # Extract VMess users - looking for ### pattern used in your add-vmess script
+    grep -E '^### ' /etc/xray/config.json | awk '{print $2}'
+}
+
+# Function to check active connections for a user
+check_user_connections() {
+    local user="$1"
+    local user_ips=()
+    
+    # Get IPs from access log for this user
+    if [[ -f "/var/log/xray/access.log" ]]; then
+        user_ips=($(grep -w "$user" /var/log/xray/access.log 2>/dev/null | \
+                   awk '{print $3}' | cut -d: -f1 | sort | uniq))
+    fi
+    
+    # Check if any of these IPs have active connections
+    local active_ips=()
+    for ip in "${user_ips[@]}"; do
+        if netstat -anp 2>/dev/null | grep -q "ESTABLISHED.*xray.*$ip"; then
+            active_ips+=("$ip")
+        fi
+    done
+    
+    echo "${active_ips[@]}"
+}
+
+# Main script
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}        VMess User Login Monitor       ${nc}"
+echo -e "${red}=========================================${nc}"
+echo -e "${yellow}Domain: ${domain}${nc}"
+echo -e "${yellow}IP: ${MYIP}${nc}"
+echo ""
+
+# Get all VMess users
+users=($(get_vmess_users))
+
+if [[ ${#users[@]} -eq 0 ]]; then
+    echo -e "${yellow}No VMess users found in config${nc}"
+    echo -e "${red}=========================================${nc}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    # m-vmess
+    exit 0
 fi
-echo -n > /tmp/ipvmess.txt
-data2=( `netstat -anp | grep ESTABLISHED | grep tcp6 | grep xray | awk '{print $5}' | cut -d: -f1 | sort | uniq`);
-for ip in "${data2[@]}"
-do
-jum=$(cat /var/log/xray/access.log | grep -w $akun | awk '{print $3}' | cut -d: -f1 | grep -w $ip | sort | uniq)
-if [[ "$jum" = "$ip" ]]; then
-echo "$jum" >> /tmp/ipvmess.txt
-else
-echo "$ip" >> /tmp/other.txt
-fi
-jum2=$(cat /tmp/ipvmess.txt)
-sed -i "/$jum2/d" /tmp/other.txt > /dev/null 2>&1
+
+# Temporary files
+temp_user_ips="/tmp/vmess_user_ips.txt"
+temp_other_ips="/tmp/vmess_other_ips.txt"
+
+> "$temp_user_ips"
+> "$temp_other_ips"
+
+# Get all active Xray connections (both tcp and tcp6)
+active_connections=($(netstat -anp 2>/dev/null | grep ESTABLISHED | grep xray | \
+                     awk '{print $5}' | cut -d: -f1 | sort | uniq))
+
+# Check each user
+active_users=0
+for user in "${users[@]}"; do
+    user_active_ips=($(check_user_connections "$user"))
+    
+    if [[ ${#user_active_ips[@]} -gt 0 ]]; then
+        ((active_users++))
+        echo -e "${green}User: $user${nc}"
+        echo -e "${blue}Active IPs:${nc}"
+        for i in "${!user_active_ips[@]}"; do
+            echo -e "  $((i+1)). ${user_active_ips[i]}"
+            echo "${user_active_ips[i]}" >> "$temp_user_ips"
+        done
+        echo -e "${red}=========================================${nc}"
+    fi
 done
-jum=$(cat /tmp/ipvmess.txt)
-if [[ -z "$jum" ]]; then
-echo > /dev/null
-else
-jum2=$(cat /tmp/ipvmess.txt | nl)
-echo "user : $akun";
-echo "$jum2";
-echo "----------------------------------------"
-fi
-rm -rf /tmp/ipvmess.txt
+
+# Find other IPs (not associated with known users)
+for ip in "${active_connections[@]}"; do
+    if ! grep -q "^$ip$" "$temp_user_ips" 2>/dev/null; then
+        echo "$ip" >> "$temp_other_ips"
+    fi
 done
-oth=$(cat /tmp/other.txt | sort | uniq | nl)
-echo "other";
-echo "$oth";
-echo "----------------------------------------"
-rm -rf /tmp/other.txt
+
+# Display other connections
+if [[ -s "$temp_other_ips" ]]; then
+    echo -e "${yellow}Other Active Connections:${nc}"
+    other_ips=($(sort -u "$temp_other_ips"))
+    for i in "${!other_ips[@]}"; do
+        echo -e "  $((i+1)). ${other_ips[i]}"
+    done
+else
+    echo -e "${yellow}No other active connections${nc}"
+fi
+
+echo -e "${red}=========================================${nc}"
+echo -e "${green}Summary:${nc}"
+echo -e "  Total VMess Users: ${#users[@]}"
+echo -e "  Active Users: $active_users"
+echo -e "  Total Active IPs: $(sort -u "$temp_user_ips" "$temp_other_ips" 2>/dev/null | wc -l)"
+echo -e "${red}=========================================${nc}"
+echo ""
+
+# Cleanup
+rm -f "$temp_user_ips" "$temp_other_ips"
+
 read -n 1 -s -r -p "Press any key to back on menu"
 m-vmess
+

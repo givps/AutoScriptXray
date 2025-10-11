@@ -1,39 +1,42 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# SYSTEM MENU
+# =========================================
+
+# ---------- Colors ----------
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
 clear
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;100;33m       • VMESS MENU •         \E[0m"
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}        VMESS MENU          ${nc}"
+echo -e "${red}=========================================${nc}"
 echo -e ""
-echo -e " [\e[36m•1\e[0m] Create Account Vmess "
-echo -e " [\e[36m•2\e[0m] Trial Account Vmess "
-echo -e " [\e[36m•3\e[0m] Extending Account Vmess "
-echo -e " [\e[36m•4\e[0m] Delete Account Vmess "
-echo -e " [\e[36m•5\e[0m] Check User Login Vmess "
-echo -e " [\e[36m•6\e[0m] User list created Account "
+echo -e " ${white}1${nc} Create Account Vmess "
+echo -e " ${white}2${nc} Trial Account Vmess "
+echo -e " ${white}3${nc} Extending Account Vmess "
+echo -e " ${white}4${nc} Delete Account Vmess "
+echo -e " ${white}5${nc} Check User Login Vmess "
+echo -e " ${white}6${nc} User list created Account "
 echo -e ""
-echo -e " [\e[31m•0\e[0m] \e[31mBack To Menu\033[0m"
-echo -e ""
-echo -e   "Press x or [ Ctrl+C ] • To-Exit"
-echo ""
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${red}=========================================${nc}"
+echo -e " ${white}0${nc} Back To Menu"
+echo -e   "Press ${yellow}x${nc} or Ctrl+C To-Exit"
+echo -e "${red}=========================================${nc}"
 echo -e ""
 read -p " Select menu :  "  opt
 echo -e ""
 case $opt in
 1) clear ; add-ws ; exit ;;
-2) clear ; trialvmess ; exit ;;
+2) clear ; trial-vmess ; exit ;;
 3) clear ; renew-ws ; exit ;;
 4) clear ; del-ws ; exit ;;
 5) clear ; cek-ws ; exit ;;
-6) clear ; cat /etc/log-create-vmess.log ; exit ;;
+6) clear ; cat /var/log/create-vmess.log ; exit ;;
 0) clear ; menu ; exit ;;
 x) exit ;;
 *) echo "You pressed it wrong " ; sleep 1 ; m-vmess ;;

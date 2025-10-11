@@ -1,54 +1,61 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# SSH MENU
+# =========================================
+
+# ---------- Warna ----------
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+white='\e[1;37m'
+nc='\e[0m'
+
 clear
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;100;33m       • SSH MENU •         \E[0m"
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}              SSH MENU                   ${nc}"
+echo -e "${red}=========================================${nc}"
 echo -e ""
-echo -e " [\e[36m•1\e[0m] Create SSH & WS Account "
-echo -e " [\e[36m•2\e[0m] Trial SSH & WS Account "
-echo -e " [\e[36m•3\e[0m] Renew SSH & WS Account "
-echo -e " [\e[36m•4\e[0m] Delete SSH & WS Account "
-echo -e " [\e[36m•5\e[0m] Check User Login SSH & WS "
-echo -e " [\e[36m•6\e[0m] List Member SSH & WS "
-echo -e " [\e[36m•7\e[0m] Delete User Expired SSH & WS "
-echo -e " [\e[36m•8\e[0m] Set up Autokill SSH "
-echo -e " [\e[36m•9\e[0m] Cek Users Who Do Multi Login Multi"
-echo -e " [\e[36m•10\e[0m] User list created Account "
-echo -e " [\e[36m•11\e[0m] Change Banner SSH "
-echo -e " [\e[36m•12\e[0m] Set Lock User "
-echo -e " [\e[36m•13\e[0m] Set Unlock User "
+echo -e " ${white}1${nc}) Create SSH & WS Account"
+echo -e " ${white}2${nc}) Trial SSH & WS Account"
+echo -e " ${white}3${nc}) Renew SSH & WS Account"
+echo -e " ${white}4${nc}) Delete SSH & WS Account"
+echo -e " ${white}5${nc}) Check User Login SSH & WS"
+echo -e " ${white}6${nc}) List Member SSH & WS"
+echo -e " ${white}7${nc}) Delete Expired SSH & WS"
+echo -e " ${white}8${nc}) Set up Autokill SSH"
+echo -e " ${white}9${nc}) Check Multi Login Users"
+echo -e " ${white}10${nc}) View Created User Logs"
+echo -e " ${white}11${nc}) Change SSH Banner"
+echo -e " ${white}12${nc}) Lock User Account"
+echo -e " ${white}13${nc}) BadVPN Control"
 echo -e ""
-echo -e " [\e[31m•0\e[0m] \e[31mBack To Menu\033[0m"
+echo -e "${red}=========================================${nc}"
+echo -e " ${white}0${nc} Back to Menu"
+echo -e " Press ${yellow}x${nc} or Ctrl+C to Exit"
+echo -e "${red}=========================================${nc}"
 echo -e ""
-echo -e   "Press x or [ Ctrl+C ] • To-Exit"
-echo ""
-echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+
+# ---------- Input ----------
+read -rp " Select menu: " opt
 echo -e ""
-read -p " Select menu :  "  opt
-echo -e ""
+
+# ---------- Eksekusi ----------
 case $opt in
-1) clear ; usernew ; exit ;;
-2) clear ; trial ; exit ;;
-3) clear ; renew ; exit ;;
-4) clear ; hapus ; exit ;;
-5) clear ; cek ; exit ;;
-6) clear ; member ; exit ;;
-7) clear ; delete ; exit ;;
-8) clear ; autokill ; exit ;;
-9) clear ; ceklim ; exit ;;
-10) clear ; cat /etc/log-create-ssh.log ; exit ;;
-11) clear ; nano /etc/issue.net ; exit ;;
-12) clear ; user-lock ; exit ;;
-13) clear ; user-unlock ; exit ;;
-0) clear ; menu ; exit ;;
-x) exit ;;
-*) echo "You pressed it wrong " ; sleep 1 ; m-sshovpn ;;
+  1) clear; usernew ;;
+  2) clear; trial ;;
+  3) clear; renew ;;
+  4) clear; delete ;;
+  5) clear; cek ;;
+  6) clear; member ;;
+  7) clear; autodelete ;;
+  8) clear; autokill ;;
+  9) clear; ceklim ;;
+  10) clear; cat /var/log/create-ssh.log ;;
+  11) clear; nano /etc/issue.net ;;
+  12) clear; lock-unlock ;;
+  13) clear; m-badvpn ;;
+  0) clear; menu ;;
+  x|X) exit ;;
+  *) echo -e "${red}You pressed it wrong!${nc}"; sleep 1; m-sshovpn ;;
 esac

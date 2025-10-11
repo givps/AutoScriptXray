@@ -1,92 +1,164 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
-clear
-echo " "
-echo " "
+# SSH USER LOGIN MONITOR
+# =========================================
 
-if [ -e "/var/log/auth.log" ]; then
-        LOG="/var/log/auth.log";
-fi
-if [ -e "/var/log/secure" ]; then
-        LOG="/var/log/secure";
-fi
-               
-data=( `ps aux | grep -i dropbear | awk '{print $2}'`);
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m         Dropbear User Login       \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo "ID  |  Username  |  IP Address";
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-cat $LOG | grep -i dropbear | grep -i "Password auth succeeded" > /tmp/login-db.txt;
-for PID in "${data[@]}"
-do
-        cat /tmp/login-db.txt | grep "dropbear\[$PID\]" > /tmp/login-db-pid.txt;
-        NUM=`cat /tmp/login-db-pid.txt | wc -l`;
-        USER=`cat /tmp/login-db-pid.txt | awk '{print $10}'`;
-        IP=`cat /tmp/login-db-pid.txt | awk '{print $12}'`;
-        if [ $NUM -eq 1 ]; then
-                echo "$PID - $USER - $IP";
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
+
+# Temporary files
+TMP_DB="/tmp/login-db.txt"
+TMP_DB_PID="/tmp/login-db-pid.txt"
+
+cleanup() {
+    rm -f "$TMP_DB" "$TMP_DB_PID" /tmp/vpn-login-tcp.txt /tmp/vpn-login-udp.txt 2>/dev/null
+}
+
+display_login_info() {
+    clear
+
+    # Determine log file location
+    if [ -e "/var/log/auth.log" ]; then
+        LOG="/var/log/auth.log"
+    elif [ -e "/var/log/secure" ]; then
+        LOG="/var/log/secure"
+    else
+        echo -e "${red}Error: No authentication log file found${nc}"
+        echo -e "${yellow}Checked: /var/log/auth.log and /var/log/secure${nc}"
+        return 1
+    fi
+
+    # Dropbear User Login
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}         Dropbear User Login       ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${white}ID  |  Username  |  IP Address${nc}"
+    echo -e "${red}=========================================${nc}"
+
+    # Get current Dropbear processes
+    mapfile -t dropbear_pids < <(ps aux | grep -i dropbear | grep -v grep | awk '{print $2}' 2>/dev/null)
+    
+    if [ ${#dropbear_pids[@]} -eq 0 ]; then
+        echo -e "${yellow}No active Dropbear connections${nc}"
+    else
+        # Parse log once for efficiency
+        grep -i "dropbear.*Password auth succeeded" "$LOG" 2>/dev/null > "$TMP_DB"
+        
+        db_count=0
+        for pid in "${dropbear_pids[@]}"; do
+            if grep -q "dropbear\[$pid\]" "$TMP_DB" 2>/dev/null; then
+                user=$(grep "dropbear\[$pid\]" "$TMP_DB" | awk '{print $10}' | sed "s/'//g")
+                ip=$(grep "dropbear\[$pid\]" "$TMP_DB" | awk '{print $12}')
+                if [[ -n "$user" && -n "$ip" ]]; then
+                    printf "${white}%-5s - %-10s - %-15s${nc}\n" "$pid" "$user" "$ip"
+                    ((db_count++))
+                fi
+            fi
+        done
+        
+        if [ $db_count -eq 0 ]; then
+            echo -e "${yellow}No authenticated Dropbear users found${nc}"
         fi
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    fi
+    echo -e "${red}=========================================${nc}"
 
-done
-echo " "
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m          OpenSSH User Login       \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo "ID  |  Username  |  IP Address";
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-cat $LOG | grep -i sshd | grep -i "Accepted password for" > /tmp/login-db.txt
-data=( `ps aux | grep "\[priv\]" | sort -k 72 | awk '{print $2}'`);
+    echo ""
 
-for PID in "${data[@]}"
-do
-        cat /tmp/login-db.txt | grep "sshd\[$PID\]" > /tmp/login-db-pid.txt;
-        NUM=`cat /tmp/login-db-pid.txt | wc -l`;
-        USER=`cat /tmp/login-db-pid.txt | awk '{print $9}'`;
-        IP=`cat /tmp/login-db-pid.txt | awk '{print $11}'`;
-        if [ $NUM -eq 1 ]; then
-                echo "$PID - $USER - $IP";
+    # OpenSSH User Login
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}          OpenSSH User Login       ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo -e "${white}ID  |  Username  |  IP Address${nc}"
+    echo -e "${red}=========================================${nc}"
+
+    # Get current SSH processes
+    mapfile -t ssh_pids < <(ps aux | grep "sshd.*@" | grep -v grep | awk '{print $2}' 2>/dev/null)
+    
+    if [ ${#ssh_pids[@]} -eq 0 ]; then
+        echo -e "${yellow}No active SSH connections${nc}"
+    else
+        # Parse log once for efficiency
+        grep -i "sshd.*Accepted password for" "$LOG" 2>/dev/null > "$TMP_DB"
+        
+        ssh_count=0
+        for pid in "${ssh_pids[@]}"; do
+            # Find the parent SSH daemon PID
+            parent_pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+            if [[ -n "$parent_pid" ]]; then
+                if grep -q "sshd\[$parent_pid\]" "$TMP_DB" 2>/dev/null; then
+                    user=$(grep "sshd\[$parent_pid\]" "$TMP_DB" | awk '{print $9}')
+                    ip=$(grep "sshd\[$parent_pid\]" "$TMP_DB" | awk '{print $11}')
+                    if [[ -n "$user" && -n "$ip" ]]; then
+                        printf "${white}%-5s - %-10s - %-15s${nc}\n" "$pid" "$user" "$ip"
+                        ((ssh_count++))
+                    fi
+                fi
+            fi
+        done
+        
+        if [ $ssh_count -eq 0 ]; then
+            echo -e "${yellow}No authenticated SSH users found${nc}"
         fi
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    fi
+    echo -e "${red}=========================================${nc}"
+}
 
-done
-if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
-        echo " "
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[0;41;36m          OpenVPN TCP User Login         \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo "Username  |  IP Address  |  Connected Since";
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        cat /etc/openvpn/server/openvpn-tcp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-tcp.txt
-        cat /tmp/vpn-login-tcp.txt
-fi
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+# Main execution
+display_login_info
 
-if [ -f "/etc/openvpn/server/openvpn-udp.log" ]; then
-        echo " "
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[0;41;36m          OpenVPN UDP User Login         \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo "Username  |  IP Address  |  Connected Since";
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        cat /etc/openvpn/server/openvpn-udp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-udp.txt
-        cat /tmp/vpn-login-udp.txt
-fi
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo "";
+echo ""
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}              MENU OPTIONS              ${nc}"
+echo -e "${red}=========================================${nc}"
+echo -e "${white}1${nc} Refresh Login Information"
+echo -e "${white}2${nc} Kill User Session"
+echo -e "${white}3${nc} Back to SSH Menu"
+echo -e "${white}4${nc} Exit"
+echo -e "${red}=========================================${nc}"
+echo ""
 
-rm -f /tmp/login-db-pid.txt
-rm -f /tmp/login-db.txt
-rm -f /tmp/vpn-login-tcp.txt
-rm -f /tmp/vpn-login-udp.txt
-read -n 1 -s -r -p "Press any key to back on menu"
+# Menu options
+read -p "Select option [1-4]: " option
 
-m-sshovpn
+case $option in
+    1)
+        cleanup
+        exec "$0"
+        ;;
+    2)
+        read -p "Enter PID to kill: " kill_pid
+        if [[ "$kill_pid" =~ ^[0-9]+$ ]] && kill -0 "$kill_pid" 2>/dev/null; then
+            kill "$kill_pid"
+            echo -e "${green}Session $kill_pid terminated${nc}"
+            sleep 2
+        else
+            echo -e "${red}Invalid PID or process not found${nc}"
+            sleep 2
+        fi
+        exec "$0"
+        ;;
+    3)
+        echo -e "${green}Returning to SSH Menu...${nc}"
+        sleep 1
+        cleanup
+        m-sshovpn
+        ;;
+    4)
+        echo -e "${green}Exiting...${nc}"
+        sleep 1
+        cleanup
+        clear
+        exit 0
+        ;;
+    *)
+        echo -e "${red}Invalid option!${nc}"
+        sleep 2
+        exec "$0"
+        ;;
+esac

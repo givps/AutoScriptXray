@@ -1,49 +1,83 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
+# RENEW SSH USER
+# =========================================
+
+# Colors
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+nc='\e[0m'
+
 clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m               RENEW  USER                \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}            RENEW SSH USER             ${nc}"
+echo -e "${red}=========================================${nc}"  
 echo
+
+# Input username
 read -p "Username : " User
-egrep "^$User" /etc/passwd >/dev/null
-if [ $? -eq 0 ]; then
-read -p "Day Extend : " Days
-Today=`date +%s`
-Days_Detailed=$(( $Days * 86400 ))
-Expire_On=$(($Today + $Days_Detailed))
-Expiration=$(date -u --date="1970-01-01 $Expire_On sec GMT" +%Y/%m/%d)
-Expiration_Display=$(date -u --date="1970-01-01 $Expire_On sec GMT" '+%d %b %Y')
-passwd -u $User
-usermod -e  $Expiration $User
-egrep "^$User" /etc/passwd >/dev/null
-echo -e "$Pass\n$Pass\n"|passwd $User &> /dev/null
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m               RENEW  USER                \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
-echo -e ""
-echo -e " Username : $User"
-echo -e " Days Added : $Days Days"
-echo -e " Expires on :  $Expiration_Display"
-echo -e ""
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-else
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m               RENEW  USER                \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"  
-echo -e ""
-echo -e "   Username Doesnt Exist      "
-echo -e ""
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+
+# Check if user exists
+if ! egrep "^$User" /etc/passwd >/dev/null; then
+    clear
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}            RENEW SSH USER             ${nc}"
+    echo -e "${red}=========================================${nc}"  
+    echo -e ""
+    echo -e "   ${red}Username Does Not Exist${nc}"
+    echo -e ""
+    echo -e "${red}=========================================${nc}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-sshovpn
+    exit 1
 fi
+
+# Input day with validation
+while true; do
+    read -p "Day Extend : " day
+    if [[ "$day" =~ ^[0-9]+$ ]] && [ "$day" -gt 0 ]; then
+        break
+    else
+        echo -e "${red}Invalid input. Please enter a positive number.${nc}"
+    fi
+done
+
+# Calculate expiration
+Today=$(date +%s)
+day_Detailed=$((day * 86400))
+Expire_On=$((Today + day_Detailed))
+
+# Format for system (YYYY-MM-DD) and display
+Expiration=$(date -u --date="1970-01-01 $Expire_On sec GMT" +%Y-%m-%d)
+Expiration_Display=$(date -u --date="1970-01-01 $Expire_On sec GMT" '+%d %b %Y')
+
+# Get current expiry for comparison
+Current_Expiry=$(chage -l "$User" 2>/dev/null | grep "Account expires" | awk -F": " '{print $2}')
+
+# Renew user account
+passwd -u "$User" 2>/dev/null
+usermod -e "$Expiration" "$User"
+
+clear
+
+# Display results
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}            SSH USER RENEWED           ${nc}"
+echo -e "${red}=========================================${nc}"  
+echo -e ""
+echo -e " Username    : $User"
+echo -e " Day Added  : $day day"
+echo -e " Expires on  : $Expiration_Display"
+echo -e ""
+echo -e "Previous expiry: $Current_Expiry"
+echo -e ""
+echo -e "Account successfully renewed"
+echo -e ""
+echo -e "${red}=========================================${nc}"
+
 read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn

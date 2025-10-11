@@ -1,62 +1,211 @@
 <!DOCTYPE html>
-<!--
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
-# =========================================
--->
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<meta name="viewport"
-		content="width=device-width,
-				initial-scale=1.0" />
-	<title>
-		AutoScriptXray
-	</title>
-	  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/givps/givps/main/favicon.ico">
-	<style>
-		body {
-			padding: 25px;
-			background-color: white;
-			color: black;
-			font-size: 25px;
-		}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoScriptXray - VPS Management</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/givps/favicon/main/favicon.ico">
+    
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+        }
 
-		.dark-mode {
-			background-color: black;
-			color: white;
-		}
-	</style>
+        .dark-mode {
+            --bg-color: #1e293b;
+            --text-color: #f1f5f9;
+            --primary-color: #3b82f6;
+            --secondary-color: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-mode .feature-card {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid var(--secondary-color);
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .badge {
+            transition: transform 0.2s;
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
-<center>
-	<h1>Auto Script VPS</h1>
-	<div>
-		<button onclick="darkMode()">Darkmode</button>
-	</div>
-	<script>
-		function darkMode() {
-			var element = document.body;
-			element.classList.toggle("dark-mode");
-		}
-	</script>
-	</center>
-	</div>
-        <div class="footer">
-            <footer>
-		<p align="center">
-            <a href="https://github.com/givps/" target="_blank"><img src="https://img.shields.io/badge/Github-Repo-blue"></a>
-			<a href="https://t.me/givpn_grup/" target="_blank"><img src="https://img.shields.io/badge/Telegram-Grup-blue"></a>
-			    </p>
-            </footer>
-        </div>
-		<p align="center">
-  <a><img src="https://img.shields.io/badge/Auto_Script_VPS-blue" style="max-width:200%;">
-    </p>
+    <div class="container">
+        <header>
+            <h1>🚀 AutoScriptXray</h1>
+            <p class="subtitle">Automated VPS Management & Optimization</p>
+            <button class="theme-toggle" onclick="darkMode()">
+                <span id="theme-text">Dark Mode</span>
+            </button>
+        </header>
+
+        <main>
+            <section class="features">
+                <div class="feature-card">
+                    <h3>⚡ Fast Setup</h3>
+                    <p>Quick deployment of SSH, VPN, and proxy services</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔒 Secure</h3>
+                    <p>Built-in security features and automatic updates</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🛠️ Easy Management</h3>
+                    <p>User-friendly menu system for service management</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+    <div class="badges">
+        <a href="https://github.com/givps" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/GitHub-Repository-blue?logo=github" alt="GitHub">
+        </a>
+        <a href="https://t.me/givps_com" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/Telegram-Group-blue?logo=telegram" alt="Telegram">
+        </a>
+        <a href="https://givps.com" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/Website-givps.com-blue?logo=web" alt="Website">
+        </a>
+    </div>
+    <p>AutoScriptXray &copy; All rights reserved.</p>
+</footer>
+    </div>
+
+    <script>
+        function darkMode() {
+            const element = document.body;
+            element.classList.toggle("dark-mode");
+            
+            const themeText = document.getElementById('theme-text');
+            if (element.classList.contains("dark-mode")) {
+                themeText.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeText.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-text').textContent = 'Light Mode';
+            }
+        });
+    </script>
 </body>
 </html>

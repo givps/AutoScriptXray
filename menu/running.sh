@@ -1,249 +1,222 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-# pewarna hidup
-GREEN='\033[0;32m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-BGreen='\e[1;32m'
-BYellow='\e[1;33m'
-BBlue='\e[1;34m'
-BPurple='\e[1;35m'
-NC='\033[0m'
-yl='\e[32;1m'
-bl='\e[36;1m'
-gl='\e[32;1m'
-rd='\e[31;1m'
-mg='\e[0;95m'
-blu='\e[34m'
-op='\e[35m'
-or='\033[1;33m'
-bd='\e[1m'
-color1='\e[031;1m'
-color2='\e[34;1m'
-color3='\e[0m'
-# Getting
-# IP Validation
-dateFromServer=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
-time=`date +"%Y-%m-%d" -d "$dateFromServer"`
-#
+# SYSTEM STATUS INFORMATION
+# =========================================
 
-red='\e[1;31m'
-green='\e[1;32m'
+# ---------- Colors ----------
+RED='\e[1;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[1;33m'
+BLUE='\e[1;34m'
+CYAN='\e[1;36m'
+WHITE='\e[1;37m'
 NC='\e[0m'
-green() { echo -e "\\033[32;1m${*}\\033[0m"; }
-red() { echo -e "\\033[31;1m${*}\\033[0m"; }
-PERMISSION
-clear
 
-# GETTING OS INFORMATION
-source /etc/os-release
-Versi_OS=$VERSION
-ver=$VERSION_ID
-Tipe=$NAME
-URL_SUPPORT=$HOME_URL
-basedong=$ID
+# Function to get IP address
+get_ip() {
+    curl -s -4 --connect-timeout 5 ifconfig.me 2>/dev/null || \
+    wget -qO- --timeout=5 ipv4.icanhazip.com 2>/dev/null || \
+    echo "Unknown"
+}
 
-# VPS ISP INFORMATION
-IPVPS=$(curl -s ipv4.icanhazip.com )
-LOC=$( curl -s https://ipapi.co/country_code )
-CITY=$(curl -s https://ipinfo.io/city )
-ISP=$( curl -s https://ipapi.co/org )
+# Function to get domain
+get_domain() {
+    if [[ -f "/etc/xray/domain" ]] && [[ -r "/etc/xray/domain" ]]; then
+        cat /etc/xray/domain 2>/dev/null | head -n1
+    elif [[ -f "/usr/local/etc/xray/domain" ]] && [[ -r "/usr/local/etc/xray/domain" ]]; then
+        cat /usr/local/etc/xray/domain 2>/dev/null | head -n1
+    elif [[ -f "/root/domain" ]] && [[ -r "/root/domain" ]]; then
+        cat /root/domain 2>/dev/null | head -n1
+    else
+        echo "Not Configured"
+    fi
+}
 
-# CHEK STATUS
-tls_v2ray_status=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-nontls_v2ray_status=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-vless_tls_v2ray_status=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-vless_nontls_v2ray_status=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-shadowsocks=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-trojan_server=$(systemctl status xray | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-dropbear_status=$(/etc/init.d/dropbear status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-stunnel_service=$(/etc/init.d/stunnel4 status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-ssh_service=$(/etc/init.d/ssh status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-vnstat_service=$(/etc/init.d/vnstat status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-cron_service=$(/etc/init.d/cron status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-fail2ban_service=$(/etc/init.d/fail2ban status | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-wstls=$(systemctl status ws-stunnel.service | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-wsdrop=$(systemctl status ws-dropbear.service | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
+# Function to check service status
+check_service_status() {
+    local service_name=$1
+    local service_type=$2
+    
+    case $service_type in
+        "systemctl")
+            if systemctl is-active --quiet "$service_name"; then
+                echo -e "${GREEN}Running ${NC}(No Error)"
+            else
+                echo -e "${RED}Not Running ${NC}(Error)"
+            fi
+            ;;
+        "init.d")
+            if /etc/init.d/"$service_name" status | grep -q "running"; then
+                echo -e "${GREEN}Running ${NC}(No Error)"
+            else
+                echo -e "${RED}Not Running ${NC}(Error)"
+            fi
+            ;;
+        "process")
+            if pgrep -x "$service_name" > /dev/null; then
+                echo -e "${GREEN}Running ${NC}(No Error)"
+            else
+                echo -e "${RED}Not Running ${NC}(Error)"
+            fi
+            ;;
+    esac
+}
 
-# COLOR VALIDATION
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
-clear
+# Function to get system information
+get_system_info() {
+    # OS Information
+    source /etc/os-release
+    local os_name=$NAME
+    local os_version=$VERSION_ID
+    
+    # Memory Information
+    local total_ram=$(grep "MemTotal:" /proc/meminfo | awk '{print $2}')
+    local used_ram=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
+    total_ram=$((total_ram / 1024))
+    used_ram=$((used_ram / 1024))
+    local free_ram=$((total_ram - used_ram))
+    local ram_usage=$((used_ram * 100 / total_ram))
+    
+    # CPU Information
+    local cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
+    local cpu_cores=$(nproc)
+    
+    # Disk Information
+    local disk_usage=$(df -h / | awk 'NR==2{print $5}')
+    local disk_free=$(df -h / | awk 'NR==2{print $4}')
+    
+    # Uptime
+    local uptime=$(uptime -p | sed 's/up //')
+    
+    # Kernel Version
+    local kernel_version=$(uname -r)
+    
+    echo "$os_name" "$os_version" "$total_ram" "$free_ram" "$ram_usage" "$cpu_usage" "$cpu_cores" "$disk_usage" "$disk_free" "$uptime" "$kernel_version"
+}
 
-# STATUS SERVICE OPENVPN
-if [[ $oovpn == "active" ]]; then
-  status_openvpn=" ${GREEN}Running ${NC}( No Error )"
+# Function to get network statistics
+get_network_stats() {
+    local interface=$(ip route | grep default | awk '{print $5}' | head -n1)
+    local rx_bytes=$(cat /sys/class/net/"$interface"/statistics/rx_bytes 2>/dev/null || echo 0)
+    local tx_bytes=$(cat /sys/class/net/"$interface"/statistics/tx_bytes 2>/dev/null || echo 0)
+    
+    # Convert to human readable format
+    local rx_human=$(numfmt --to=iec "$rx_bytes")
+    local tx_human=$(numfmt --to=iec "$tx_bytes")
+    
+    echo "$interface" "$rx_human" "$tx_human"
+}
+
+# Function to display header
+display_header() {
+    clear
+    echo -e "${RED}=========================================${NC}"
+    echo -e "${BLUE}             SYSTEM INFORMATION               ${NC}"
+    echo -e "${RED}=========================================${NC}"
+}
+
+# Function to display system information
+display_system_info() {
+    # Get all system information
+    read -r os_name os_version total_ram free_ram ram_usage cpu_usage cpu_cores disk_usage disk_free uptime kernel_version <<< "$(get_system_info)"
+    
+    # Get network stats
+    read -r interface rx_bytes tx_bytes <<< "$(get_network_stats)"
+    
+    # Get IP and domain
+    local public_ip=$(get_ip)
+    local domain=$(get_domain)
+    
+    echo -e "${WHITE} Hostname     ${NC}: $HOSTNAME"
+    echo -e "${WHITE} OS Name      ${NC}: $os_name"
+    echo -e "${WHITE} OS Version   ${NC}: $os_version"
+    echo -e "${WHITE} Kernel       ${NC}: $kernel_version"
+    echo -e "${WHITE} Uptime       ${NC}: $uptime"
+    echo -e "${WHITE} CPU Cores    ${NC}: $cpu_cores"
+    echo -e "${WHITE} CPU Usage    ${NC}: $cpu_usage"
+    echo -e "${WHITE} Total RAM    ${NC}: ${total_ram} MB"
+    echo -e "${WHITE} Free RAM     ${NC}: ${free_ram} MB"
+    echo -e "${WHITE} RAM Usage    ${NC}: ${ram_usage}%"
+    echo -e "${WHITE} Disk Usage   ${NC}: $disk_usage"
+    echo -e "${WHITE} Disk Free    ${NC}: $disk_free"
+    echo -e "${WHITE} Public IP    ${NC}: $public_ip"
+    echo -e "${WHITE} Domain       ${NC}: $domain"
+    echo -e "${WHITE} Interface    ${NC}: $interface"
+    echo -e "${WHITE} Received     ${NC}: $rx_bytes"
+    echo -e "${WHITE} Transmitted  ${NC}: $tx_bytes"
+}
+
+# Function to display subscription info
+display_subscription_info() {
+    echo -e "${RED}=========================================${NC}"
+    echo -e "${BLUE}           SUBSCRIPTION INFORMATION            ${NC}"
+    echo -e "${RED}=========================================${NC}"
+    echo -e "${WHITE} Client Name  ${NC}: VIP-MEMBERS"
+    echo -e "${WHITE} Exp Script   ${NC}: Lifetime"
+    echo -e "${WHITE} Version      ${NC}: 2.0 Enhanced"
+    echo -e "${WHITE} Last Update  ${NC}: $(date +'%Y-%m-%d %H:%M:%S')"
+}
+
+# Function to display service status
+display_service_status() {
+    echo -e "${RED}=========================================${NC}"
+    echo -e "${BLUE}              SERVICE STATUS                 ${NC}"
+    echo -e "${RED}=========================================${NC}"
+    
+    # Core Services
+    echo -e "${WHITE} SSH / TUN              ${NC}: $(check_service_status ssh init.d)"
+    echo -e "${WHITE} Dropbear               ${NC}: $(check_service_status dropbear init.d)"
+    echo -e "${WHITE} Stunnel4               ${NC}: $(check_service_status stunnel4 init.d)"
+    echo -e "${WHITE} Fail2Ban               ${NC}: $(check_service_status fail2ban init.d)"
+    echo -e "${WHITE} Cron                   ${NC}: $(check_service_status cron init.d)"
+    echo -e "${WHITE} Nginx                  ${NC}: $(check_service_status nginx init.d)"
+    echo -e "${WHITE} Squid Proxy            ${NC}: $(check_service_status squid init.d)"
+    
+    # Xray Services
+    echo -e "${WHITE} XRAY Core              ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Vmess TLS         ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Vmess None TLS    ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Vless TLS         ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Vless None TLS    ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Trojan            ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} XRAY Shadowsocks       ${NC}: $(check_service_status xray systemctl)"
+    
+    # WebSocket Services
+    echo -e "${WHITE} WebSocket SSH          ${NC}: $(check_service_status sshws.service systemctl)"
+    echo -e "${WHITE} WebSocket Dropbear     ${NC}: $(check_service_status ws-dropbear.service systemctl)"
+    echo -e "${WHITE} WebSocket Stunnel      ${NC}: $(check_service_status ws-stunnel.service systemctl)"
+    
+    # Additional Services
+    echo -e "${WHITE} VnStat                 ${NC}: $(check_service_status vnstat init.d)"
+    echo -e "${WHITE} BadVPN                 ${NC}: $(check_service_status badvpn process)"
+}
+
+# Function to display footer
+display_footer() {
+    echo -e "${RED}=========================================${NC}"
+    echo -e "${BLUE}               t.me/givps_com                 ${NC}"
+    echo -e "${RED}=========================================${NC}"
+}
+
+# Main function
+main() {
+    display_header
+    display_system_info
+    display_subscription_info
+    display_service_status
+    display_footer
+    
+    echo ""
+    read -n 1 -s -r -p "Press any key to return to main menu..."
+    
+    # Return to main menu
+    menu
+}
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+    main
 else
-  status_openvpn="${RED}  Not Running ${NC}  ( Error )"
+    echo -e "${RED}This script must be run as root!${NC}"
+    exit 1
 fi
-
-# STATUS SERVICE  SSH 
-if [[ $ssh_service == "running" ]]; then 
-   status_ssh=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_ssh="${RED}  Not Running ${NC}  ( Error )"
-fi
-
-# STATUS SERVICE  SQUID 
-if [[ $squid_service == "running" ]]; then 
-   status_squid=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_squid="${RED}  Not Running ${NC}  ( Error )"
-fi
-
-# STATUS SERVICE  VNSTAT 
-if [[ $vnstat_service == "running" ]]; then 
-   status_vnstat=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_vnstat="${RED}  Not Running ${NC}  ( Error )"
-fi
-
-# STATUS SERVICE  CRONS 
-if [[ $cron_service == "running" ]]; then 
-   status_cron=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_cron="${RED}  Not Running ${NC}  ( Error )"
-fi
-
-# STATUS SERVICE  FAIL2BAN 
-if [[ $fail2ban_service == "running" ]]; then 
-   status_fail2ban=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_fail2ban="${RED}  Not Running ${NC}  ( Error )"
-fi
-
-# STATUS SERVICE  TLS 
-if [[ $tls_v2ray_status == "running" ]]; then 
-   status_tls_v2ray=" ${GREEN}Running${NC} ( No Error )"
-else
-   status_tls_v2ray="${RED}  Not Running${NC}   ( Error )"
-fi
-
-# STATUS SERVICE NON TLS V2RAY
-if [[ $nontls_v2ray_status == "running" ]]; then 
-   status_nontls_v2ray=" ${GREEN}Running ${NC}( No Error )${NC}"
-else
-   status_nontls_v2ray="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-# STATUS SERVICE VLESS HTTPS
-if [[ $vless_tls_v2ray_status == "running" ]]; then
-  status_tls_vless=" ${GREEN}Running${NC} ( No Error )"
-else
-  status_tls_vless="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-# STATUS SERVICE VLESS HTTP
-if [[ $vless_nontls_v2ray_status == "running" ]]; then
-  status_nontls_vless=" ${GREEN}Running${NC} ( No Error )"
-else
-  status_nontls_vless="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-# STATUS SERVICE TROJAN
-if [[ $trojan_server == "running" ]]; then 
-   status_virus_trojan=" ${GREEN}Running ${NC}( No Error )${NC}"
-else
-   status_virus_trojan="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-# STATUS SERVICE DROPBEAR
-if [[ $dropbear_status == "running" ]]; then 
-   status_dropbear=" ${GREEN}Running${NC} ( No Error )${NC}"
-else
-   status_dropbear="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-# STATUS SERVICE STUNNEL
-if [[ $stunnel_service == "running" ]]; then 
-   status_stunnel=" ${GREEN}Running ${NC}( No Error )"
-else
-   status_stunnel="${RED}  Not Running ${NC}  ( Error )}"
-fi
-# STATUS SERVICE WEBSOCKET TLS
-if [[ $wstls == "running" ]]; then 
-   swstls=" ${GREEN}Running ${NC}( No Error )${NC}"
-else
-   swstls="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-# STATUS SERVICE WEBSOCKET DROPBEAR
-if [[ $wsdrop == "running" ]]; then 
-   swsdrop=" ${GREEN}Running ${NC}( No Error )${NC}"
-else
-   swsdrop="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-# STATUS SHADOWSOCKS
-if [[ $shadowsocks == "running" ]]; then 
-   status_shadowsocks=" ${GREEN}Running ${NC}( No Error )${NC}"
-else
-   status_shadowsocks="${RED}  Not Running ${NC}  ( Error )${NC}"
-fi
-
-
-
-# TOTAL RAM
-total_ram=` grep "MemTotal: " /proc/meminfo | awk '{ print $2}'`
-totalram=$(($total_ram/1024))
-
-# KERNEL TERBARU
-kernelku=$(uname -r)
-
-# DNS PATCH
-#tipeos2=$(uname -m)
-Name=$"VIP-MEMBERS"
-Exp=$"Lifetime"
-# GETTING DOMAIN NAME
-domain="$(cat /etc/xray/domain)"
-echo -e ""
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                 SYSTEM INFORMATION               \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;32m Hostname  \e[0m: $HOSTNAME"
-echo -e "\e[1;32m OS Name   \e[0m: $Tipe"
-echo -e "\e[1;32m Total RAM \e[0m: ${totalram} MB"
-echo -e "\e[1;32m Public IP     \e[0m: $IPVPS"
-echo -e "\e[1;32m CITY          \e[0m: $CITY"
-echo -e "\e[1;32m Country       \e[0m: $LOC"
-echo -e "\e[1;32m ASN           \e[0m: $ISP"
-echo -e "\e[1;32m Domain    \e[0m: $domain"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m              SUBSCRIPTION INFORMATION            \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;32m Client Name \e[0m: $Name"
-echo -e "\e[1;32m Exp Script  \e[0m: $Exp"
-echo -e "\e[1;32m Version     \e[0m: 1.0"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                SERVICE INFORMATION               \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;32m SSH / TUN            \e[0m: $status_ssh"
-echo -e "\e[1;32m Dropbear             \e[0m: $status_dropbear"
-echo -e "\e[1;32m Stunnel4             \e[0m: $status_stunnel"
-echo -e "\e[1;32m Fail2Ban             \e[0m: $status_fail2ban"
-echo -e "\e[1;32m Crons                \e[0m: $status_cron"
-echo -e "\e[1;32m Vnstat               \e[0m: $status_vnstat"
-echo -e "\e[1;32m XRAYS Vmess TLS      \e[0m: $status_tls_v2ray"
-echo -e "\e[1;32m XRAYS Vmess None TLS \e[0m: $status_nontls_v2ray"
-echo -e "\e[1;32m XRAYS Vless TLS      \e[0m: $status_tls_vless"
-echo -e "\e[1;32m XRAYS Vless None TLS \e[0m: $status_nontls_vless"
-echo -e "\e[1;32m XRAYS Trojan         \e[0m: $status_virus_trojan"
-echo -e "\e[1;32m Shadowsocks          \e[0m: $status_shadowsocks"
-echo -e "\e[1;32m Websocket TLS        \e[0m: $swstls"
-echo -e "\e[1;32m Websocket None TLS   \e[0m: $swstls"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo -e "\e[1;34m                     t.me/givpn_grup                   \e[0m"
-echo -e "\e[1;33m -------------------------------------------------\e[0m"
-echo ""
-read -n 1 -s -r -p "Press any key to back on menu"
-menu
-
