@@ -122,7 +122,7 @@ retry() { local n=1; until "$@"; do ((n++==5)) && exit 1; echo -e "${yellow}Retr
 ACME_HOME="/root"
 [ ! -d "$ACME_HOME" ] && {
   echo -e "${green}Installing acme.sh...${nc}"
-  wget -O /root "https://acme-install.netlify.app/acme.sh" && chmod +x acme.sh
+  wget -O /root/acme.sh "https://acme-install.netlify.app/acme.sh" && chmod +x acme.sh
 }
 
 # Ensure Cloudflare hook exists
