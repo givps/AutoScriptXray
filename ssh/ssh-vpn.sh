@@ -12,27 +12,6 @@ cyan='\e[1;36m'
 white='\e[1;37m'
 nc='\e[0m'
 
-# Function for logging
-log() {
-    echo -e "${green}[INFO]${nc} $1"
-}
-
-warn() {
-    echo -e "${yellow}[WARN]${nc} $1"
-}
-
-error() {
-    echo -e "${red}[ERROR]${nc} $1"
-}
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then 
-    error "Please run as root"
-    exit 1
-fi
-
-log "Starting installation..."
-
 # Update system first
 apt update -y
 apt upgrade -y
@@ -61,28 +40,6 @@ systemctl enable rsyslog
 
 # Configure vnstat for network monitoring
 systemctl enable vnstat
-
-log "Installation completed successfully!"
-
-# initializing var
-export DEBIAN_FRONTEND=noninteractive
-MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
-MYIP2="s/xxxxxxxxx/$MYIP/g"
-NET=$(ip -o -4 route show to default | awk '{print $5}')
-source /etc/os-release
-ver=$VERSION_ID
-
-# =========================================
-# PAM CONFIGURATION
-# =========================================
-setup_secure_pam() {
-log "Setting up secure PAM configuration..."
-
-# Backup original configuration
-if [ ! -f "/etc/pam.d/common-password.original" ]; then
-cp /etc/pam.d/common-password /etc/pam.d/common-password.original
-log "Original PAM configuration backed up"
-fi
 
 # Create secure PAM configuration
 cat > /etc/pam.d/common-password << 'EOF'
@@ -123,11 +80,6 @@ EOF
 
 # Set correct permissions
 chmod 644 /etc/pam.d/common-password
-log "Secure PAM configuration applied successfully"
-}
-
-# Run the secure PAM setup
-setup_secure_pam
 
 # Edit file /etc/systemd/system/rc-local.service
 cat > /etc/systemd/system/rc-local.service <<-END
@@ -165,16 +117,16 @@ sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+apt install -y ntp
+systemctl enable ntp
 
 # Remove old NGINX
-log "uninstall nginx..."
 apt remove -y nginx nginx-common
 apt purge -y nginx nginx-common
 apt autoremove -y
 apt update -y
 
 # Install Nginx
-log "install nginx..."
 apt update -y && apt install -y nginx
 
 # Remove default configs
@@ -203,20 +155,12 @@ wget -q -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/g
 # Set ownership
 chown -R www-data:www-data /home/vps/public_html
 
-# Confirm
-log "✅ Nginx installation and configuration completed successfully."
-
 # install badvpn
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/install-udpgw.sh | bash
 
 # BadVPN Control Menu
 wget -O /usr/bin/m-badvpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/m-badvpn.sh"
 chmod +x /usr/bin/m-badvpn
-
-# =========================================
-# IMPROVED SSH SECURITY CONFIGURATION
-# =========================================
-log "configuring ssh security"
 
 # Enable password auth for initial setup, but consider disabling later
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
@@ -243,7 +187,6 @@ echo "/usr/sbin/nologin" >> /etc/shells
 
 systemctl enable dropbear
 
-log "=== install stunnel ==="
 # install stunnel
 apt install stunnel4 -y
 cat > /etc/stunnel/stunnel.conf <<-END
@@ -337,8 +280,6 @@ netfilter-persistent save
 # Reload to ensure active
 netfilter-persistent reload
 
-log "✅ Firewall successfully applied and saved permanently"
-
 # make a certificate
 openssl genrsa -out key.pem 2048
 openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
@@ -355,7 +296,6 @@ EOF
 
 systemctl enable stunnel4
 
-log "=== install fail2ban ==="
 # install fail2ban
 apt -y install fail2ban
 cat > /etc/fail2ban/jail.local << 'EOF'
@@ -382,7 +322,6 @@ EOF
 
 systemctl enable fail2ban
 
-log "=== install ddos deflate ==="
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
 
@@ -393,12 +332,10 @@ sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dr
 
 systemctl enable sshd
 
-log "=== install block torrent ==="
 # install blokir torrent
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-torrent-blocker.sh | bash
 
 # download script
-log "=== download menu ==="
 cd /usr/bin
 # menu
 wget -O menu "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/menu.sh"
@@ -471,7 +408,6 @@ chmod +x xp
 chmod +x sshws
 chmod +x m-dns
 
-log "=== install speedtest ==="
 # Install speedtest (using modern method)
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
 apt-get install -y speedtest || true
@@ -495,7 +431,6 @@ END
 systemctl enable cron
 
 # remove unnecessary files
-log "clearing trash"
 apt autoclean -y >/dev/null 2>&1
 
 if dpkg -s unscd >/dev/null 2>&1; then
