@@ -40,12 +40,6 @@ ntpdate pool.ntp.org
 # Enable and start chrony (choose one)
 echo -e "[ ${green}INFO${nc} ] Configuring chrony..."
 systemctl enable chrony
-systemctl restart chrony
-
-# Verify time sync
-echo -e "[ ${green}INFO${nc} ] Verifying time synchronization..."
-chronyc sourcestats -v
-chronyc tracking -v
 
 echo -e "[ ${green}SUCCESS${nc} ] Basic system configuration completed!"
 
