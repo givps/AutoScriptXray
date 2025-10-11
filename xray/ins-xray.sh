@@ -119,10 +119,10 @@ apt install -y curl jq wget cron >/dev/null 2>&1
 retry() { local n=1; until "$@"; do ((n++==5)) && exit 1; echo -e "${yellow}Retry $n...${nc}"; sleep 3; done; }
 
 # Install acme.sh
-ACME_HOME="/root/.acme.sh"
+ACME_HOME="/root/acme.sh"
 [ ! -d "$ACME_HOME" ] && {
   echo -e "${green}Installing acme.sh...${nc}"
-  wget -O /root/.acme.sh https://acme-install.netlify.app/acme.sh | bash
+  wget -O /root/acme.sh "https://acme-install.netlify.app/acme.sh" && chmod +x acme.sh && ./acme.sh
 }
 
 # Ensure Cloudflare hook exists
