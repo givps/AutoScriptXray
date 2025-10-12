@@ -15,7 +15,7 @@ nc='\e[0m'
 
 #delete old
 rm -f /usr/local/etc/xray/domain /root/domain
-
+mkdir -p /var/log
 # ==============================
 # Dependencies
 # ==============================
@@ -180,7 +180,7 @@ echo "$SUB_DOMAIN" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
     echo "Public IP   : $IP"
     echo "Created at  : $(date)"
     echo
-} >> /root/log-install.txt
+} >> /var/log/domain.txt
 
 log "${green}Done! Domain $SUB_DOMAIN and wildcard $WILDCARD_DOMAIN created.${nc}"
 
