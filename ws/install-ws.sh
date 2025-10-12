@@ -15,7 +15,7 @@ echo "========================================="
 # -------------------------------
 echo "[STEP 1] Updating system and installing packages..."
 apt update -y && apt upgrade -y
-apt install -y wget curl lsof net-tools ufw build-essential
+apt install -y wget curl lsof net-tools ufw build-essential || true
 
 # -------------------------------
 # Install Node.js
