@@ -181,9 +181,7 @@ display_service_status() {
     echo -e "${WHITE} XRAY Shadowsocks       ${NC}: $(check_service_status xray systemctl)"
     
     # WebSocket Services
-    echo -e "${WHITE} WebSocket SSH          ${NC}: $(check_service_status sshws.service systemctl)"
-    echo -e "${WHITE} WebSocket Dropbear     ${NC}: $(check_service_status ws-dropbear.service systemctl)"
-    echo -e "${WHITE} WebSocket Stunnel      ${NC}: $(check_service_status ws-stunnel.service systemctl)"
+    echo -e "${WHITE} SSH WebSocket          ${NC}: $(check_service_status ws-proxy.service systemctl)"
     
     # Additional Services
     echo -e "${WHITE} VnStat                 ${NC}: $(check_service_status vnstat init.d)"
