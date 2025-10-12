@@ -219,22 +219,22 @@ connect = 127.0.0.1:110
 # =====================================
 [ws-dropbear-ssl]
 accept = 444
-connect = 127.0.0.1:143
+connect = 127.0.0.1:1443
 
 [ws-stunnel-ssl]
 accept = 447
-connect = 127.0.0.1:144
+connect = 127.0.0.1:1444
 
 # =====================================
 # WebSocket Non-SSL (WS)
 # =====================================
 [ws-dropbear]
 accept = 333
-connect = 127.0.0.1:143
+connect = 127.0.0.1:1443
 
 [ws-stunnel]
 accept = 337
-connect = 127.0.0.1:144
+connect = 127.0.0.1:1444
 
 # =========================================
 # Basic Firewall Setup (iptables)
@@ -254,8 +254,8 @@ iptables -A INPUT -p tcp -m multiport --dports 110,777 -j ACCEPT
 iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
 
 # Websocket
-iptables -A INPUT -p tcp -m multiport --dports 143,333,444 -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --dports 144,337,447 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 1443,333,444 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 1444,337,447 -j ACCEPT
 
 # ICMP (ping)
 iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
