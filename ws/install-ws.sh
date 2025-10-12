@@ -22,7 +22,6 @@ echo "[STEP 1] Updating system and installing packages..."
 apt update -y || true
 apt upgrade -y || true
 apt install -y wget curl lsof net-tools ufw build-essential || true
-
 # -------------------------------
 # Install Node.js
 # -------------------------------
@@ -53,6 +52,9 @@ echo "[STEP 3] proxy.js installed at /usr/local/bin/proxy.js"
 echo "[STEP 4] Setting up ws-proxy systemd service..."
 wget -q -O /etc/systemd/system/ws-proxy.service https://raw.githubusercontent.com/givps/AutoScriptXray/master/ws/ws-proxy.service
 chmod 644 /etc/systemd/system/ws-proxy.service
+
+cd /usr/local/bin
+npm install ws
 
 # Reload systemd to recognize new service
 systemctl daemon-reload || true
