@@ -157,7 +157,6 @@ cat > /etc/cron.d/acme-renew <<EOF
 0 3 1 */2 * root $ACME_HOME/acme.sh --cron --home $ACME_HOME > /var/log/acme-renew.log 2>&1
 EOF
 chmod 644 /etc/cron.d/acme-renew
-systemctl enable cron
 
 # ---------- Done ----------
 echo -e "[${green}SUCCESS${nc}] ACME.sh + Cloudflare setup completed!"
@@ -671,6 +670,16 @@ EOF
 systemctl enable xray.service
 systemctl enable run.service
 systemctl enable nginx
+
+# reload
+systemctl daemon-reload
+
+# restart
+systemctl restart chrony
+systemctl restart cron
+systemctl restart xray.service
+systemctl restart run.service
+systemctl restart nginx
 
 cd /usr/bin
 # vless
