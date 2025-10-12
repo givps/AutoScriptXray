@@ -98,7 +98,7 @@ echo -e "${red}=========================================${nc}"  | tee -a log-ins
 echo ""
 echo "   >>> Service & Port"  | tee -a log-install.txt
 echo "   - OpenSSH                  : 22"  | tee -a log-install.txt
-echo "   - Dropbear                 : 110" | tee -a log-install.txt
+echo "   - Dropbear                 : 109, 110" | tee -a log-install.txt
 echo "   - SSH Websocket            : 80, 1445" | tee -a log-install.txt
 echo "   - SSH SSL Websocket        : 443, 1444" | tee -a log-install.txt
 echo "   - Stunnel4                 : 222, 444," | tee -a log-install.txt
