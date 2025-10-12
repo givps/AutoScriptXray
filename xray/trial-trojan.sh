@@ -39,21 +39,21 @@ masaaktif=1
 exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
 
 # Backup config before modification
-cp /etc/xray/config.json /etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
+cp /usr/local/etc/xray/config.json /usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
 
 # Add user to config.json for WS
 if ! sed -i '/#trojanws$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /etc/xray/config.json; then
+},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan WS"
     exit 1
 fi
 
 # Add user to config.json for gRPC
 if ! sed -i '/#trojangrpc$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /etc/xray/config.json; then
+},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan gRPC"
     # Restore backup on error
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     exit 1
 fi
 
@@ -143,11 +143,10 @@ END
 else
     echo -e "${red}ERROR${nc}: Failed to restart Xray service"
     echo -e "${yellow}Restoring backup config...${nc}"
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     systemctl restart xray > /dev/null 2>&1
 fi
 
 echo ""
 read -n 1 -s -r -p "Press any key to back on menu"
 m-trojan
-
