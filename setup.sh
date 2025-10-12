@@ -24,12 +24,39 @@ if [ "${EUID}" -ne 0 ]; then
 		exit 1
 fi
 
-# set time zone
+# -------------------------------
+# 1️⃣ Set timezone ke Asia/Jakarta
+# -------------------------------
+echo "Setting timezone to Asia/Jakarta..."
 timedatectl set-timezone Asia/Jakarta
+echo "Timezone set:"
+timedatectl | grep "Time zone"
+
+# -------------------------------
+# 2️⃣ Enable NTP (auto-sync waktu)
+# -------------------------------
+echo "Enabling NTP..."
 timedatectl set-ntp true
-apt update && apt install -y cron
+
+# Cek status sinkronisasi
+timedatectl status | grep -E "NTP enabled|NTP synchronized"
+
+# -------------------------------
+# 3️⃣ Install & enable cron
+# -------------------------------
+if ! systemctl list-unit-files | grep -q '^cron.service'; then
+    echo "Cron not found. Installing cron..."
+    apt update -y
+    apt install -y cron
+fi
+
+echo "Enabling and starting cron service..."
 systemctl enable cron
-systemctl start cron
+systemctl restart cron
+
+echo ""
+echo "✅ VPS timezone, NTP, and cron setup complete!"
+
 # disable ipv6
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
