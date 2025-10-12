@@ -193,7 +193,6 @@ cat > /etc/xray/config.json << END
             "clients":[
                {
                   "id":"${uuid}",
-                  "flow":"xtls-rprx-vision"
                }
             ]
          },
