@@ -38,7 +38,7 @@ validate_username() {
         return 1
     fi
     
-    local user_exists=$(grep -w "$user" /etc/xray/config.json 2>/dev/null | wc -l)
+    local user_exists=$(grep -w "$user" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
     if [[ $user_exists -gt 0 ]]; then
         echo -e "${red}ERROR${nc}: User $user already exists"
         return 1
@@ -84,21 +84,21 @@ done
 exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
 
 # Backup config file before modification
-cp /etc/xray/config.json /etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
+cp /usr/local/etc/xray/config.json /usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
 
 # Add user to config.json for WS
 if ! sed -i '/#trojanws$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /etc/xray/config.json; then
+},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan WS"
     exit 1
 fi
 
 # Add user to config.json for gRPC
 if ! sed -i '/#trojangrpc$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /etc/xray/config.json; then
+},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan gRPC"
     # Restore backup on error
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     exit 1
 fi
 
@@ -111,7 +111,7 @@ trojanlink2="trojan://${uuid}@bug.com:${ntls}?path=%2Ftrojan&security=none&host=
 if ! systemctl restart xray; then
     echo -e "${red}ERROR${nc}: Failed to restart Xray service"
     echo -e "${yellow}INFO${nc}: Restoring backup config..."
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     systemctl restart xray
     exit 1
 fi
@@ -188,11 +188,10 @@ echo -e "${red}=========================================${nc}" | tee -a /var/log
 echo "" | tee -a /var/log/create-trojan.log
 
 # Clean up old backups (keep last 5)
-ls -t /etc/xray/config.json.backup.* 2>/dev/null | tail -n +6 | xargs -r rm
+ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | tail -n +6 | xargs -r rm
 
 echo -e "${green}SUCCESS${nc}: Trojan account $user created successfully!"
 echo -e "${yellow}INFO${nc}: Configuration backup created"
 
 read -n 1 -s -r -p "Press any key to back on menu"
 m-trojan
-
