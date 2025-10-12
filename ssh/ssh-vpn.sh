@@ -44,7 +44,7 @@ systemctl enable vnstat
 systemctl start vnstat
 
 # Create secure PAM configuration
-cat > /etc/pam.d/common-password << 'EOF'
+cat > /etc/pam.d/common-password <<EOF
 #
 # /etc/pam.d/common-password - password-related modules common to all services
 #
@@ -84,7 +84,7 @@ EOF
 chmod 644 /etc/pam.d/common-password
 
 # Edit file /etc/systemd/system/rc-local.service
-cat > /etc/systemd/system/rc-local.service <<-END
+cat > /etc/systemd/system/rc-local.service <<EOF
 [Unit]
 Description=/etc/rc.local
 ConditionPathExists=/etc/rc.local
@@ -97,15 +97,15 @@ RemainAfterExit=yes
 SysVStartPriority=99
 [Install]
 WantedBy=multi-user.target
-END
+EOF
 
 # nano /etc/rc.local
-cat > /etc/rc.local <<-END
+cat > /etc/rc.local <<EOF
 #!/bin/sh -e
 # rc.local
 # By default this script does nothing.
 exit 0
-END
+EOF
 
 # Ubah izin akses
 chmod +x /etc/rc.local
@@ -181,7 +181,7 @@ systemctl restart ssh
 echo "=== install dropbear ==="
 # install dropbear
 apt -y install dropbear
-cat > /etc/default/dropbear << EOF
+cat > /etc/default/dropbear <<EOF
 # Dropbear configuration
 NO_START=0
 DROPBEAR_PORT=110
@@ -198,7 +198,7 @@ systemctl start dropbear
 
 # install stunnel
 apt install stunnel4 -y
-cat > /etc/stunnel/stunnel.conf <<-END
+cat > /etc/stunnel/stunnel.conf <<EOF
 pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
 client = no
@@ -219,8 +219,7 @@ connect = 127.0.0.1:22
 [dropbear-ssl]
 accept = 444
 connect = 127.0.0.1:110
-
-END
+EOF
 
 systemctl enable dropbear
 systemctl start dropbear
@@ -267,7 +266,7 @@ openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
 cat key.pem cert.pem > /etc/stunnel/stunnel.pem
 chmod 600 /etc/stunnel/stunnel.pem
 
-cat > /etc/default/stunnel4 << EOF
+cat > /etc/default/stunnel4 <<EOF
 ENABLED=1
 FILES="/etc/stunnel/*.conf"
 OPTIONS=""
@@ -279,7 +278,7 @@ systemctl start stunnel4
 
 # install fail2ban
 apt -y install fail2ban
-cat > /etc/fail2ban/jail.local << 'EOF'
+cat > /etc/fail2ban/jail.local <<EOF
 [DEFAULT]
 bantime = 3600
 findtime = 600
@@ -392,21 +391,21 @@ chmod +x m-dns
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
 apt-get install -y speedtest || true
 
-cat > /etc/cron.d/re_otm <<-END
+cat > /etc/cron.d/re_otm <<EOF
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 2 * * * root /sbin/reboot
-END
+EOF
 
-cat > /etc/cron.d/xp_otm <<-END
+cat > /etc/cron.d/xp_otm <<EOF
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 0 * * * root /usr/bin/xp
-END
+EOF
 
-cat > /home/re_otm <<-END
+cat > /home/re_otm <<EOF
 7
-END
+EOF
 
 systemctl enable cron
 systemctl start cron
