@@ -19,7 +19,7 @@ clear
 # Function to extract VLess users from config
 get_vless_users() {
     # Extract VLess users - looking for #& pattern used in your add-vless script
-    grep -E '^#& ' /etc/xray/config.json | awk '{print $2}'
+    grep -E '^#& ' /usr/local/etc/xray/config.json | awk '{print $2}'
 }
 
 # Function to check active connections for a user
