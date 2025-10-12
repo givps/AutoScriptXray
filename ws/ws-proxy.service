@@ -1,0 +1,17 @@
+[Unit]
+Description=WebSocket Proxy.js Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/node /usr/local/bin/proxy.js
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ws-proxy
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
