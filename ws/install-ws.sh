@@ -2,7 +2,7 @@
 # ==========================================
 # INSTALL WEBSOCKET PROXY.JS
 # ==========================================
-
+set -euo pipefail
 LOG_FILE="/var/log/ws-proxy-install.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
