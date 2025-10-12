@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 1445
-User=nobody
+User=root
 Restart=always
 Type=simple
 TimeoutStartSec=0
