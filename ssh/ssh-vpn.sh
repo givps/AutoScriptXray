@@ -45,9 +45,7 @@ systemctl start vnstat
 
 # Create secure PAM configuration
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
-
-# Set correct permissions
-chmod 644 /etc/pam.d/common-password
+chmod +x /etc/pam.d/common-password
 
 # Edit file /etc/systemd/system/rc-local.service
 cat > /etc/systemd/system/rc-local.service <<EOF
