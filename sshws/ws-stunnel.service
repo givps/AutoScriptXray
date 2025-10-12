@@ -4,9 +4,10 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-stunnel 144
-User=root
+User=nobody
 Restart=always
 Type=simple
+TimeoutStartSec=0
 
 [Install]
 WantedBy=multi-user.target
