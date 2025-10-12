@@ -18,7 +18,7 @@ clear
 
 # Function to count VMess users
 count_vmess_users() {
-    grep -c -E "^### " "/etc/xray/config.json"
+    grep -c -E "^### " "/usr/local/etc/xray/config.json"
 }
 
 NUMBER_OF_CLIENTS=$(count_vmess_users)
@@ -41,7 +41,7 @@ echo -e "${blue}        Delete VMess Account          ${nc}"
 echo -e "${red}=========================================${nc}"
 echo -e "${green}  No.  Username           Expired Date${nc}"
 echo -e "${red}=========================================${nc}"
-grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | sort | uniq | nl -w 3 -s "   "
+grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | sort | uniq | nl -w 3 -s "   "
 echo -e "${red}=========================================${nc}"
 echo -e "${yellow}  • Total Users: $NUMBER_OF_CLIENTS${nc}"
 echo -e "${yellow}  • [NOTE] Press Enter to cancel${nc}"
@@ -59,14 +59,14 @@ if [[ -z "$user" ]]; then
 fi
 
 # Validate user exists
-if ! grep -q "^### $user " "/etc/xray/config.json"; then
+if ! grep -q "^### $user " "/usr/local/etc/xray/config.json"; then
     echo -e "${red}=========================================${nc}"
     echo -e "${blue}        Delete VMess Account          ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e "${red}  • Error: User '$user' not found!${nc}"
     echo ""
     echo -e "${yellow}  • Available users:${nc}"
-    grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq | nl -w 3 -s "   "
+    grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq | nl -w 3 -s "   "
     echo -e "${red}=========================================${nc}"
     read -n 1 -s -r -p "   Press any key to back on menu"
     m-vmess
@@ -74,15 +74,15 @@ if ! grep -q "^### $user " "/etc/xray/config.json"; then
 fi
 
 # Get user expiry date
-exp=$(grep -wE "^### $user" "/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
+exp=$(grep -wE "^### $user" "/usr/local/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
 
 # Backup config before modification (safety measure)
-cp /etc/xray/config.json /etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
+cp /usr/local/etc/xray/config.json /usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
 
 # Delete user from config
-if sed -i "/^### $user $exp/,/^},{/d" /etc/xray/config.json 2>/dev/null; then
+if sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/config.json 2>/dev/null; then
     # Also delete from gRPC section if exists
-    sed -i "0,/^### $user $exp/,/^},{/d" /etc/xray/config.json 2>/dev/null
+    sed -i "0,/^### $user $exp/,/^},{/d" /usr/local/etc/xray/config.json 2>/dev/null
     
     # Restart Xray service
     if systemctl restart xray > /dev/null 2>&1; then
@@ -108,11 +108,11 @@ if sed -i "/^### $user $exp/,/^},{/d" /etc/xray/config.json 2>/dev/null; then
         echo -e "${red}=========================================${nc}"
         
         # Clean up backup file
-        rm -f /etc/xray/config.json.backup.* 2>/dev/null
+        rm -f /usr/local/etc/xray/config.json.backup.* 2>/dev/null
     else
         echo -e "${red}  • Error: Failed to restart Xray service${nc}"
         echo -e "${yellow}  • Restoring backup config...${nc}"
-        cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+        cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
         systemctl restart xray > /dev/null 2>&1
     fi
 else
