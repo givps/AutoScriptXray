@@ -516,7 +516,7 @@ cat > /etc/xray/config.json << END
 }
 END
 
-cat > /etc/systemd/system/xray.service <<EOF
+cat > /etc/systemd/system/xray.service << END
 [Unit]
 Description=Xray Service
 Documentation=https://github.com/xtls
@@ -535,9 +535,9 @@ LimitNOFILE=1000000
 
 [Install]
 WantedBy=multi-user.target
-EOF
+END
 
-cat > /etc/systemd/system/run.service <<EOF
+cat > /etc/systemd/system/run.service << END
 [Unit]
 Description=Xray Runtime Directory Service
 After=network.target
@@ -550,10 +550,10 @@ Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target
-EOF
+END
 
 #nginx config
-cat > /etc/nginx/conf.d/xray.conf <<EOF
+cat >/etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 80;
     listen [::]:80;
