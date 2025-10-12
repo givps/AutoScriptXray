@@ -170,7 +170,6 @@ display_service_status() {
     echo -e "${WHITE} Fail2Ban               ${NC}: $(check_service_status fail2ban init.d)"
     echo -e "${WHITE} Cron                   ${NC}: $(check_service_status cron init.d)"
     echo -e "${WHITE} Nginx                  ${NC}: $(check_service_status nginx init.d)"
-    echo -e "${WHITE} Squid Proxy            ${NC}: $(check_service_status squid init.d)"
     
     # Xray Services
     echo -e "${WHITE} XRAY Core              ${NC}: $(check_service_status xray systemctl)"
