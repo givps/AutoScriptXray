@@ -567,7 +567,7 @@ server {
     }
 
     # Trojan WS
-    location = /trojan-ws {
+    location = /trojan {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:25432;
         proxy_http_version 1.1;
