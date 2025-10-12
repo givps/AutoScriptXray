@@ -38,7 +38,7 @@ validate_username() {
         return 1
     fi
     
-    local client_exists=$(grep -w "$user" /etc/xray/config.json 2>/dev/null | wc -l)
+    local client_exists=$(grep -w "$user" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
     if [[ $client_exists -gt 0 ]]; then
         echo -e "${red}ERROR${nc}: User $user already exists"
         return 1
@@ -84,21 +84,21 @@ done
 exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
 
 # Backup config file before modification
-cp /etc/xray/config.json /etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
+cp /usr/local/etc/xray/config.json /usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
 
 # Add user to config.json for WS
 if ! sed -i '/#vmess$/a\### '"$user $exp"'\
-},{"id": "'"$uuid"'","alterId": 0,"email": "'"$user"'"' /etc/xray/config.json; then
+},{"id": "'"$uuid"'","alterId": 0,"email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for VMess WS"
     exit 1
 fi
 
 # Add user to config.json for gRPC
 if ! sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
-},{"id": "'"$uuid"'","alterId": 0,"email": "'"$user"'"' /etc/xray/config.json; then
+},{"id": "'"$uuid"'","alterId": 0,"email": "'"$user"'"' /usr/local/etc/xray/config.json; then
     echo -e "${red}ERROR${nc}: Failed to update config.json for VMess gRPC"
     # Restore backup on error
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     exit 1
 fi
 
@@ -165,7 +165,7 @@ vmesslink3="vmess://$(echo "$grpc" | base64 -w 0)"
 if ! systemctl restart xray; then
     echo -e "${red}ERROR${nc}: Failed to restart Xray service"
     echo -e "${yellow}INFO${nc}: Restoring backup config..."
-    cp /etc/xray/config.json.backup.* /etc/xray/config.json 2>/dev/null
+    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
     systemctl restart xray
     exit 1
 fi
@@ -252,11 +252,10 @@ echo -e "${red}=========================================${nc}" | tee -a /var/log
 echo "" | tee -a /var/log/create-vmess.log
 
 # Clean up old backups (keep last 5)
-ls -t /etc/xray/config.json.backup.* 2>/dev/null | tail -n +6 | xargs -r rm
+ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | tail -n +6 | xargs -r rm
 
 echo -e "${green}SUCCESS${nc}: VMess account $user created successfully!"
 echo -e "${yellow}INFO${nc}: Configuration backup created"
 
 read -n 1 -s -r -p "Press any key to back on menu"
 m-vmess
-
