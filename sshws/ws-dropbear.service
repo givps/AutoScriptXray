@@ -1,17 +1,13 @@
 [Unit]
 Description=SSH WebSocket over Dropbear Service
-After=network.target nss-lookup.target
-Documentation=man:ws-dropbear
+After=network.target
 
 [Service]
-Type=simple
-User=root
-WorkingDirectory=/usr/local/bin
-ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 143
+ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 1443
+User=nobody
 Restart=always
-RestartSec=3
-LimitNOFILE=65535
-NoNewPrivileges=false
+Type=simple
+TimeoutStartSec=0
 
 [Install]
 WantedBy=multi-user.target
