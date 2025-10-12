@@ -516,7 +516,7 @@ cat > /etc/xray/config.json << END
 }
 END
 
-cat <<EOF > /etc/systemd/system/xray.service
+cat > /etc/systemd/system/xray.service <<EOF
 [Unit]
 Description=Xray Service
 Documentation=https://github.com/xtls
