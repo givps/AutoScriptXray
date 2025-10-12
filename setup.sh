@@ -25,9 +25,8 @@ if [ "${EUID}" -ne 0 ]; then
 fi
 
 # set time zone
-ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
-apt install -y ntp
-systemctl enable ntp
+timedatectl set-timezone Asia/Jakarta
+timedatectl set-ntp true
 
 # disable ipv6
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
