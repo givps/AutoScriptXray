@@ -563,7 +563,7 @@ server {
     listen [::]:80;
     listen 443 ssl http2 reuseport;
     listen [::]:443 ssl http2 reuseport;
-    server_name $domain;
+    server_name 127.0.0.1 localhost;
     
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
