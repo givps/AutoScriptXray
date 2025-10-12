@@ -18,13 +18,13 @@ clear
 
 # Function to count Trojan users
 count_trojan_users() {
-    grep -c -E "^#! " "/etc/xray/config.json"
+    grep -c -E "^#! " "/usr/local/etc/xray/config.json"
 }
 
 # Function to backup config
 backup_config() {
-    local backup_file="/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
-    cp /etc/xray/config.json "$backup_file" 2>/dev/null
+    local backup_file="/usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
+    cp /usr/local/etc/xray/config.json "$backup_file" 2>/dev/null
     echo "$backup_file"
 }
 
@@ -32,7 +32,7 @@ backup_config() {
 restore_config() {
     local backup_file="$1"
     if [[ -f "$backup_file" ]]; then
-        cp "$backup_file" /etc/xray/config.json
+        cp "$backup_file" /usr/local/etc/xray/config.json
         rm -f "$backup_file"
         echo -e "${green}Config restored from backup${nc}"
     fi
@@ -62,7 +62,7 @@ echo -e "${blue}         Delete Trojan Account         ${nc}"
 echo -e "${red}=========================================${nc}"
 echo -e "${green}  No.  Username           Expired Date${nc}"
 echo -e "${red}=========================================${nc}"
-grep -E "^#! " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | sort | uniq | nl -w 3 -s "   "
+grep -E "^#! " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | sort | uniq | nl -w 3 -s "   "
 echo -e "${red}=========================================${nc}"
 echo -e "${yellow}  • Total Users: $NUMBER_OF_CLIENTS${nc}"
 echo -e "${yellow}  • [NOTE] Press Enter to cancel${nc}"
@@ -80,14 +80,14 @@ if [[ -z "$user" ]]; then
 fi
 
 # Validate user exists
-if ! grep -q "^#! $user " "/etc/xray/config.json"; then
+if ! grep -q "^#! $user " "/usr/local/etc/xray/config.json"; then
     echo -e "${red}=========================================${nc}"
     echo -e "${blue}         Delete Trojan Account         ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e "${red}  • Error: User '$user' not found!${nc}"
     echo ""
     echo -e "${yellow}  • Available users:${nc}"
-    grep -E "^#! " "/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq | nl -w 3 -s "   "
+    grep -E "^#! " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq | nl -w 3 -s "   "
     echo -e "${red}=========================================${nc}"
     read -n 1 -s -r -p "   Press any key to back on menu"
     m-trojan
@@ -95,15 +95,15 @@ if ! grep -q "^#! $user " "/etc/xray/config.json"; then
 fi
 
 # Get user expiry date
-exp=$(grep -wE "^#! $user" "/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
+exp=$(grep -wE "^#! $user" "/usr/local/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
 
 # Backup config before modification
 backup_file=$(backup_config)
 
 # Delete user from config
-if sed -i "/^#! $user $exp/,/^},{/d" /etc/xray/config.json 2>/dev/null; then
+if sed -i "/^#! $user $exp/,/^},{/d" /usr/local/etc/xray/config.json 2>/dev/null; then
     # Also delete from gRPC section if exists (second occurrence)
-    sed -i "0,/^#! $user $exp/,/^},{/d" /etc/xray/config.json 2>/dev/null
+    sed -i "0,/^#! $user $exp/,/^},{/d" /usr/local/etc/xray/config.json 2>/dev/null
     
     # Restart Xray service
     if systemctl restart xray > /dev/null 2>&1; then
