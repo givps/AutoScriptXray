@@ -3,7 +3,7 @@ Description=SSH WebSocket over Dropbear Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 1443
+ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-dropbear 1445
 User=nobody
 Restart=always
 Type=simple
