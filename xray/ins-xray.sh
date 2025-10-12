@@ -74,7 +74,6 @@ fi
 # create folder
 mkdir -p /usr/local/etc/xray
 mkdir -p /var/log/xray
-mkdir -p /etc/xray
 mkdir -p /home/vps/public_html
 chown -R www-data:www-data /var/log/xray
 chmod 755 /var/log/xray
@@ -167,7 +166,7 @@ echo -e "KEY: /usr/local/etc/xray/xray.key"
 # generate uuid
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
-cat > /etc/xray/config.json << END
+cat > /usr/local/etc/xray/config.json << END
 {{
    "log":{
       "access":"/var/log/xray/access.log",
@@ -532,7 +531,7 @@ User=www-data
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/usr/local/bin/xray run -config /etc/xray/config.json
+ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
 LimitNPROC=10000
