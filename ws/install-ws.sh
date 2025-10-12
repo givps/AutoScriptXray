@@ -52,6 +52,7 @@ systemctl daemon-reload
 
 # Enable and start service
 systemctl enable ws-proxy
+systemctl start ws-proxy
 
 # -------------------------------
 # Final message
