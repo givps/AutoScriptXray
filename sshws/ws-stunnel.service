@@ -3,7 +3,7 @@ Description=SSH WebSocket over Stunnel Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-stunnel 144
+ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-stunnel 1444
 User=nobody
 Restart=always
 Type=simple
