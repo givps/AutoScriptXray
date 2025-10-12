@@ -9,8 +9,6 @@ purple='\e[0;35m'
 orange='\e[0;33m'
 nc='\e[0m'
 
-echo -e "[ ${green}INFO${nc} ] Renew Certificate In Progress ~" 
-
 systemctl stop nginx
 systemctl stop xray
 systemctl stop run
