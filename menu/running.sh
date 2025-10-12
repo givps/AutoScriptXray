@@ -187,7 +187,7 @@ display_service_status() {
     
     # Additional Services
     echo -e "${WHITE} VnStat                 ${NC}: $(check_service_status vnstat init.d)"
-    echo -e "${WHITE} BadVPN                 ${NC}: $(check_service_status badvpn process)"
+    echo -e "${WHITE} BadVPN                 ${NC}: $(udpgw-status)"
 }
 
 # Function to display footer
