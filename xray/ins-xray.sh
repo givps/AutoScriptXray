@@ -674,6 +674,13 @@ systemctl enable nginx
 # reload
 systemctl daemon-reload
 
+# start
+systemctl start chrony
+systemctl start cron
+systemctl start xray.service
+systemctl start run.service
+systemctl start nginx
+
 # restart
 systemctl restart chrony
 systemctl restart cron
