@@ -46,7 +46,7 @@ echo "Expiry: $day day"
 # Create user
 if useradd -e $(date -d "+$day day" +"%Y-%m-%d") -s /bin/false -M $Login 2>/dev/null; then
     exp=$(chage -l $Login 2>/dev/null | grep "Account expires" | awk -F": " '{print $2}')
-    echo "$Login:$Pass" | passwd 2>/dev/null
+    echo "$Login:$Pass" | chpasswd 2>/dev/null
     
     clear
     
