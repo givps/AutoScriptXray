@@ -25,39 +25,10 @@ apt install -y \
 echo -e "[ ${green}INFO${nc} ] Cleaning up..."
 apt clean all && apt autoremove -y
 
-LOG_FILE="/var/log/chrony-setup.log"
 mkdir -p /var/log
-
-# Rotate log if bigger than 1MB
-[ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ] && {
-  ts=$(date +%Y%m%d-%H%M%S)
-  mv "$LOG_FILE" "$LOG_FILE.$ts.bak"
-  ls -tp /var/log/chrony-setup.log.*.bak 2>/dev/null | tail -n +4 | xargs -r rm --
-}
-
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo -e "[${green}INFO${nc}] Installing chrony..."
 apt update -y >/dev/null 2>&1
-apt install -y chrony ntpdate >/dev/null 2>&1
-
-# Stop chrony to avoid conflict during manual sync
-systemctl stop chrony 2>/dev/null
-
-echo -e "[${green}INFO${nc}] Syncing time with NTP server..."
-ntpdate pool.ntp.org
-
-# Enable and start chrony
-systemctl enable chrony
-systemctl start chrony
-
-# Verify synchronization
-echo -e "[${green}INFO${nc}] Verifying time synchronization..."
-chronyc sources -v
-chronyc sourcestats -v
-chronyc tracking -v
-
-echo -e "[${green}SUCCESS${nc}] Chrony setup completed!"
 
 # install xray
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
@@ -674,14 +645,12 @@ systemctl enable nginx
 systemctl daemon-reload
 
 # start
-systemctl start chrony
 systemctl start cron
 systemctl start xray.service
 systemctl start run.service
 systemctl start nginx
 
 # restart
-systemctl restart chrony
 systemctl restart cron
 systemctl restart xray.service
 systemctl restart run.service
