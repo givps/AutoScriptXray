@@ -117,7 +117,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 
 # ---------- Cloudflare Token ----------
 DEFAULT_CF_TOKEN="GxfBrA3Ez39MdJo53EV-LiC4dM1-xn5rslR-m5Ru"
-read -rp "${green}Enter Cloudflare API Token (ENTER for default)${nc}: " CF_Token
+read -rp "Enter Cloudflare API Token (ENTER for default): " CF_Token
 export CF_Token="${CF_Token:-$DEFAULT_CF_TOKEN}"
 
 # ---------- Retry helper ----------
