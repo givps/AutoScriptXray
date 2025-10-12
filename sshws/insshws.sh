@@ -6,7 +6,7 @@
 #Install Script Websocket-SSH Python
 wget -O /usr/local/bin/ws-dropbear https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/ws-dropbear
 wget -O /usr/local/bin/ws-stunnel https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/ws-stunnel
-#wget -O /usr/local/bin/ws-stunnel https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/ws-ssh
+#wget -O /usr/local/bin/ws-ssh https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/ws-ssh
 
 # permision
 chmod +x /usr/local/bin/ws-dropbear
