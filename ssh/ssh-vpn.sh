@@ -219,7 +219,7 @@ connect = 127.0.0.1:110
 # =====================================
 [ws-dropbear-ssl]
 accept = 444
-connect = 127.0.0.1:1443
+connect = 127.0.0.1:1445
 
 [ws-stunnel-ssl]
 accept = 447
@@ -230,7 +230,7 @@ connect = 127.0.0.1:1444
 # =====================================
 [ws-dropbear]
 accept = 333
-connect = 127.0.0.1:1443
+connect = 127.0.0.1:1445
 
 [ws-stunnel]
 accept = 337
@@ -254,7 +254,7 @@ iptables -A INPUT -p tcp -m multiport --dports 110,777 -j ACCEPT
 iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
 
 # Websocket
-iptables -A INPUT -p tcp -m multiport --dports 1443,333,444 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 1445,333,444 -j ACCEPT
 iptables -A INPUT -p tcp -m multiport --dports 1444,337,447 -j ACCEPT
 
 # ICMP (ping)
