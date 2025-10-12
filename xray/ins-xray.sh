@@ -14,6 +14,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 
 # Install all packages in one command (more efficient)
 echo -e "[ ${green}INFO${nc} ] Installing dependencies..."
+apt update -y >/dev/null 2>&1
 apt install -y \
     iptables iptables-persistent \
     curl python3 socat xz-utils wget apt-transport-https \
@@ -26,9 +27,6 @@ echo -e "[ ${green}INFO${nc} ] Cleaning up..."
 apt clean all && apt autoremove -y
 
 mkdir -p /var/log
-exec > >(tee -a "$LOG_FILE") 2>&1
-
-apt update -y >/dev/null 2>&1
 
 # install xray
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
