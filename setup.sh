@@ -73,7 +73,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}      Install SSH Websocket           ${nc}"
 echo -e "${red}=========================================${nc}"
 # install sshws
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/sshws/insshws.sh && chmod +x insshws.sh && ./insshws.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ws/install-ws.sh && chmod +x install-ws.sh && ./install-ws.sh
 
 cat > /root/.profile << END
 # ~/.profile: executed by Bourne-compatible login shells.
