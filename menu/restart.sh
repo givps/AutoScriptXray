@@ -25,8 +25,8 @@ declare -A SERVICES=(
     ["cron"]="systemctl restart cron"
     ["nginx"]="systemctl restart nginx"
     ["xray"]="systemctl restart xray"
-    ["ws-dropbear"]="systemctl restart ws-dropbear.service"
-    ["ws-stunnel"]="systemctl restart ws-stunnel.service"
+    ["ws-dropbear"]="systemctl restart ws-dropbear"
+    ["ws-stunnel"]="systemctl restart ws-stunnel"
 )
 
 # ---------- Functions ----------
@@ -340,8 +340,8 @@ restart() {
                 ;;
             8)
                 display_header
-                restart_service "ws-dropbear" "systemctl restart ws-dropbear.service" "Dropbear WebSocket"
-                restart_service "ws-stunnel" "systemctl restart ws-stunnel.service" "Stunnel WebSocket"
+                restart_service "ws-dropbear" "systemctl restart ws-dropbear" "Dropbear WebSocket"
+                restart_service "ws-stunnel" "systemctl restart ws-stunnel" "Stunnel WebSocket"
                 show_service_status
                 wait_for_input
                 ;;
