@@ -82,12 +82,6 @@ systemctl start rc-local
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 
-# set time GMT +7
-ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
-apt install -y ntp
-systemctl enable ntp
-systemctl start ntp
-
 # Remove old NGINX
 apt remove -y nginx nginx-common
 apt purge -y nginx nginx-common
@@ -391,7 +385,6 @@ systemctl daemon-reload
 systemctl restart rsyslog
 systemctl restart vnstat
 systemctl restart rc-local
-systemctl restart ntp
 systemctl restart nginx
 systemctl restart dropbear
 systemctl restart stunnel4
