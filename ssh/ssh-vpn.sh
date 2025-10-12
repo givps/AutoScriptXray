@@ -182,39 +182,36 @@ EOF
 systemctl enable dropbear
 systemctl start dropbear
 
-# =========================================
-# Basic Firewall Setup (iptables)
-# =========================================
-
-# Allow loopback (localhost)
+# Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
 
-# Allow established / related connections
+# Allow established connections
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# Allow all used SSH ports
-iptables -A INPUT -p tcp -m multiport --dports 22,222 -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --dports 109,110,444 -j ACCEPT
+# Allow SSH & Dropbear
+iptables -A INPUT -p tcp -m multiport --dports 22,109,110,222,444 -j ACCEPT
 
-# HTTP/HTTPS
+# Allow HTTP/HTTPS
 iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
 
-# Websocket
+# Allow WebSocket ports
 iptables -A INPUT -p tcp -m multiport --dports 1444,1445 -j ACCEPT
 
-# ICMP (ping)
+# Allow ping
 iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
-# Drop all other connections that do not match the above rules
+# Masquerade outbound traffic
+iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+
+# Allow forwarding
+iptables -P FORWARD ACCEPT
+
+# Drop other inputs
 iptables -A INPUT -j DROP
 
-# Save rules to rules.v4 file
+# Save
 iptables-save > /etc/iptables/rules.v4
-
-# Save to persistent iptables configuration (auto restore on reboot)
 netfilter-persistent save
-
-# Reload to ensure active
 netfilter-persistent reload
 
 # make a certificate
