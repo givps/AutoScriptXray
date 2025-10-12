@@ -192,20 +192,16 @@ apt install stunnel4 -y
 cat > /etc/stunnel/stunnel.conf <<-END
 pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
+foreground = no
 client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-foreground = no
-compression = zlib
 sslVersion = TLSv1.2
 options = NO_SSLv2
 options = NO_SSLv3
 options = NO_TLSv1
 options = NO_TLSv1.1
-renegotiation = no
-sessionCacheSize = 1000
-sessionTimeout = 300
 
 # =====================================
 # SSH Services
@@ -235,14 +231,10 @@ connect = 127.0.0.1:144
 [ws-dropbear]
 accept = 333
 connect = 127.0.0.1:143
-protocol = none
 
 [ws-stunnel]
 accept = 337
 connect = 127.0.0.1:144
-protocol = none
-
-END
 
 # =========================================
 # Basic Firewall Setup (iptables)
