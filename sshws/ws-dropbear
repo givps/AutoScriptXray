@@ -1,5 +1,11 @@
 #!/usr/bin/python3
-import socket threading select sys time signal logging
+import socket
+import threading
+import select
+import sys
+import time
+import signal
+import logging
 
 LISTENING_ADDR = '0.0.0.0'
 LISTENING_PORT = int(sys.argv[1]) if sys.argv[1:] else 1443
