@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+import socket
+import threading
+import sys
+import time
+
+LISTENING_ADDR = '0.0.0.0'
+LISTENING_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 14444
+BACKEND_HOST = '127.0.0.1'
+BACKEND_PORT = 22   # SSH default port
+BUFLEN = 4096
+
+class WSBridge(threading.Thread):
+    def __init__(self, client, target_host, target_port):
+        threading.Thread.__init__(self)
+        self.client = client
+        self.target_host = target_host
+        self.target_port = target_port
+
+    def run(self):
+        try:
+            remote = socket.create_connection((self.target_host, self.target_port))
+        except Exception:
+            self.client.close()
+            return
+
+        def forward(src, dst):
+            try:
+                while True:
+                    data = src.recv(BUFLEN)
+                    if not data:
+                        break
+                    dst.sendall(data)
+            except:
+                pass
+            finally:
+                src.close()
+                dst.close()
+
+        t1 = threading.Thread(target=forward, args=(self.client, remote))
+        t2 = threading.Thread(target=forward, args=(remote, self.client))
+        t1.start()
+        t2.start()
+
+def main():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind((LISTENING_ADDR, LISTENING_PORT))
+    sock.listen(100)
+    print(f"[INFO] WebSocket SSH listening on {LISTENING_ADDR}:{LISTENING_PORT}")
+    while True:
+        client, addr = sock.accept()
+        WSBridge(client, BACKEND_HOST, BACKEND_PORT).start()
+
+if __name__ == "__main__":
+    main()
