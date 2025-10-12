@@ -25,8 +25,8 @@ declare -A SERVICES=(
     ["cron"]="systemctl restart cron"
     ["nginx"]="systemctl restart nginx"
     ["xray"]="systemctl restart xray"
-    ["ws-dropbear"]="systemctl restart ws-dropbear"
-    ["ws-stunnel"]="systemctl restart ws-stunnel"
+    ["ws-dropbear"]="systemctl restart ws-dropbear.service"
+    ["ws-stunnel"]="systemctl restart ws-stunnel.service"
 )
 
 # ---------- Functions ----------
