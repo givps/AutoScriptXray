@@ -99,9 +99,9 @@ echo ""
 echo "   >>> Service & Port"  | tee -a log-install.txt
 echo "   - OpenSSH                  : 22"  | tee -a log-install.txt
 echo "   - Dropbear                 : 110" | tee -a log-install.txt
-echo "   - SSH Websocket            : 80, 333, 337" | tee -a log-install.txt
-echo "   - SSH SSL Websocket        : 443, 444, 447" | tee -a log-install.txt
-echo "   - Stunnel4                 : 222, 777," | tee -a log-install.txt
+echo "   - SSH Websocket            : 80, 1445" | tee -a log-install.txt
+echo "   - SSH SSL Websocket        : 443, 1444" | tee -a log-install.txt
+echo "   - Stunnel4                 : 222, 444," | tee -a log-install.txt
 echo "   - Badvpn                   : 7100-7900" | tee -a log-install.txt
 echo "   - Nginx                    : 81" | tee -a log-install.txt
 echo "   - Vmess WS TLS             : 443" | tee -a log-install.txt
