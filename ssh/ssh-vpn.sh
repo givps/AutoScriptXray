@@ -180,7 +180,9 @@ cat > /etc/default/dropbear << EOF
 # Dropbear configuration
 NO_START=0
 DROPBEAR_PORT=110
+DROPBEAR_EXTRA_ARGS="-p 109"
 EOF
+
 
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
@@ -198,37 +200,18 @@ socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
 # =====================================
-# SSH Services
+# SSH
 # =====================================
-[openssh]
+[ssh-ssl]
 accept = 222
 connect = 127.0.0.1:22
 
-[dropbear]
-accept = 777
-connect = 127.0.0.1:110
-
 # =====================================
-# WebSocket SSL (WSS)
+# Dropbear
 # =====================================
-[ws-dropbear-ssl]
+[dropbear-ssl]
 accept = 444
-connect = 127.0.0.1:1445
-
-[ws-stunnel-ssl]
-accept = 447
-connect = 127.0.0.1:1444
-
-# =====================================
-# WebSocket Non-SSL (WS)
-# =====================================
-[ws-dropbear]
-accept = 333
-connect = 127.0.0.1:1445
-
-[ws-stunnel]
-accept = 337
-connect = 127.0.0.1:1444
+connect = 127.0.0.1:110
 
 # =========================================
 # Basic Firewall Setup (iptables)
@@ -242,14 +225,13 @@ iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Allow all used SSH ports
 iptables -A INPUT -p tcp -m multiport --dports 22,222 -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --dports 110,777 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 109,110,444 -j ACCEPT
 
 # HTTP/HTTPS
 iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
 
 # Websocket
-iptables -A INPUT -p tcp -m multiport --dports 1445,333,444 -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --dports 1444,337,447 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 1444,1445 -j ACCEPT
 
 # ICMP (ping)
 iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
