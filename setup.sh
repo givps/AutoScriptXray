@@ -27,7 +27,9 @@ fi
 # set time zone
 timedatectl set-timezone Asia/Jakarta
 timedatectl set-ntp true
-
+apt update && apt install -y cron
+systemctl enable cron
+systemctl start cron
 # disable ipv6
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
