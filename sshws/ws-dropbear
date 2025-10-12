@@ -2,7 +2,7 @@
 import socket threading select sys time signal logging
 
 LISTENING_ADDR = '0.0.0.0'
-LISTENING_PORT = int(sys.argv[1]) if sys.argv[1:] else 143
+LISTENING_PORT = int(sys.argv[1]) if sys.argv[1:] else 1443
 DEFAULT_TARGET = '127.0.0.1:110'
 BUFLEN = 4096 * 4
 IDLE_TIMEOUT = 60
