@@ -18,13 +18,13 @@ clear
 
 # Function to count Shadowsocks users
 count_ss_users() {
-    grep -c -E "^### " "/etc/xray/config.json"
+    grep -c -E "^### " "/usr/local/etc/xray/config.json"
 }
 
 # Function to backup config
 backup_config() {
-    local backup_file="/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
-    cp /etc/xray/config.json "$backup_file" 2>/dev/null
+    local backup_file="/usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
+    cp /usr/local/etc/xray/config.json "$backup_file" 2>/dev/null
     echo "$backup_file"
 }
 
@@ -51,7 +51,7 @@ echo -e "${blue}          Renew Shadowsocks           ${nc}"  # Changed to blue
 echo -e "${red}=========================================${nc}"
 echo -e "${green}  Username           Expired Date${nc}"
 echo -e "${red}=========================================${nc}"
-grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | while read user exp; do
+grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | while read user exp; do
     printf "  %-18s %s\n" "$user" "$exp"
 done
 echo -e "${red}=========================================${nc}"
@@ -72,14 +72,14 @@ if [[ -z "$user" ]]; then
 fi
 
 # Validate user exists
-if ! grep -q "^### $user " "/etc/xray/config.json"; then
+if ! grep -q "^### $user " "/usr/local/etc/xray/config.json"; then
     echo -e "${red}=========================================${nc}"
     echo -e "${blue}          Renew Shadowsocks           ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e "${red}Error: User '$user' not found!${nc}"
     echo ""
     echo -e "${yellow}Available users:${nc}"
-    grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq
+    grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq
     echo -e "${red}=========================================${nc}"
     read -n 1 -s -r -p "Press any key to back on menu"
     m-ssws
@@ -87,7 +87,7 @@ if ! grep -q "^### $user " "/etc/xray/config.json"; then
 fi
 
 # Get current expiry date
-current_exp=$(grep -wE "^### $user" "/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
+current_exp=$(grep -wE "^### $user" "/usr/local/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
 
 # Get renewal days with validation
 while true; do
@@ -119,9 +119,9 @@ fi
 backup_file=$(backup_config)
 
 # Update expiry date in config
-if sed -i "s/^### $user $current_exp/### $user $new_exp/" /etc/xray/config.json 2>/dev/null; then
+if sed -i "s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/config.json 2>/dev/null; then
     # Also update in gRPC section if exists
-    sed -i "0,/^### $user $current_exp/s/^### $user $current_exp/### $user $new_exp/" /etc/xray/config.json 2>/dev/null
+    sed -i "0,/^### $user $current_exp/s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/config.json 2>/dev/null
     
     # Restart Xray service
     if systemctl restart xray > /dev/null 2>&1; then
@@ -158,16 +158,15 @@ if sed -i "s/^### $user $current_exp/### $user $new_exp/" /etc/xray/config.json 
     else
         echo -e "${red}Error: Failed to restart Xray service${nc}"
         echo -e "${yellow}Restoring backup config...${nc}"
-        cp "$backup_file" /etc/xray/config.json 2>/dev/null
+        cp "$backup_file" /usr/local/etc/xray/config.json 2>/dev/null
         systemctl restart xray > /dev/null 2>&1
     fi
 else
     echo -e "${red}Error: Failed to update expiry date${nc}"
     echo -e "${yellow}Restoring backup config...${nc}"
-    cp "$backup_file" /etc/xray/config.json 2>/dev/null
+    cp "$backup_file" /usr/local/etc/xray/config.json 2>/dev/null
 fi
 
 echo ""
 read -n 1 -s -r -p "Press any key to back on menu"
 m-ssws
-
