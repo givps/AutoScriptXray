@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import socket, threading, select, sys, time, logging, os, signal
 
-LISTENING_ADDR = '127.0.0.1'
+LISTENING_ADDR = '0.0.0.0'
 LISTENING_PORT = int(sys.argv[1]) if sys.argv[1:] else 144
 BUFLEN = 4096 * 4
 TIMEOUT = 60
