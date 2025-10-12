@@ -182,7 +182,7 @@ echo "WebSocket Proxy.js installation complete!"
 echo "You can check the service status: systemctl status ws-proxy"
 echo "========================================="
 
-cat > /root/.profile <<EOF
+cat > /root/.profile <<'EOF'
 # ~/.profile: executed by Bourne-compatible login shells.
 
 if [ "$BASH" ]; then
@@ -193,11 +193,11 @@ fi
 
 mesg n || true
 clear
-menu
+command -v menu >/dev/null 2>&1 && menu
 EOF
 
 echo ""
-echo -e "========================================="  | tee -a ~/~/log-install.txt
+echo -e "========================================="  | tee -a ~/log-install.txt
 echo -e "          Service Information            "  | tee -a ~/log-install.txt
 echo -e "========================================="  | tee -a ~/log-install.txt
 echo ""
@@ -206,7 +206,7 @@ echo "   - OpenSSH                  : 22"  | tee -a ~/log-install.txt
 echo "   - Dropbear                 : 109, 110" | tee -a ~/log-install.txt
 echo "   - SSH Websocket            : 80, 1445" | tee -a ~/log-install.txt
 echo "   - SSH SSL Websocket        : 443, 1444" | tee -a ~/log-install.txt
-echo "   - Stunnel4                 : 222, 444," | tee -a ~/log-install.txt
+echo "   - Stunnel4                 : 222, 444" | tee -a ~/log-install.txt
 echo "   - Badvpn                   : 7100-7900" | tee -a ~/log-install.txt
 echo "   - Nginx                    : 81" | tee -a ~/log-install.txt
 echo "   - Vmess WS TLS             : 443" | tee -a ~/log-install.txt
@@ -222,11 +222,10 @@ echo "   - Vless gRPC               : 443" | tee -a ~/log-install.txt
 echo "   - Trojan gRPC              : 443" | tee -a ~/log-install.txt
 echo "   - Shadowsocks gRPC         : 443" | tee -a ~/log-install.txt
 echo ""
-echo -e "=========================================  " | tee -a ~/log-install.txt
-echo -e "               t.me/givps_com              "  | tee -a ~/log-install.txt
-echo -e "=========================================  " | tee -a ~/log-install.txt
+echo -e "=========================================" | tee -a ~/log-install.txt
+echo -e "               t.me/givps_com            "  | tee -a ~/log-install.txt
+echo -e "=========================================" | tee -a ~/log-install.txt
 echo ""
-echo -e "Auto reboot in 10 second..."
+echo -e "Auto reboot in 10 seconds..."
 sleep 10
 reboot
-
