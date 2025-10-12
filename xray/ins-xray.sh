@@ -166,7 +166,7 @@ echo -e "KEY: /usr/local/etc/xray/xray.key"
 # generate uuid
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
-cat > /etc/xray/config.json << END
+cat > /etc/xray/config.json <<EOF
 {
 	"log":{
 		"access":"/var/log/xray/access.log",
@@ -514,9 +514,9 @@ cat > /etc/xray/config.json << END
 		}
 	}
 }
-END
+EOF
 
-cat > /etc/systemd/system/xray.service << END
+cat > /etc/systemd/system/xray.service <<EOF
 [Unit]
 Description=Xray Service
 Documentation=https://github.com/xtls
@@ -535,9 +535,9 @@ LimitNOFILE=1000000
 
 [Install]
 WantedBy=multi-user.target
-END
+EOF
 
-cat > /etc/systemd/system/run.service << END
+cat > /etc/systemd/system/run.service <<EOF
 [Unit]
 Description=Xray Runtime Directory Service
 After=network.target
@@ -550,7 +550,7 @@ Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target
-END
+EOF
 
 #nginx config
 cat >/etc/nginx/conf.d/xray.conf <<EOF
