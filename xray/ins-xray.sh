@@ -57,6 +57,9 @@ chmod 755 /run/xray
 # xray 1.8.11
 #bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.8.11
 
+# xray official
+#bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data
+
 #Download XRAY Core Dharak
 wget -O /usr/local/bin/xray "https://github.com/dharak36/Xray-core/releases/download/v1.0.0/xray.linux.64bit"
 chmod +x /usr/local/bin/xray
