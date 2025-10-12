@@ -455,7 +455,6 @@ cat > /etc/xray/config.json << END
       {
          "protocol":"blackhole",
          "settings":{
-            
          },
          "tag":"blocked"
       }
