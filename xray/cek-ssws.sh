@@ -19,7 +19,7 @@ clear
 # Function to extract Shadowsocks users from config - PERFECT MATCH!
 get_ss_users() {
     # Extract using EXACT pattern from your add script: ###
-    grep -E '^### ' /etc/xray/config.json | awk '{print $2}'
+    grep -E '^### ' /usr/local/etc/xray/config.json | awk '{print $2}'
 }
 
 # Function to check active connections for a user
@@ -48,9 +48,9 @@ check_user_connections() {
 get_user_details() {
     local user="$1"
     # Get password and method from config
-    local password=$(grep -A 2 "### $user" /etc/xray/config.json | grep '"password":' | cut -d'"' -f4 2>/dev/null)
-    local method=$(grep -A 2 "### $user" /etc/xray/config.json | grep '"method":' | cut -d'"' -f4 2>/dev/null)
-    local expiry=$(grep "### $user" /etc/xray/config.json | awk '{print $3}')
+    local password=$(grep -A 2 "### $user" /usr/local/etc/xray/config.json | grep '"password":' | cut -d'"' -f4 2>/dev/null)
+    local method=$(grep -A 2 "### $user" /usr/local/etc/xray/config.json | grep '"method":' | cut -d'"' -f4 2>/dev/null)
+    local expiry=$(grep "### $user" /usr/local/etc/xray/config.json | awk '{print $3}')
     
     echo "$password|$method|$expiry"
 }
