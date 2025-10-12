@@ -19,7 +19,7 @@ clear
 # Function to extract Trojan users from config
 get_trojan_users() {
     # Extract Trojan users - looking for #!# pattern used in your add-trojan script
-    grep -E '^#! ' /etc/xray/config.json | awk '{print $2}'
+    grep -E '^#! ' /usr/local/etc/xray/config.json | awk '{print $2}'
 }
 
 # Function to check active connections for a user
@@ -122,5 +122,4 @@ rm -f "$temp_user_ips" "$temp_other_ips"
 
 read -n 1 -s -r -p "Press any key to back on menu"
 m-trojan
-
 
