@@ -220,6 +220,11 @@ connect = 127.0.0.1:22
 accept = 444
 connect = 127.0.0.1:110
 
+END
+
+systemctl enable dropbear
+systemctl start dropbear
+
 # =========================================
 # Basic Firewall Setup (iptables)
 # =========================================
@@ -270,6 +275,7 @@ PPP_RESTART=0
 EOF
 
 systemctl enable stunnel4
+systemctl start stunnel4
 
 # install fail2ban
 apt -y install fail2ban
@@ -296,6 +302,7 @@ bantime = 86400
 EOF
 
 systemctl enable fail2ban
+systemctl start fail2ban
 
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
@@ -305,7 +312,7 @@ wget -O /etc/issue.net "https://raw.githubusercontent.com/givps/AutoScriptXray/m
 echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
 
-systemctl enable sshd
+systemctl restart sshd
 
 # install blokir torrent
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-torrent-blocker.sh | bash
@@ -402,6 +409,7 @@ cat > /home/re_otm <<-END
 END
 
 systemctl enable cron
+systemctl start cron
 
 # remove unnecessary files
 apt autoclean -y >/dev/null 2>&1
@@ -416,3 +424,13 @@ apt-get -y --purge remove bind9* >/dev/null 2>&1
 apt-get -y remove sendmail* >/dev/null 2>&1
 apt autoremove -y >/dev/null 2>&1
 
+systemctl daemon-reload
+systemctl restart rsyslog
+systemctl restart vnstat
+systemctl restart rc-local
+systemctl restart ntp
+systemctl restart nginx
+systemctl restart dropbear
+systemctl restart stunnel4
+systemctl restart fail2ban
+systemctl restart cron
