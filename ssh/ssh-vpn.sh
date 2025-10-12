@@ -192,16 +192,10 @@ apt install stunnel4 -y
 cat > /etc/stunnel/stunnel.conf <<-END
 pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
-foreground = no
 client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-sslVersion = TLSv1.2
-options = NO_SSLv2
-options = NO_SSLv3
-options = NO_TLSv1
-options = NO_TLSv1.1
 
 # =====================================
 # SSH Services
