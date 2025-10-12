@@ -37,9 +37,11 @@ gem install lolcat
 
 # Configure essential services
 systemctl enable rsyslog
+systemctl start rsyslog
 
 # Configure vnstat for network monitoring
 systemctl enable vnstat
+systemctl start vnstat
 
 # Create secure PAM configuration
 cat > /etc/pam.d/common-password << 'EOF'
@@ -110,6 +112,7 @@ chmod +x /etc/rc.local
 
 # enable rc local
 systemctl enable rc-local
+systemctl start rc-local
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
@@ -119,6 +122,7 @@ sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 apt install -y ntp
 systemctl enable ntp
+systemctl start ntp
 
 # Remove old NGINX
 apt remove -y nginx nginx-common
@@ -145,6 +149,7 @@ printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.s
 
 # Restart Nginx
 systemctl enable nginx
+systemctl start nginx
 
 # Setup web root directory
 mkdir -p /home/vps/public_html
@@ -170,8 +175,8 @@ sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
 sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 600/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/g' /etc/ssh/sshd_config
-
 systemctl enable ssh
+systemctl restart ssh
 
 echo "=== install dropbear ==="
 # install dropbear
@@ -188,6 +193,8 @@ echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
 systemctl enable dropbear
+systemctl start dropbear
+
 
 # install stunnel
 apt install stunnel4 -y
