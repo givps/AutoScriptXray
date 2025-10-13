@@ -14,9 +14,9 @@ nc='\e[0m'
 
 # delete old
 rm -f cf.sh >/dev/null 2>&1
-rm -f ssh-vpn.sh >/dev/null 2>&1
+rm -f tool.sh >/dev/null 2>&1
 rm -f ins-xray.sh >/dev/null 2>&1
-rm -f insshws.sh >/dev/null 2>&1
+rm -f install-haproxy.sh >/dev/null 2>&1
 
 # cek root
 if [ "${EUID}" -ne 0 ]; then
@@ -89,7 +89,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}              Install Tool              ${nc}"
 echo -e "${red}=========================================${nc}"
 #install tool
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/tool.sh && chmod +x tool.sh && ./tool.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/setup/tool.sh && chmod +x tool.sh && ./tool.sh
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}              Install XRAY              ${nc}"
@@ -101,7 +101,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}     Install SSH HAProxy Websocket      ${nc}"
 echo -e "${red}=========================================${nc}"
 # install haproxy ws
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/install-haproxy.sh && chmod +x install-haproxy.sh && ./install-haproxy.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/setup/install-haproxy.sh && chmod +x install-haproxy.sh && ./install-haproxy.sh
 
 cat > /root/.profile << END
 # ~/.profile: executed by Bourne-compatible login shells.
