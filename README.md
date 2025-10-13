@@ -81,7 +81,7 @@
 # [Step Install]
 - Step 1 for (debian) please update first
 ```
-apt update && apt upgrade -y && reboot
+apt update && apt upgrade -y && apt autoremove -y && reboot
 ```
 - Step 2 for (ubuntu) directly install
 ```
