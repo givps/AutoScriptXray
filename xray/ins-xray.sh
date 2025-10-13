@@ -26,37 +26,20 @@ apt install -y \
 echo -e "[ ${green}INFO${nc} ] Cleaning up..."
 apt clean all && apt autoremove -y
 
-mkdir -p /var/log
-
 # install xray
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
-
 # Create directory if doesn't exist and set permissions
-domainSock_dir="/run/xray"
-if [ ! -d "$domainSock_dir" ]; then
-    mkdir -p "$domainSock_dir"
-    chown www-data:www-data "$domainSock_dir"
-    echo -e "[ INFO ] Created directory: $domainSock_dir"
-fi
-
-# create folder
-mkdir -p /usr/local/etc/xray
-mkdir -p /var/log/xray
-mkdir -p /home/vps/public_html
-chown -R www-data:www-data /var/log/xray
-chmod 755 /var/log/xray
-chmod 644 /var/log/xray/*.log 2>/dev/null || true
-touch /var/log/xray/access.log
-touch /var/log/xray/error.log
-chown www-data:www-data /var/log/xray/access.log /var/log/xray/error.log
+echo -e "[ INFO ] Creating directories and setting permissions..."
+mkdir -p /usr/local/etc/xray /var/log/xray /home/vps/public_html /run/xray
+# Set ownership recursive untuk config dan log
+chown -R www-data:www-data /usr/local/etc/xray /var/log/xray /run/xray
+# Set permissions
+chmod 755 /var/log/xray /run/xray
+chmod 750 /usr/local/etc/xray
+# Create log files
+touch /var/log/xray/access.log /var/log/xray/error.log
 chmod 644 /var/log/xray/access.log /var/log/xray/error.log
-mkdir -p /run/xray
-chown www-data:www-data /run/xray
-chmod 755 /run/xray
-chown -R www-data:www-data /usr/local/etc/xray
-sudo mkdir -p /var/log/xray
-sudo chown -R www-data:www-data /var/log/xray
-chmod -R 750 /usr/local/etc/xray
+echo -e "[ INFO ] Directory setup completed"
 
 # xray official
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data
