@@ -50,7 +50,8 @@ systemctl stop nginx
 LOG_FILE="/var/log/acme-setup.log"
 mkdir -p /var/log
 rm -rf /root/.acme.sh
-rm -f /usr/local/etc/xray/{xray.crt,xray.key}
+rm -f /usr/local/etc/xray/xray.crt
+rm -f /usr/local/etc/xray/xray.key
 # Rotate log if >1MB
 [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ] && {
   ts=$(date +%Y%m%d-%H%M%S)
