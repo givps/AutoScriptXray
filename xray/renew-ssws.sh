@@ -11,49 +11,129 @@ blue='\e[1;34m'
 nc='\e[0m'
 
 # Getting system info
-MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
-domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || curl -s ifconfig.me 2>/dev/null || echo "unknown")
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null || echo "unknown")
 
 clear
 
 # Function to count Shadowsocks users
 count_ss_users() {
-    grep -c -E "^### " "/usr/local/etc/xray/config.json"
+    if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
+        echo "0"
+        return 1
+    fi
+    grep -c -E "^### " "/usr/local/etc/xray/config.json" 2>/dev/null || echo "0"
 }
 
 # Function to backup config
 backup_config() {
+    if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
+        echo "error"
+        return 1
+    fi
     local backup_file="/usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
-    cp /usr/local/etc/xray/config.json "$backup_file" 2>/dev/null
-    echo "$backup_file"
+    if cp /usr/local/etc/xray/config.json "$backup_file" 2>/dev/null; then
+        echo "$backup_file"
+    else
+        echo "error"
+    fi
 }
+
+# Function to restore config
+restore_config() {
+    local backup_file="$1"
+    if [[ -f "$backup_file" && -f "/usr/local/etc/xray/config.json" ]]; then
+        cp "$backup_file" /usr/local/etc/xray/config.json
+        rm -f "$backup_file"
+        return 0
+    fi
+    return 1
+}
+
+# Function to validate date format
+validate_date() {
+    local date_str="$1"
+    if date -d "$date_str" "+%Y-%m-%d" >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to update_expiry
+update_expiry() {
+    local user="$1"
+    local old_exp="$2"
+    local new_exp="$3"
+    local config_file="/usr/local/etc/xray/config.json"
+    
+    if [[ ! -f "$config_file" ]]; then
+        return 1
+    fi
+    
+    # Create temporary file
+    local temp_file=$(mktemp)
+    
+    # Update expiry date using sed
+    if sed "s/^### $user $old_exp$/### $user $new_exp/" "$config_file" > "$temp_file" 2>/dev/null; then
+        # Verify the update worked
+        if grep -q "^### $user $new_exp$" "$temp_file"; then
+            # Verify JSON validity
+            if python3 -m json.tool "$temp_file" > /dev/null 2>&1; then
+                mv "$temp_file" "$config_file"
+                chmod 644 "$config_file"
+                return 0
+            else
+                rm -f "$temp_file"
+                return 1
+            fi
+        else
+            rm -f "$temp_file"
+            return 1
+        fi
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
+}
+
+# Main script
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}          Renew Shadowsocks           ${nc}"
+echo -e "${red}=========================================${nc}"
+
+# Check if config file exists
+if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
+    echo -e "${red}Error: Xray config file not found!${nc}"
+    echo ""
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-ssws 2>/dev/null || exit 1
+fi
 
 NUMBER_OF_CLIENTS=$(count_ss_users)
 
 if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
-    clear
-    echo -e "${red}=========================================${nc}"
-    echo -e "${blue}          Renew Shadowsocks           ${nc}"  # Changed to blue
-    echo -e "${red}=========================================${nc}"
     echo ""
     echo -e "${yellow}You have no existing Shadowsocks clients!${nc}"
     echo ""
     echo -e "${red}=========================================${nc}"
-    echo ""
     read -n 1 -s -r -p "Press any key to back on menu"
-    m-ssws
-    exit 0
+    m-ssws 2>/dev/null || exit 0
 fi
 
+# Display current users
 clear
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}          Renew Shadowsocks           ${nc}"  # Changed to blue
+echo -e "${blue}          Renew Shadowsocks           ${nc}"
 echo -e "${red}=========================================${nc}"
 echo -e "${green}  Username           Expired Date${nc}"
 echo -e "${red}=========================================${nc}"
+
+# Display users with better formatting
 grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | while read user exp; do
     printf "  %-18s %s\n" "$user" "$exp"
 done
+
 echo -e "${red}=========================================${nc}"
 echo -e "${yellow}Total Users: $NUMBER_OF_CLIENTS${nc}"
 echo ""
@@ -67,8 +147,7 @@ read -rp "Input Username : " user
 if [[ -z "$user" ]]; then
     echo -e "${yellow}Operation cancelled${nc}"
     read -n 1 -s -r -p "Press any key to back on menu"
-    m-ssws
-    exit 0
+    m-ssws 2>/dev/null || exit 0
 fi
 
 # Validate user exists
@@ -82,53 +161,80 @@ if ! grep -q "^### $user " "/usr/local/etc/xray/config.json"; then
     grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq
     echo -e "${red}=========================================${nc}"
     read -n 1 -s -r -p "Press any key to back on menu"
-    m-ssws
-    exit 1
+    m-ssws 2>/dev/null || exit 1
 fi
 
 # Get current expiry date
 current_exp=$(grep -wE "^### $user" "/usr/local/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
 
+# Validate current expiry date format
+if ! validate_date "$current_exp"; then
+    echo -e "${red}Error: Invalid current expiry date format: $current_exp${nc}"
+    echo -e "${yellow}Please check the config file manually${nc}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-ssws 2>/dev/null || exit 1
+fi
+
 # Get renewal days with validation
 while true; do
+    echo ""
     read -p "Extend for (days): " masaaktif
-    if [[ $masaaktif =~ ^[0-9]+$ ]] && [ $masaaktif -gt 0 ]; then
+    if [[ $masaaktif =~ ^[0-9]+$ ]] && [ $masaaktif -gt 0 ] && [ $masaaktif -le 3650 ]; then
         break
     else
-        echo -e "${red}Error: Please enter a valid number of days${nc}"
+        echo -e "${red}Error: Please enter a valid number of days (1-3650)${nc}"
     fi
 done
 
 # Calculate new expiry date
 now=$(date +%Y-%m-%d)
-d1=$(date -d "$current_exp" +%s 2>/dev/null || date -d "$now" +%s)
-d2=$(date -d "$now" +%s)
+current_epoch=$(date -d "$current_exp" +%s 2>/dev/null)
+now_epoch=$(date -d "$now" +%s)
 
 # Handle expired accounts - if current expiry is in past, extend from today
-if [[ $d1 -lt $d2 ]]; then
+if [[ $current_epoch -lt $now_epoch ]]; then
     days_remaining=0
-    new_exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
+    new_exp=$(date -d "$now + $masaaktif days" +"%Y-%m-%d")
     echo -e "${yellow}Note: Account was expired. Renewing from today.${nc}"
 else
-    days_remaining=$(( (d1 - d2) / 86400 ))
+    days_remaining=$(( (current_epoch - now_epoch) / 86400 ))
     total_days=$((days_remaining + masaaktif))
-    new_exp=$(date -d "$total_days days" +"%Y-%m-%d")
+    new_exp=$(date -d "$now + $total_days days" +"%Y-%m-%d")
+fi
+
+# Validate new expiry date
+if ! validate_date "$new_exp"; then
+    echo -e "${red}Error: Failed to calculate valid new expiry date${nc}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-ssws 2>/dev/null || exit 1
 fi
 
 # Backup config before modification
+echo -e "${yellow}Creating backup...${nc}"
 backup_file=$(backup_config)
 
+if [[ "$backup_file" == "error" ]]; then
+    echo -e "${red}Error: Failed to create backup!${nc}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-ssws 2>/dev/null || exit 1
+fi
+
 # Update expiry date in config
-if sed -i "s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/config.json 2>/dev/null; then
-    # Also update in gRPC section if exists
-    sed -i "0,/^### $user $current_exp/s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/config.json 2>/dev/null
-    
+echo -e "${yellow}Updating expiry date...${nc}"
+if update_expiry "$user" "$current_exp" "$new_exp"; then
     # Restart Xray service
+    echo -e "${yellow}Restarting Xray service...${nc}"
     if systemctl restart xray > /dev/null 2>&1; then
         # Update client config file if exists
         if [[ -f "/home/vps/public_html/ss-$user.txt" ]]; then
-            sed -i "s/Expiry: $current_exp/Expiry: $new_exp/" "/home/vps/public_html/ss-$user.txt"
-            sed -i "s/# Generated: .*/# Generated: $(date)/" "/home/vps/public_html/ss-$user.txt"
+            sed -i "s/Expired : $current_exp/Expired : $new_exp/" "/home/vps/public_html/ss-$user.txt" 2>/dev/null
+            sed -i "s/Expiry: $current_exp/Expiry: $new_exp/" "/home/vps/public_html/ss-$user.txt" 2>/dev/null
+            sed -i "s/# Generated: .*/# Generated: $(date)/" "/home/vps/public_html/ss-$user.txt" 2>/dev/null
+        fi
+        
+        # Update JSON config file if exists
+        if [[ -f "/home/vps/public_html/ss-$user.json" ]]; then
+            sed -i "s/\"expiry\": \"$current_exp\"/\"expiry\": \"$new_exp\"/" "/home/vps/public_html/ss-$user.json" 2>/dev/null
         fi
         
         # Display success message
@@ -139,12 +245,12 @@ if sed -i "s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/co
         echo -e "${green}✓ Account Successfully Renewed${nc}"
         echo ""
         echo -e "${blue}Details:${nc}"
-        echo -e "  Client Name    : $user"
-        echo -e "  Old Expiry     : $current_exp"
-        echo -e "  New Expiry     : $new_exp"
-        echo -e "  Days Added     : $masaaktif"
+        echo -e "  • Client Name    : $user"
+        echo -e "  • Old Expiry     : $current_exp"
+        echo -e "  • New Expiry     : $new_exp"
+        echo -e "  • Days Added     : $masaaktif"
         if [[ $days_remaining -gt 0 ]]; then
-            echo -e "  Days Remaining : $days_remaining → $((days_remaining + masaaktif))"
+            echo -e "  • Days Remaining : $days_remaining → $((days_remaining + masaaktif))"
         fi
         echo ""
         echo -e "${green}Service restarted successfully${nc}"
@@ -154,19 +260,22 @@ if sed -i "s/^### $user $current_exp/### $user $new_exp/" /usr/local/etc/xray/co
         rm -f "$backup_file" 2>/dev/null
         
         # Log the renewal
-        echo "$(date): Renewed SS account $user from $current_exp to $new_exp (+$masaaktif days)" >> /var/log/renew-shadowsocks.log
+        echo "$(date): Renewed SS account $user from $current_exp to $new_exp (+$masaaktif days)" >> /var/log/renew-shadowsocks.log 2>/dev/null
+        
     else
         echo -e "${red}Error: Failed to restart Xray service${nc}"
         echo -e "${yellow}Restoring backup config...${nc}"
-        cp "$backup_file" /usr/local/etc/xray/config.json 2>/dev/null
+        restore_config "$backup_file"
         systemctl restart xray > /dev/null 2>&1
+        echo -e "${red}Changes have been reverted${nc}"
     fi
 else
     echo -e "${red}Error: Failed to update expiry date${nc}"
     echo -e "${yellow}Restoring backup config...${nc}"
-    cp "$backup_file" /usr/local/etc/xray/config.json 2>/dev/null
+    restore_config "$backup_file"
+    echo -e "${red}No changes were made${nc}"
 fi
 
 echo ""
 read -n 1 -s -r -p "Press any key to back on menu"
-m-ssws
+m-ssws 2>/dev/null || exit 0
