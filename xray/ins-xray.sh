@@ -357,12 +357,12 @@ WantedBy=multi-user.target
 EOF
 
 #nginx config
-cat > /etc/nginx/conf.d/xray.conf <<EOF
+cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 # /etc/nginx/conf.d/xray.conf
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name $domain;
+    server_name 127.0.0.1;
     
     # SSL Configuration
     ssl_certificate /usr/local/etc/xray/xray.crt;
@@ -448,7 +448,7 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name $domain;
+    server_name 127.0.0.1;
     return 301 https://$server_name$request_uri;
 }
 EOF
