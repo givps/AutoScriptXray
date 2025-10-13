@@ -120,7 +120,7 @@ echo -e "KEY: /usr/local/etc/xray/xray.key"
 # generate uuid
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
-cat > /usr/local/etc/xray/config.json <<EOF
+cat > /usr/local/etc/xray/config.json <<'EOF'
 {
   "log": {
     "access": "/var/log/xray/access.log",
