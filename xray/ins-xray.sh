@@ -449,7 +449,7 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name 127.0.0.1 localhost;;
+    server_name 127.0.0.1 localhost;
     return 301 https://$server_name$request_uri;
 }
 EOF
