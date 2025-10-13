@@ -146,7 +146,6 @@ DROPBEAR_PORT=110
 DROPBEAR_EXTRA_ARGS="-p 109"
 EOF
 
-
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
@@ -178,9 +177,6 @@ connect = 127.0.0.1:22
 accept = 444
 connect = 127.0.0.1:110
 EOF
-
-systemctl enable dropbear
-systemctl start dropbear
 
 # Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
@@ -242,14 +238,14 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22,110
+port = 22,109,110
 logpath = /var/log/auth.log
 maxretry = 3
 bantime = 3600
 
 [sshd-ddos]
 enabled = true
-port = 22,110
+port = 22,109,110
 logpath = /var/log/auth.log
 maxretry = 5
 bantime = 86400
