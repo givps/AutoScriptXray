@@ -53,6 +53,11 @@ chmod 644 /var/log/xray/access.log /var/log/xray/error.log
 mkdir -p /run/xray
 chown www-data:www-data /run/xray
 chmod 755 /run/xray
+chown -R www-data:www-data /usr/local/etc/xray
+sudo mkdir -p /var/log/xray
+sudo chown -R www-data:www-data /var/log/xray
+chmod -R 750 /usr/local/etc/xray
+
 
 # xray 1.8.11
 #bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.8.11
