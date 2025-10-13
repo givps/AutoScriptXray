@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Add Trojan Account
+# Add Trojan Account - FIXED VERSION
 # ==========================================
 
 # Colors
@@ -38,19 +38,84 @@ validate_username() {
         return 1
     fi
     
-    local user_exists=$(grep -w "$user" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
-    if [[ $user_exists -gt 0 ]]; then
-        echo -e "${red}ERROR${nc}: User $user already exists"
-        return 1
+    # Check if user exists using jq (more reliable)
+    if command -v jq &> /dev/null; then
+        local user_exists=$(jq '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[] | select(.email == "'"$user"'")' /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
+        if [[ $user_exists -gt 0 ]]; then
+            echo -e "${red}ERROR${nc}: User $user already exists"
+            return 1
+        fi
+    else
+        # Fallback to grep
+        local user_exists=$(grep -w "$user" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
+        if [[ $user_exists -gt 0 ]]; then
+            echo -e "${red}ERROR${nc}: User $user already exists"
+            return 1
+        fi
     fi
     
     return 0
 }
 
+# Function to add user using jq
+add_trojan_user() {
+    local user="$1"
+    local uuid="$2"
+    local config_file="/usr/local/etc/xray/config.json"
+    
+    # Install jq if not exists
+    if ! command -v jq &> /dev/null; then
+        echo -e "${yellow}Installing jq...${nc}"
+        apt-get update > /dev/null 2>&1 && apt-get install -y jq > /dev/null 2>&1
+    fi
+    
+    # Backup config
+    backup_file="${config_file}.backup.$(date +%Y%m%d%H%M%S)"
+    cp "$config_file" "$backup_file"
+    echo -e "${yellow}Config backed up to: $backup_file${nc}"
+    
+    # Check if config file exists
+    if [[ ! -f "$config_file" ]]; then
+        echo -e "${red}ERROR${nc}: Config file not found: $config_file"
+        return 1
+    fi
+    
+    # Validate JSON
+    if ! jq empty "$config_file" 2>/dev/null; then
+        echo -e "${red}ERROR${nc}: Invalid JSON in config file"
+        return 1
+    fi
+    
+    echo -e "${yellow}Current Trojan WS clients: $(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")${nc}"
+    
+    # Add to Trojan WS
+    echo -e "${yellow}Adding user to Trojan WS...${nc}"
+    jq '(.inbounds[] | select(.tag == "trojan-ws").settings.clients) += [{"password": "'"$uuid"'", "email": "'"$user"'"}]' "$config_file" > "${config_file}.tmp"
+    
+    if [[ $? -ne 0 ]] || [[ ! -f "${config_file}.tmp" ]]; then
+        echo -e "${red}ERROR${nc}: Failed to update Trojan WS"
+        return 1
+    fi
+    
+    mv "${config_file}.tmp" "$config_file"
+    
+    # Verify the user was added
+    local user_added=$(jq '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[] | select(.email == "'"$user"'") | .email' "$config_file" 2>/dev/null)
+    
+    if [[ "$user_added" == "\"$user\"" ]]; then
+        echo -e "${green}✓ User successfully added to Trojan WS${nc}"
+        echo -e "${yellow}New Trojan WS clients: $(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")${nc}"
+        return 0
+    else
+        echo -e "${red}ERROR${nc}: User not found in config after update"
+        return 1
+    fi
+}
+
 # Main user input loop
 while true; do
     echo -e "${red}=========================================${nc}"
-    echo -e "${blue}           TROJAN ACCOUNT          ${nc}"
+    echo -e "${blue}           TROJAN ACCOUNT CREATOR      ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e "${yellow}Info: Username must contain only letters, numbers, underscores${nc}"
     echo ""
@@ -70,6 +135,7 @@ done
 
 # Generate UUID
 uuid=$(cat /proc/sys/kernel/random/uuid)
+echo -e "${green}Generated UUID: ${uuid}${nc}"
 
 # Get expiry date with validation
 while true; do
@@ -82,37 +148,46 @@ while true; do
 done
 
 exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
+echo -e "${yellow}Account will expire on: $exp${nc}"
 
-# Backup config file before modification
-cp /usr/local/etc/xray/config.json /usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S) 2>/dev/null
-
-# Add user to config.json for WS
-if ! sed -i '/#trojanws$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
-    echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan WS"
+# Add user to config
+echo -e "${yellow}Updating Xray configuration...${nc}"
+if ! add_trojan_user "$user" "$uuid"; then
+    echo -e "${red}ERROR${nc}: Failed to update config.json"
+    echo -e "${yellow}Restoring backup...${nc}"
+    latest_backup=$(ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | head -1)
+    if [[ -n "$latest_backup" ]]; then
+        cp "$latest_backup" /usr/local/etc/xray/config.json
+        echo -e "${green}✓ Config restored from backup${nc}"
+    fi
     exit 1
 fi
 
-# Add user to config.json for gRPC
-if ! sed -i '/#trojangrpc$/a\#! '"$user $exp"'\
-},{"password": "'"$uuid"'","email": "'"$user"'"' /usr/local/etc/xray/config.json; then
-    echo -e "${red}ERROR${nc}: Failed to update config.json for Trojan gRPC"
-    # Restore backup on error
-    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
-    exit 1
-fi
-
-# Create Trojan links dengan path yang benar: /trojan
-trojanlink1="trojan://${uuid}@${domain}:${tls}?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=bug.com#${user}"
-trojanlink="trojan://${uuid}@bug.com:${tls}?path=%2Ftrojan&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
-trojanlink2="trojan://${uuid}@bug.com:${ntls}?path=%2Ftrojan&security=none&host=${domain}&type=ws#${user}"
+# Create Trojan links dengan path yang benar: /trojan-ws
+trojanlink="trojan://${uuid}@${domain}:${tls}?path=%2Ftrojan-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
+trojanlink2="trojan://${uuid}@${domain}:${ntls}?path=%2Ftrojan-ws&security=none&host=${domain}&type=ws#${user}"
 
 # Restart Xray service
-if ! systemctl restart xray; then
+echo -e "${yellow}Restarting Xray service...${nc}"
+if systemctl restart xray; then
+    echo -e "${green}✓ Xray service restarted successfully${nc}"
+    
+    # Wait and check if service is running
+    sleep 3
+    if systemctl is-active --quiet xray; then
+        echo -e "${green}✓ Xray service is running properly${nc}"
+    else
+        echo -e "${red}✗ Xray service failed to start${nc}"
+        echo -e "${yellow}Restoring backup config...${nc}"
+        latest_backup=$(ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | head -1)
+        if [[ -n "$latest_backup" ]]; then
+            cp "$latest_backup" /usr/local/etc/xray/config.json
+            systemctl restart xray
+        fi
+        exit 1
+    fi
+else
     echo -e "${red}ERROR${nc}: Failed to restart Xray service"
-    echo -e "${yellow}INFO${nc}: Restoring backup config..."
-    cp /usr/local/etc/xray/config.json.backup.* /usr/local/etc/xray/config.json 2>/dev/null
-    systemctl restart xray
     exit 1
 fi
 
@@ -129,29 +204,25 @@ cat > "$CLIENT_DIR/trojan-$user.txt" <<-END
 # ==========================================
 
 # Trojan WS TLS
-trojan://${uuid}@bug.com:${tls}?path=%2Ftrojan&security=tls&host=${domain}&type=ws&sni=${domain}#${user}
+${trojanlink}
 
 # Trojan WS None TLS
-trojan://${uuid}@bug.com:${ntls}?path=%2Ftrojan&security=none&host=${domain}&type=ws#${user}
-
-# Trojan gRPC
-trojan://${uuid}@${domain}:${tls}?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=bug.com#${user}
+${trojanlink2}
 
 # Configuration Details:
 - Domain: $domain
 - Port TLS: $tls
 - Port None TLS: $ntls
 - Password: $uuid
-- Path: /trojan
-- Service Name: trojan-grpc
+- Path: /trojan-ws
 - Expiry: $exp
 
 # For V2RayN / V2RayNG:
-- Address: bug.com (TLS) / bug.com (None TLS)
+- Address: $domain
 - Port: $tls (TLS) / $ntls (None TLS)
 - Password: $uuid
-- Transport: WebSocket (WS) / gRPC
-- Path: /trojan
+- Transport: WebSocket
+- Path: /trojan-ws
 - Host: $domain
 
 END
@@ -159,28 +230,22 @@ END
 # Display results
 clear
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
-echo -e "${blue}           TROJAN ACCOUNT           ${nc}" | tee -a /var/log/create-trojan.log
+echo -e "${blue}           TROJAN ACCOUNT CREATED     ${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo -e "Remarks        : ${user}" | tee -a /var/log/create-trojan.log
 echo -e "IP             : ${MYIP}" | tee -a /var/log/create-trojan.log
 echo -e "Domain         : ${domain}" | tee -a /var/log/create-trojan.log
-echo -e "Wildcard       : bug.com.${domain}" | tee -a /var/log/create-trojan.log
 echo -e "Port TLS       : ${tls}" | tee -a /var/log/create-trojan.log
 echo -e "Port none TLS  : ${ntls}" | tee -a /var/log/create-trojan.log
-echo -e "Port gRPC      : ${tls}" | tee -a /var/log/create-trojan.log
 echo -e "Password       : ${uuid}" | tee -a /var/log/create-trojan.log
-echo -e "Network        : ws/grpc" | tee -a /var/log/create-trojan.log
-echo -e "Path WS        : /trojan" | tee -a /var/log/create-trojan.log
-echo -e "ServiceName    : trojan-grpc" | tee -a /var/log/create-trojan.log
+echo -e "Network        : WebSocket" | tee -a /var/log/create-trojan.log
+echo -e "Path           : /trojan-ws" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${green}Link TLS (WS)${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${trojanlink}" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${green}Link none TLS (WS)${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${trojanlink2}" | tee -a /var/log/create-trojan.log
-echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
-echo -e "${green}Link gRPC${nc}" | tee -a /var/log/create-trojan.log
-echo -e "${trojanlink1}" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo -e "Expired On     : $exp" | tee -a /var/log/create-trojan.log
 echo -e "Config File    : $CLIENT_DIR/trojan-$user.txt" | tee -a /var/log/create-trojan.log
@@ -191,7 +256,6 @@ echo "" | tee -a /var/log/create-trojan.log
 ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | tail -n +6 | xargs -r rm
 
 echo -e "${green}SUCCESS${nc}: Trojan account $user created successfully!"
-echo -e "${yellow}INFO${nc}: Configuration backup created"
 
 read -n 1 -s -r -p "Press any key to back on menu"
 m-trojan
