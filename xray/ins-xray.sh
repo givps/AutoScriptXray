@@ -363,7 +363,7 @@ cat > /etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name $domain 127.0.0.1 localhost;
+    server_name $domain;
     
     # SSL Configuration
     ssl_certificate /usr/local/etc/xray/xray.crt;
@@ -449,18 +449,18 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name $domain 127.0.0.1 localhost;
-    return 301 https://$server_name$request_uri;
+    server_name $domain;
+    return 301 https://$domain$request_uri;
 }
 EOF
+
+# reload
+systemctl daemon-reload
 
 # enable services
 systemctl enable xray.service
 systemctl enable run.service
 systemctl enable nginx
-
-# reload
-systemctl daemon-reload
 
 # start
 systemctl start cron
