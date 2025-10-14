@@ -368,6 +368,7 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow SSH on default port
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
 
 # Allow public ports
 iptables -A INPUT -p tcp --dport 1443 -j ACCEPT  # HAProxy SSL WS
@@ -375,6 +376,10 @@ iptables -A INPUT -p tcp --dport 1444 -j ACCEPT  # HAProxy non-SSL WS
 iptables -A INPUT -p tcp --dport 1445 -j ACCEPT  # SSH Direct SSL
 iptables -A INPUT -p tcp --dport 1446 -j ACCEPT  # SSH Direct non-SSL
 iptables -A INPUT -p tcp --dport 1936 -j ACCEPT  # HAProxy Stats
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 81 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+
 
 # Allow ICMP (ping)
 iptables -A INPUT -p icmp -j ACCEPT
