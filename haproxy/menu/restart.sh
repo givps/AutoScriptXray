@@ -252,8 +252,8 @@ restart_all_services() {
     echo -e "[ ${yellow}INFO${nc} ] Restarting Additional Services..."
     echo -e "${red}-----------------------------------------${nc}"
     
-    # Restart Xray run service
-    restart_service "xray" "systemctl restart run.service" "Run Xray"
+    # Restart Xray service
+    restart_service "xray" "systemctl restart xray.service" "Xray Service"
     
     # Restart BadVPN
     restart_badvpn
@@ -316,7 +316,6 @@ restart() {
             5)
                 display_header
                 restart_service "xray" "systemctl restart xray.service" "Xray Service"
-                restart_service "xray" "systemctl restart run.service" "Run Xray"
                 show_service_status
                 wait_for_input
                 ;;
