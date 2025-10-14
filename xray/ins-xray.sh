@@ -333,10 +333,6 @@ CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
 
-ExecStartPre=/bin/mkdir -p /var/run/xray
-ExecStartPre=/bin/chown www-data:www-data /var/run/xray
-ExecStartPre=/bin/chmod 755 /var/run/xray
-
 ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
