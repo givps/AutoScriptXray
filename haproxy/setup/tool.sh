@@ -72,30 +72,6 @@ wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/inst
 wget -O /usr/bin/m-badvpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/m-badvpn.sh"
 chmod +x /usr/bin/m-badvpn
 
-# Allow loopback (localhost)
-iptables -A INPUT -i lo -j ACCEPT
-
-# Allow established / related connections
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# HTTP/HTTPS
-iptables -A INPUT -p tcp -m multiport --dports 80,81,443,2222 -j ACCEPT
-
-# ICMP (ping)
-iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-
-# Drop all other connections that do not match the above rules
-iptables -A INPUT -j DROP
-
-# Save rules to rules.v4 file
-iptables-save > /etc/iptables/rules.v4
-
-# Save to persistent iptables configuration (auto restore on reboot)
-netfilter-persistent save
-
-# Reload to ensure active
-netfilter-persistent reload
-
 # install fail2ban
 apt -y install fail2ban
 cat > /etc/fail2ban/jail.local << 'EOF'
