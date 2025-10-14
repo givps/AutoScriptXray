@@ -351,13 +351,13 @@ EOF
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
     listen 80;
-    server_name $domain;
-    return 301 $domain$request_uri;
+    server_name asx23679.givps.com;
+    return 301 https://asx23679.givps.com$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name $domain;
+    server_name asx23679.givps.com;
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
     
