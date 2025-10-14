@@ -52,6 +52,8 @@ mkdir -p /etc/systemd/system/nginx.service.d
 printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
 
 # Restart Nginx
+systemctl daemon-reload
+systemctl start nginx
 systemctl enable nginx
 
 # Setup web root directory
