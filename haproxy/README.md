@@ -29,3 +29,5 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 - Trojan gRPC              : 443<br>
 - Shadowsocks gRPC         : 443<br>
 <br>
+
+- if you find bug , create a [issues](https://github.com/givps/AutoScriptXray/issues) thx github :)
