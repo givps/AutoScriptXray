@@ -36,6 +36,10 @@ chown -R www-data:www-data /usr/local/etc/xray /var/log/xray /run/xray
 # Set permissions
 chmod 755 /var/log/xray /run/xray
 chmod 750 /usr/local/etc/xray
+# Create directory
+mkdir -p /var/run/xray
+chown www-data:www-data /var/run/xray
+chmod 755 /var/run/xray
 # Create log files
 touch /var/log/xray/access.log /var/log/xray/error.log
 chmod 644 /var/log/xray/access.log /var/log/xray/error.log
