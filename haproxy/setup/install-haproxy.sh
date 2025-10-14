@@ -377,7 +377,6 @@ iptables -A INPUT -p tcp --dport 1445 -j ACCEPT  # SSH Direct SSL
 iptables -A INPUT -p tcp --dport 1446 -j ACCEPT  # SSH Direct non-SSL
 iptables -A INPUT -p tcp --dport 1936 -j ACCEPT  # HAProxy Stats
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-iptables -I INPUT -p tcp --dport 81 -j ACCEPT
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 
 
