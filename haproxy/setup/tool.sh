@@ -24,10 +24,10 @@ gem install lolcat
 
 # Configure essential services
 systemctl enable rsyslog
-
+systemctl start rsyslog
 # Configure vnstat for network monitoring
 systemctl enable vnstat
-
+systemctl start vnstat
 # Remove old NGINX
 apt remove -y nginx nginx-common
 apt purge -y nginx nginx-common
@@ -121,6 +121,7 @@ bantime = 86400
 EOF
 
 systemctl enable fail2ban
+systemctl start fail2ban
 
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
@@ -220,7 +221,7 @@ cat > /home/re_otm <<-END
 END
 
 systemctl enable cron
-
+systemctl start cron
 # remove unnecessary files
 apt autoclean -y >/dev/null 2>&1
 
