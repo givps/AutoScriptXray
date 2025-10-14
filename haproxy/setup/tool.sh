@@ -61,7 +61,7 @@ systemctl enable nginx
 wget -q -O /usr/share/nginx/html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
 
 # Set ownership
-chown -R www-data:www-data /home/vps/public_html
+# chown -R www-data:www-data /home/vps/public_html
 
 # install badvpn
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/install-udpgw.sh | bash
