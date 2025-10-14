@@ -348,7 +348,7 @@ WantedBy=multi-user.target
 EOF
 
 #nginx config
-cat > /etc/nginx/conf.d/xray.conf <<'EOF'
+cat > /etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 80;
     server_name $domain;
