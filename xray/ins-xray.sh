@@ -332,26 +332,16 @@ User=www-data
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
+
+ExecStartPre=/bin/mkdir -p /var/run/xray
+ExecStartPre=/bin/chown www-data:www-data /var/run/xray
+ExecStartPre=/bin/chmod 755 /var/run/xray
+
 ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
 LimitNPROC=10000
 LimitNOFILE=1000000
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat > /etc/systemd/system/run.service <<EOF
-[Unit]
-Description=Xray Runtime Directory Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStartPre=-/usr/bin/mkdir -p /var/run/xray
-ExecStart=/usr/bin/chown www-data:www-data /var/run/xray
-Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target
@@ -457,22 +447,10 @@ EOF
 # reload
 systemctl daemon-reload
 
-# enable services
-systemctl enable xray.service
-systemctl enable run.service
-systemctl enable nginx
-
 # start
 systemctl start cron
 systemctl start xray.service
-systemctl start run.service
 systemctl start nginx
-
-# restart
-systemctl restart cron
-systemctl restart xray.service
-systemctl restart run.service
-systemctl restart nginx
 
 cd /usr/bin
 # vless
