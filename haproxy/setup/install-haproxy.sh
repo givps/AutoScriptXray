@@ -82,10 +82,12 @@ fi
 
 # =========================================
 # CONFIGURE HAPROXY
+# username=admin password=generated random
+Pass=`</dev/urandom tr -dc a-zA-Z0-9 | head -c10`
 # =========================================
 echo -e "\n${blue}[4/8] Configuring HAProxy${nc}"
 
-cat > /etc/haproxy/haproxy.cfg << 'EOF'
+cat > /etc/haproxy/haproxy.cfg << EOF
 global
     daemon
     maxconn 4096
@@ -134,7 +136,7 @@ listen stats
     stats enable
     stats hide-version
     stats uri /
-    stats auth admin:$(openssl rand -hex 8)
+    stats auth admin:${Pass}
 EOF
 
 systemctl enable haproxy
@@ -419,6 +421,8 @@ echo -e "  Non-SSL (Port 1446): ${yellow}ssh -p 1446 user@$SERVER_IP${nc}"
 
 echo -e "\n${green}📊 Monitoring:${nc}"
 echo -e "  HAProxy Stats    : ${yellow}http://$SERVER_IP:1936/${nc}"
+echo -e "  Username         : ${blue}admin${nc}"
+echo -e "  Password         : ${red}${Pass}${nc}"
 echo -e "  Installation Log : ${yellow}$LOG_FILE${nc}"
 
 echo -e "\n${green}🔧 Management Commands:${nc}"
