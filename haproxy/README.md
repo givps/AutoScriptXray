@@ -29,4 +29,11 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 - Shadowsocks gRPC         : 443<br>
 <br>
 
+# Telegram
+[![Telegram-grup](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
+[![allEVM donate button](https://img.shields.io/badge/Donate-allEVM-blue)](https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab)
+
 - if you find bug , create a [issues](https://github.com/givps/AutoScriptXray/issues) thx github :)
+
+<p align="center">
+<a href="https://opensource.org/licenses/MIT"> <img src="https://img.shields.io/badge/License-MIT-yellow.svg" style="max-width:200%;"> <a><img src="https://img.shields.io/badge/Auto_Script_VPS-HAProxy-blue" style="max-width:200%;">
