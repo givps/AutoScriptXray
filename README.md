@@ -88,7 +88,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 ```
 
 # Telegram
-[![Telegram-grup](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
+[![Telegram](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
 [![allEVM donate button](https://img.shields.io/badge/Donate-allEVM-blue)](https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab)
 
 # ATTENTION (MUST READ) CAREFULLY
