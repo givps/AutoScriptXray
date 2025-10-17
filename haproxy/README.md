@@ -11,8 +11,8 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 <br>
 - OpenSSH                  : 22, 2222<br>
 - SSH/SSL                  : 1445, 1446<br>
-- HAProxy SSH SSL WS       : 443, 1443<br>
-- HAProxy SSH WS           : 80, 1444<br>
+- HAProxy SSH SSL WS       : 1443<br>
+- HAProxy SSH WS           : 1444<br>
 - Badvpn                   : 7100-7900<br>
 - Nginx                    : 80<br>
 - Vmess WS TLS             : 443<br>
