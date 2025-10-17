@@ -125,10 +125,9 @@ echo -e "${red}=========================================${nc}"  | tee -a log-ins
 echo ""
 echo "   >>> Service & Port"  | tee -a log-install.txt
 echo "   - OpenSSH                  : 22, 2222"  | tee -a log-install.txt
-echo "   - SSH Direct SSL           : 1445"  | tee -a log-install.txt
-echo "   - SSH Direct               : 1446"  | tee -a log-install.txt
-echo "   - HAProxy SSH SSL WS       : 443, 1443" | tee -a log-install.txt
-echo "   - HAProxy SSH WS           : 80, 1444" | tee -a log-install.txt
+echo "   - SSH/SSL                  : 1445, 1446"  | tee -a log-install.txt
+echo "   - HAProxy SSH SSL WS       : 1443" | tee -a log-install.txt
+echo "   - HAProxy SSH WS           : 1444" | tee -a log-install.txt
 echo "   - Badvpn                   : 7100-7900" | tee -a log-install.txt
 echo "   - Nginx                    : 80" | tee -a log-install.txt
 echo "   - Vmess WS TLS             : 443" | tee -a log-install.txt
