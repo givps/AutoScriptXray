@@ -26,6 +26,7 @@ echo -e " ${white}7${nc}) Set up Autokill SSH"
 echo -e " ${white}8${nc}) View Created User Logs"
 echo -e " ${white}9${nc}) Lock User Account"
 echo -e " ${white}10${nc}) BadVPN Control"
+echo -e " ${white}11${nc}) HAProxy Installation Log"
 echo -e ""
 echo -e "${red}=========================================${nc}"
 echo -e " ${white}0${nc} Back to Menu"
@@ -49,6 +50,7 @@ case $opt in
   8) clear; cat /var/log/create-ssh.log ;;
   9) clear; lock-unlock ;;
   10) clear; m-badvpn ;;
+  11) clear; cat /var/log/ssh-ws-install.log ;;
   0) clear; menu ;;
   x|X) exit ;;
   *) echo -e "${red}You pressed it wrong!${nc}"; sleep 1; m-sshovpn ;;
