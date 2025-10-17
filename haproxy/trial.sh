@@ -37,7 +37,7 @@ PID=`ps -ef |grep -v grep | grep ws-proxy |awk '{print $2}'`
 
 if [[ ! -z "${PID}" ]]; then
 echo -e "${red}=========================================${nc}"
-echo -e "\E[0;41;36m            TRIAL SSH              \E[0m"
+echo -e "${blue}            TRIAL SSH              ${nc}"
 echo -e "${red}=========================================${nc}"
 echo -e "Username    : $Login"
 echo -e "Password    : $Pass"
@@ -61,7 +61,7 @@ echo -e "${red}=========================================${nc}"
 else
 
 echo -e "${red}=========================================${nc}"
-echo -e "\E[0;41;36m            TRIAL SSH              \E[0m"
+echo -e "${blue}            TRIAL SSH              ${nc}"
 echo -e "${red}=========================================${nc}"
 echo -e "Username    : $Login"
 echo -e "Password    : $Pass"
