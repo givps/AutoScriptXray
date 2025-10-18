@@ -38,7 +38,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 [[ -z "$domain" ]] && echo -e "${red}[ERROR] Domain file not found!${nc}" && exit 1
 
 # ---------- Cloudflare Token ----------
-DEFAULT_CF_TOKEN="GxfBrA3Ez39MdJo53EV-LiC4dM1-xn5rslR-m5Ru"
+DEFAULT_CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
 read -rp "${green}Enter Cloudflare API Token (ENTER for default)${nc}: " CF_Token
 export CF_Token="${CF_Token:-$DEFAULT_CF_TOKEN}"
 
@@ -61,7 +61,7 @@ mkdir -p "$ACME_HOME/dnsapi"
 
 # ---------- Register ACME account ----------
 echo -e "[${green}INFO${nc}] Registering ACME account..."
-retry bash "$ACME_HOME/acme.sh" --register-account -m ssl@givps.com --server letsencrypt
+retry bash "$ACME_HOME/acme.sh" --register-account -m ssl@ipgivpn.my.id --server letsencrypt
 
 # ---------- Issue wildcard certificate ----------
 echo -e "[${blue}INFO${nc}] Issuing wildcard certificate for ${domain}..."
