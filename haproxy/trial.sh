@@ -15,6 +15,8 @@ nc='\e[0m'
 clear
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+sldomain=$(cat /root/nsdomain)
+slkey=$(cat /etc/slowdns/server.pub)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
 haproxy_ssl=`cat ~/log-install.txt | grep -w "HAProxy SSH SSL WS" | cut -d: -f2 | awk '{print $1}'`
@@ -29,6 +31,19 @@ echo Create Akun: $Login
 sleep 0.5
 echo Setting Password: $Pass
 sleep 0.5
+
+pkill sldns-server
+pkill sldns-client
+systemctl daemon-reload
+systemctl stop client-sldns
+systemctl stop server-sldns
+systemctl enable client-sldns
+systemctl enable server-sldns
+systemctl start client-sldns
+systemctl start server-sldns
+systemctl restart client-sldns
+systemctl restart server-sldns
+
 clear
 useradd -e `date -d "$masaaktif days" +"%Y-%m-%d"` -s /bin/false -M $Login
 exp="$(chage -l $Login | grep "Account expires" | awk -F": " '{print $2}')"
@@ -49,6 +64,9 @@ echo -e "OpenSSH     : $openssh"
 echo -e "SSH WS      : $haproxy_ssl"
 echo -e "SSH SSL WS  : $haproxy_non_ssl"
 echo -e "SSH/SSL     : $ssh_ssl"
+echo -e "Port NS     : ALL Port"
+echo -e "Nameserver  : $sldomain"
+echo -e "Pubkey      : $slkey"
 echo -e "UDPGW       : 7100-7900"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
@@ -73,6 +91,9 @@ echo -e "OpenSSH     : $openssh"
 echo -e "SSH WS      : $haproxy_ssl"
 echo -e "SSH SSL WS  : $haproxy_non_ssl"
 echo -e "SSH/SSL     : $ssh_ssl"
+echo -e "Port NS     : ALL Port"
+echo -e "Nameserver  : $sldomain"
+echo -e "Pubkey      : $slkey"
 echo -e "UDPGW       : 7100-7900"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
