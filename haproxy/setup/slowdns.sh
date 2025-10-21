@@ -64,8 +64,8 @@ service cron restart
 nameserver=$(cat /root/nsdomain)
 
 #tambahan port openssh
-echo "Port 2200" >> /etc/ssh/sshd_config
-echo "Port 2299" >> /etc/ssh/sshd_config
+grep -qxF "Port 2200" /etc/ssh/sshd_config || echo "Port 2200" >> /etc/ssh/sshd_config
+grep -qxF "Port 2299" /etc/ssh/sshd_config || echo "Port 2299" >> /etc/ssh/sshd_config
 sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
 service ssh restart
 service sshd restart
