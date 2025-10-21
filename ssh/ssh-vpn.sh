@@ -94,26 +94,25 @@ apt update -y && apt install -y nginx
 # Remove default configs
 rm -f /etc/nginx/sites-enabled/default
 rm -f /etc/nginx/sites-available/default
+rm -f /usr/share/nginx/html/index.html
 rm -f /etc/nginx/conf.d/default.conf
 rm -f /etc/nginx/conf.d/vps.conf
 
 # Download custom configs
 wget -q -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
-wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
+# wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
 
 # Add systemd override (fix for early startup)
 mkdir -p /etc/systemd/system/nginx.service.d
 printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
 
 # Restart Nginx
-systemctl enable nginx
+systemctl daemon-reload
 systemctl start nginx
+systemctl enable nginx
 
 # Setup web root directory
-mkdir -p /home/vps/public_html
-
-# Download web files
-wget -q -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
+wget -q -O /usr/share/nginx/html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
 
 # Set ownership
 chown -R www-data:www-data /home/vps/public_html
