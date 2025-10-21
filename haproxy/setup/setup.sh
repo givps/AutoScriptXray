@@ -16,6 +16,7 @@ rm -f cf.sh >/dev/null 2>&1
 rm -f tool.sh >/dev/null 2>&1
 rm -f ins-xray.sh >/dev/null 2>&1
 rm -f install-haproxy.sh >/dev/null 2>&1
+rm -f slowdns.sh >/dev/null 2>&1
 
 # cek root
 if [ "${EUID}" -ne 0 ]; then
