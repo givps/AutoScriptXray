@@ -10,14 +10,8 @@ apt-get remove --purge exim4 -y
 
 # Install all packages in single command (faster and more efficient)
 apt install -y \
-  shc wget curl figlet ruby python3 make cmake \
-  iptables iptables-persistent netfilter-persistent \
-  coreutils rsyslog net-tools htop screen \
-  zip unzip nano sed gnupg bc jq bzip2 gzip \
-  apt-transport-https build-essential dirmngr \
-  libxml-parser-perl neofetch git lsof vnstat iftop \
-  libsqlite3-dev libz-dev gcc g++ libreadline-dev \
-  zlib1g-dev libssl-dev dos2unix
+python3 python3-dnslib net-tools ncurses-utils dnsutils git curl wget screen cron iptables jq whois dropbear sudo gnutls-bin dos2unix debconf-utils \
+shc figlet ruby make cmake iptables-persistent netfilter-persistent coreutils rsyslog htop zip unzip nano sed gnupg bc bzip2 gzip apt-transport-https build-essential dirmngr libxml-parser-perl neofetch lsof vnstat iftop libsqlite3-dev libz-dev gcc g++ libreadline-dev zlib1g-dev libssl-dev
 
 # Install Ruby gem
 gem install lolcat
@@ -81,14 +75,14 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22,110
+port = 22,2222
 logpath = /var/log/auth.log
 maxretry = 3
 bantime = 3600
 
 [sshd-ddos]
 enabled = true
-port = 22,110
+port = 22,2222
 logpath = /var/log/auth.log
 maxretry = 5
 bantime = 86400
