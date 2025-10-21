@@ -182,6 +182,12 @@ echo "WebSocket Proxy.js installation complete!"
 echo "You can check the service status: systemctl status ws-proxy"
 echo "========================================="
 
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}             Install SlowDNS            ${nc}"
+echo -e "${red}=========================================${nc}"
+# install slowdns
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
+
 cat > /root/.profile <<'EOF'
 # ~/.profile: executed by Bourne-compatible login shells.
 
