@@ -102,6 +102,12 @@ echo -e "${red}=========================================${nc}"
 # install haproxy ws
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/setup/install-haproxy.sh && chmod +x install-haproxy.sh && ./install-haproxy.sh
 
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}             Install SlowDNS            ${nc}"
+echo -e "${red}=========================================${nc}"
+# install slowdns
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/setup/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
+
 cat > /root/.profile << END
 # ~/.profile: executed by Bourne-compatible login shells.
 
