@@ -381,12 +381,12 @@ iptables -A INPUT -p tcp --dport 1936 -j ACCEPT  # HAProxy Stats
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 
-
 # Allow ICMP (ping)
 iptables -A INPUT -p icmp -j ACCEPT
 
 # Save iptables rules
-iptables-save > /etc/iptables/rules.v4
+netfilter-persistent save
+netfilter-persistent reload
 
 # =========================================
 # FINAL SETUP & VERIFICATION
