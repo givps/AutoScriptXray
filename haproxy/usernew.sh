@@ -36,61 +36,61 @@ echo -e "$Pass\n$Pass\n"|passwd $Login &> /dev/null
 PID=`ps -ef |grep -v grep | grep ws-proxy |awk '{print $2}'`
 
 if [[ ! -z "${PID}" ]]; then
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "${blue}            SSH Account            ${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Username    : $Login" | tee -a /etc/log-create-ssh.log
-echo -e "Password    : $Pass" | tee -a /etc/log-create-ssh.log
-echo -e "Expired On  : $exp" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "IP          : $MYIP" | tee -a /etc/log-create-ssh.log
-echo -e "Host        : $domain" | tee -a /etc/log-create-ssh.log
-echo -e "OpenSSH     : $openssh" | tee -a /etc/log-create-ssh.log
-echo -e "SSH WS      : $haproxy_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "SSH SSL WS  : $haproxy_non_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "SSH/SSL     : $ssh_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "UDPGW       : 7100-7900" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Payload WSS" | tee -a /etc/log-create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "${blue}            SSH Account            ${nc}" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Username    : $Login" | tee -a /var/log/create-ssh.log
+echo -e "Password    : $Pass" | tee -a /var/log/create-ssh.log
+echo -e "Expired On  : $exp" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "IP          : $MYIP" | tee -a /var/log/create-ssh.log
+echo -e "Host        : $domain" | tee -a /var/log/create-ssh.log
+echo -e "OpenSSH     : $openssh" | tee -a /var/log/create-ssh.log
+echo -e "SSH WS      : $haproxy_ssl" | tee -a /var/log/create-ssh.log
+echo -e "SSH SSL WS  : $haproxy_non_ssl" | tee -a /var/log/create-ssh.log
+echo -e "SSH/SSL     : $ssh_ssl" | tee -a /var/log/create-ssh.log
+echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Payload WSS" | tee -a /var/log/create-ssh.log
 echo -e "
 GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]
-" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Payload WS" | tee -a /etc/log-create-ssh.log
+" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Payload WS" | tee -a /var/log/create-ssh.log
 echo -e "
 GET / HTTP/1.1[crlf]Host: $domain[crlf]Upgrade: websocket[crlf][crlf]
-" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
+" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 else
 
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "${blue}            SSH Account            ${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Username    : $Login" | tee -a /etc/log-create-ssh.log
-echo -e "Password    : $Pass" | tee -a /etc/log-create-ssh.log
-echo -e "Expired On  : $exp" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "IP          : $MYIP" | tee -a /etc/log-create-ssh.log
-echo -e "Host        : $domain" | tee -a /etc/log-create-ssh.log
-echo -e "OpenSSH     : $openssh" | tee -a /etc/log-create-ssh.log
-echo -e "SSH WS      : $haproxy_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "SSH SSL WS  : $haproxy_non_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "SSH/SSL     : $ssh_ssl" | tee -a /etc/log-create-ssh.log
-echo -e "UDPGW       : 7100-7900" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Expired On     : $exp" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Payload WSS" | tee -a /etc/log-create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "${blue}            SSH Account            ${nc}" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Username    : $Login" | tee -a /var/log/create-ssh.log
+echo -e "Password    : $Pass" | tee -a /var/log/create-ssh.log
+echo -e "Expired On  : $exp" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "IP          : $MYIP" | tee -a /var/log/create-ssh.log
+echo -e "Host        : $domain" | tee -a /var/log/create-ssh.log
+echo -e "OpenSSH     : $openssh" | tee -a /var/log/create-ssh.log
+echo -e "SSH WS      : $haproxy_ssl" | tee -a /var/log/create-ssh.log
+echo -e "SSH SSL WS  : $haproxy_non_ssl" | tee -a /var/log/create-ssh.log
+echo -e "SSH/SSL     : $ssh_ssl" | tee -a /var/log/create-ssh.log
+echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Expired On     : $exp" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Payload WSS" | tee -a /var/log/create-ssh.log
 echo -e "
 GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]
-" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
-echo -e "Payload WS" | tee -a /etc/log-create-ssh.log
+" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Payload WS" | tee -a /var/log/create-ssh.log
 echo -e "
 GET / HTTP/1.1[crlf]Host: $domain[crlf]Upgrade: websocket[crlf][crlf]
-" | tee -a /etc/log-create-ssh.log
-echo -e "${red}=========================================${nc}" | tee -a /etc/log-create-ssh.log
+" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 fi
-echo "" | tee -a /etc/log-create-ssh.log
+echo "" | tee -a /var/log/create-ssh.log
 read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn
