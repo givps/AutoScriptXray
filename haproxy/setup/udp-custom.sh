@@ -1,0 +1,45 @@
+#!/bin/bash
+# =========================================
+# SETUP UDP CUSTOM
+# =========================================
+
+# create and delete folder
+rm -rf /root/udp
+mkdir -p /root/udp
+# install udp custom binary
+wget -q --show-progress --load-cookies /tmp/cookies.txt "https://github.com/givps/AutoScriptXray/raw/master/udp-custom/udp-custom-linux-amd64" -O /root/udp/udp-custom && rm -rf /tmp/cookies.txt
+chmod +x /root/udp/udp-custom
+
+wget -q --show-progress --load-cookies /tmp/cookies.txt "https://github.com/givps/AutoScriptXray/raw/master/udp-custom/config.json" -O /root/udp/config.json && rm -rf /tmp/cookies.txt
+chmod 644 /root/udp/config.json
+
+# maybe EXCLUDE_ARG="-exclude 443 80"
+SERVICE_FILE="/etc/systemd/system/udp-custom.service"
+
+if [ -z "$1" ]; then
+    EXCLUDE_ARG=""
+else
+    EXCLUDE_ARG="-exclude $1"
+fi
+
+cat > "$SERVICE_FILE" <<EOF
+[Unit]
+Description=ePro Dev. Team
+After=network.target
+
+[Service]
+User=root
+Type=simple
+ExecStart=/root/udp/udp-custom server $EXCLUDE_ARG
+WorkingDirectory=/root/udp/
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# enable udp-custom
+systemctl daemon-reload
+systemctl enable --now udp-custom
+
