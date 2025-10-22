@@ -1,84 +1,77 @@
 #!/bin/bash
-# Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
-# The MIT License (MIT)
-# (C) Copyright 2023
 # =========================================
-# pewarna hidup
-BGreen='\e[1;32m'
-NC='\e[0m'
-#setting IPtables
+# DNS SETUP slowdns Cloudflare API Token
+# =========================================
+
+# Tambah rule INPUT UDP 5300 kalau belum ada
+iptables -C INPUT -p udp --dport 5300 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p udp --dport 5300 -j ACCEPT
+
+# Tambah NAT redirect 53 -> 5300 kalau belum ada
+iptables -t nat -C PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300 2>/dev/null || \
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300
+
+# Simpan & reload
 netfilter-persistent save
 netfilter-persistent reload
 
-cd
-#delete directory nsdomain
+# Remove old directory/file
 rm -rf /root/nsdomain
-rm nsdomain
+rm -f nsdomain
 
-domen=$(cat /etc/xray/domain)
-# add nameserver auto by api to cloudflare DNS
-subsl=$(</dev/urandom tr -dc a-x0-9 | head -c5)
-DOMAIN=ipgivpn.my.id
-SUB_DOMAIN=${domen}
-NS_DOMAIN=asxns-${subsl}.ipgivpn.my.id
-echo $NS_DOMAIN > /root/nsdomain
-CF_ID=admin@ipgivpn.my.id
-CF_KEY=df51a369af75b0f37f90bb7bf025ee3d2cc54
-set -euo pipefail
-echo "Auto Add NS for ${SUB_DOMAIN}..."
-ZONE=$(curl -sLX GET "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN}&status=active" \
-     -H "X-Auth-Email: ${CF_ID}" \
-     -H "X-Auth-Key: ${CF_KEY}" \
-     -H "Content-Type: application/json" | jq -r .result[0].id)
+# Get the main domain
+domen=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
 
-RECORD=$(curl -sLX GET "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_records?name=${NS_DOMAIN}" \
-     -H "X-Auth-Email: ${CF_ID}" \
-     -H "X-Auth-Key: ${CF_KEY}" \
-     -H "Content-Type: application/json" | jq -r .result[0].id)
+# Domain and subdomain configuration
+subsl=$(</dev/urandom tr -dc 0-9 | head -c5)
+DOMAIN="ipgivpn.my.id"
+SUB_DOMAIN="${domen}"
+NS_DOMAIN="asxns${subsl}.ipgivpn.my.id"
+echo "$NS_DOMAIN" > /root/nsdomain
 
-if [[ "${#RECORD}" -le 10 ]]; then
-     RECORD=$(curl -sLX POST "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_records" \
-     -H "X-Auth-Email: ${CF_ID}" \
-     -H "X-Auth-Key: ${CF_KEY}" \
-     -H "Content-Type: application/json" \
-     --data '{"type":"NS","name":"'${NS_DOMAIN}'","content":"'${SUB_DOMAIN}'","ttl":120,"proxied":false}' | jq -r .result.id)
+# Ask for Cloudflare API Token manually (fallback to default if empty)
+read -rp "Enter your Cloudflare API Token (Enter to use default): " CF_TOKEN
+if [[ -z "$CF_TOKEN" ]]; then
+    CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
+    echo "Using default API token..."
+else
+    echo "Using manual API token."
 fi
 
+echo "Automatically adding NS record for ${SUB_DOMAIN}..."
+
+# Get Cloudflare Zone ID
+ZONE=$(curl -sLX GET "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN}&status=active" \
+     -H "Authorization: Bearer ${CF_TOKEN}" \
+     -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+# Check if NS record already exists
+RECORD=$(curl -sLX GET "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_records?name=${NS_DOMAIN}" \
+     -H "Authorization: Bearer ${CF_TOKEN}" \
+     -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+# Create new NS record if not exists
+if [[ "${#RECORD}" -le 10 ]]; then
+     RECORD=$(curl -sLX POST "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_records" \
+     -H "Authorization: Bearer ${CF_TOKEN}" \
+     -H "Content-Type: application/json" \
+     --data '{"type":"NS","name":"'${NS_DOMAIN}'","content":"'${SUB_DOMAIN}'","ttl":120,"proxied":false}' | jq -r '.result.id')
+fi
+
+# Update record if already exists
 RESULT=$(curl -sLX PUT "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_records/${RECORD}" \
-     -H "X-Auth-Email: ${CF_ID}" \
-     -H "X-Auth-Key: ${CF_KEY}" \
+     -H "Authorization: Bearer ${CF_TOKEN}" \
      -H "Content-Type: application/json" \
      --data '{"type":"NS","name":"'${NS_DOMAIN}'","content":"'${SUB_DOMAIN}'","ttl":120,"proxied":false}')
 
-nameserver=$(cat /root/nsdomain)
-apt update -y
-apt install -y python3 python3-dnslib net-tools
-apt install ncurses-utils -y
-apt install dnsutils -y
-#apt install golang -y
-apt install git -y
-apt install curl -y
-apt install wget -y
-apt install ncurses-utils -y
-apt install screen -y
-apt install cron -y
-apt install iptables -y
-apt install -y git screen whois dropbear wget
-#apt install -y pwgen python php jq curl
-apt install -y sudo gnutls-bin
-#apt install -y mlocate dh-make libaudit-dev build-essential
-apt install -y dos2unix debconf-utils
 service cron reload
 service cron restart
 
+nameserver=$(cat /root/nsdomain)
+
 #tambahan port openssh
-cd
-echo "Port 2222" >> /etc/ssh/sshd_config
-echo "Port 2269" >> /etc/ssh/sshd_config
+grep -qxF "Port 2200" /etc/ssh/sshd_config || echo "Port 2200" >> /etc/ssh/sshd_config
+grep -qxF "Port 2299" /etc/ssh/sshd_config || echo "Port 2299" >> /etc/ssh/sshd_config
 sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
 service ssh restart
 service sshd restart
@@ -90,17 +83,15 @@ wget -q -O /etc/slowdns/server.key "https://raw.githubusercontent.com/fisabiliyu
 wget -q -O /etc/slowdns/server.pub "https://raw.githubusercontent.com/fisabiliyusri/SLDNS/main/slowdns/server.pub"
 wget -q -O /etc/slowdns/sldns-server "https://raw.githubusercontent.com/fisabiliyusri/SLDNS/main/slowdns/sldns-server"
 wget -q -O /etc/slowdns/sldns-client "https://raw.githubusercontent.com/fisabiliyusri/SLDNS/main/slowdns/sldns-client"
-cd
+
 chmod +x /etc/slowdns/server.key
 chmod +x /etc/slowdns/server.pub
 chmod +x /etc/slowdns/sldns-server
 chmod +x /etc/slowdns/sldns-client
 
-cd
 #wget -q -O /etc/systemd/system/client-sldns.service "https://raw.githubusercontent.com/fisabiliyusri/SLDNS/main/slowdns/client-sldns.service"
 #wget -q -O /etc/systemd/system/server-sldns.service "https://raw.githubusercontent.com/fisabiliyusri/SLDNS/main/slowdns/server-sldns.service"
 
-cd
 #install client-sldns.service
 cat > /etc/systemd/system/client-sldns.service << END
 [Unit]
@@ -114,14 +105,13 @@ User=root
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/etc/slowdns/sldns-client -udp 8.8.8.8:53 --pubkey-file /etc/slowdns/server.pub $nameserver 127.0.0.1:2222
+ExecStart=/etc/slowdns/sldns-client -udp 8.8.8.8:53 --pubkey-file /etc/slowdns/server.pub $nameserver 127.0.0.1:2200
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 END
 
-cd
 #install server-sldns.service
 cat > /etc/systemd/system/server-sldns.service << END
 [Unit]
@@ -135,7 +125,7 @@ User=root
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/etc/slowdns/sldns-server -udp :5300 -privkey-file /etc/slowdns/server.key $nameserver 127.0.0.1:2269
+ExecStart=/etc/slowdns/sldns-server -udp :5300 -privkey-file /etc/slowdns/server.key $nameserver 127.0.0.1:2299
 Restart=on-failure
 
 [Install]
@@ -143,9 +133,7 @@ WantedBy=multi-user.target
 END
 
 #permission service slowdns
-cd
 chmod +x /etc/systemd/system/client-sldns.service
-
 chmod +x /etc/systemd/system/server-sldns.service
 pkill sldns-server
 pkill sldns-client
@@ -166,5 +154,3 @@ systemctl restart server-sldns
 echo -e "\e[1;32m Success.. \e[0m"
 clear
 echo "Success Pointing NS $nameserver With Target $domen"
-sleep 5
-
