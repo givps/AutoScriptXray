@@ -44,7 +44,7 @@
 - SSH SSL Websocket        : 443, 1444<br>
 - Stunnel4                 : 222, 444<br>
 - Badvpn                   : 7100-7900<br>
-- Nginx                    : 81<br>
+- Nginx                    : 80<br>
 - Vmess WS TLS             : 443<br>
 - Vless WS TLS             : 443<br>
 - Trojan WS TLS            : 443<br>
