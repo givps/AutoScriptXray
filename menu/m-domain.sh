@@ -57,7 +57,7 @@ elif [[ $dom -eq 2 ]]; then
         read -rp "Create record automatically? (y/n): " ans
         if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
             read -rp "Enter your Cloudflare API Token: " CF_API
-            read -rp "Enter your Cloudflare Zone Name (e.g. example.com): " CF_ZONE
+            read -rp "Enter your Cloudflare Zone Name / Primary Domain Name (e.g. example.com): " CF_ZONE
             ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${CF_ZONE}" \
                 -H "Authorization: Bearer ${CF_API}" \
                 -H "Content-Type: application/json" | jq -r '.result[0].id')
