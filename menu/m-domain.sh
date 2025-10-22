@@ -1,6 +1,6 @@
 #!/bin/bash
 # =========================================
-# CHANGE DOMAIN VPS WITH DNS CHECK
+# CHANGE DOMAIN VPS WITH DNS CHECK & AUTO RENEW SSL
 # =========================================
 
 # Color
