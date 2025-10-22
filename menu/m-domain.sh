@@ -28,7 +28,6 @@ wget -q -O /root/cf.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/m
 
 systemctl stop nginx 2>/dev/null || true
 systemctl stop xray 2>/dev/null || true
-systemctl stop run 2>/dev/null || true
 
 LOG_FILE="/var/log/acme-setup.log"
 mkdir -p /var/log
@@ -113,7 +112,6 @@ echo "$domen" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 
 systemctl stop nginx 2>/dev/null || true
 systemctl stop xray 2>/dev/null || true
-systemctl stop run 2>/dev/null || true
 
 LOG_FILE="/var/log/acme-setup.log"
 mkdir -p /var/log
@@ -195,7 +193,6 @@ echo "Wrong Argument"
 exit 1
 fi
 echo -e "[ ${green}INFO${NC} ] Restart All Service" 
-systemctl start run 2>/dev/null || true
 systemctl start xray 2>/dev/null || true
 systemctl start nginx 2>/dev/null || true
 echo -e "[ ${green}INFO${NC} ] All finished !" 
