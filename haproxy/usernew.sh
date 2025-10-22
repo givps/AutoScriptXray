@@ -67,6 +67,7 @@ echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
 echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
 echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
 echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
+echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Payload WSS" | tee -a /var/log/create-ssh.log
 echo -e "
@@ -97,6 +98,7 @@ echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
 echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
 echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
 echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
+echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Expired On     : $exp" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
