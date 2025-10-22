@@ -11,7 +11,7 @@ blue='\e[1;34m'
 white='\e[1;37m'
 nc='\e[0m'
 
-rm -f /usr/local/etc/xray/domain /root/domain
+rm -f slowdns.sh
 clear
 echo -e "${red}=========================================${nc}"
 echo -e "${green}     CUSTOM SETUP DOMAIN VPS     ${nc}"
@@ -102,9 +102,13 @@ echo -e "[${green}SUCCESS${nc}] ACME.sh + Cloudflare setup completed!"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
 echo -e "KEY: /usr/local/etc/xray/xray.key"
 
+# renew ns slowdns
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
+
 # done
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen
+rm -f /usr/local/etc/xray/domain /root/domain
 echo "$domen" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 
 systemctl stop nginx 2>/dev/null || true
@@ -182,6 +186,9 @@ systemctl enable cron
 echo -e "[${green}SUCCESS${nc}] ACME.sh + Cloudflare setup completed!"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
 echo -e "KEY: /usr/local/etc/xray/xray.key"
+
+# renew ns slowdns
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
 
 else 
 echo "Wrong Argument"
