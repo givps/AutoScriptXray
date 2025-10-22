@@ -88,3 +88,4 @@ echo -e "[ ${green}INFO${NC} ] Restart All Service"
 systemctl start xray 2>/dev/null || true
 systemctl start nginx 2>/dev/null || true
 echo -e "[ ${green}INFO${NC} ] All finished !" 
+
