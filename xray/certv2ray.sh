@@ -11,7 +11,6 @@ nc='\e[0m'
 
 systemctl stop nginx
 systemctl stop xray
-systemctl stop run
 echo -e "[ ${green}INFO${nc} ] Starting Renew Certificate . . . " 
 
 LOG_FILE="/var/log/acme-setup.log"
@@ -90,7 +89,6 @@ echo -e "[ ${green}INFO${nc} ] Restart All Service"
 
 echo "$domain" > /usr/local/etc/xray/domain
 echo "$domain" > /root/domain
-systemctl start run
 systemctl start xray
 systemctl start nginx
 echo -e "[ ${green}INFO${nc} ] All finished !" 
