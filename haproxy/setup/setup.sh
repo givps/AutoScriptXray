@@ -75,7 +75,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${white}1${nc} Use Domain From Script"
 echo -e "${white}2${nc} Choose Your Own Domain"
 echo -e "${red}=========================================${nc}"
-read -rp "Choose Your Domain Installation : " dom 
+read -rp "Choose Your Domain Installation 1/2 : " dom 
 
 if [[ $dom -eq 1 ]]; then
     clear
