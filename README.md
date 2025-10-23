@@ -67,7 +67,7 @@
 - Check Bandwith
 - BBRPLUS
 - DNS CHANGER
-- Additional Features (Optional) skipper (NOTE) install after [Step Install] is complete
+<!--- Additional Features (Optional) skipper (NOTE) install after [Step Install] is complete
 - Optional [install Slowdns + UDP-Custom + OpenVPN](https://github.com/givps/AutoScriptXray/tree/master/udp-custom)
 - Optional [install Panel Webmin](https://github.com/givps/AutoScriptXray/tree/master/webmin)
   
@@ -75,7 +75,7 @@
 ![Service Status](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/menu.png)
 
 # Service Status
-![Service Status](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/service.png)
+![Service Status](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/service.png)-->
 
 # [Step Install]
 - Step 1 for (debian) please update first
