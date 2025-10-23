@@ -1,6 +1,4 @@
-# Directly install without the need to register an IP VPS 
-
-# Order from me (MUST READ) before using
+# (MUST READ) before install
 
 </p> 
 <h2 align="center"> Supported Linux Distribution</h2>
@@ -36,7 +34,16 @@
 # Pointing
 ![Pointing](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/pointing.png)
 
-## Service & Port:
+# Stunnel Version install
+- Step 1 for (debian) please update first
+```
+apt update && apt upgrade -y && apt autoremove -y && reboot
+```
+- Step 2 for (ubuntu) directly install
+```
+sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.disable_ipv6=1 && apt update && apt install -y bzip2 gzip coreutils screen curl unzip && wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/setup.sh && chmod +x setup.sh && sed -i -e 's/\r$//' setup.sh && screen -S setup ./setup.sh
+```
+# Stunnel Version Port:
 <br>
 - OpenSSH                  : 22<br>
 - Dropbear                 : 109, 110<br>
@@ -58,34 +65,37 @@
 - Trojan gRPC              : 443<br>
 - Shadowsocks gRPC         : 443<br>
 <br>
-  
-## Feature
-- Speedtest
-- Set Auto Reboot
-- Restart All Service
-- AUTO delete user Expired 
-- Check Bandwith
-- BBRPLUS
-- DNS CHANGER
-<!--- Additional Features (Optional) skipper (NOTE) install after [Step Install] is complete
-- Optional [install Slowdns + UDP-Custom + OpenVPN](https://github.com/givps/AutoScriptXray/tree/master/udp-custom)
-- Optional [install Panel Webmin](https://github.com/givps/AutoScriptXray/tree/master/webmin)
-  
-# Menu
-![Service Status](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/menu.png)
 
-# Service Status
-![Service Status](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/service.png)-->
-
-# [Step Install]
-- Step 1 for (debian) please update first
+# HAProxy Version install
+- Step 1 for (debian) update first
 ```
 apt update && apt upgrade -y && apt autoremove -y && reboot
 ```
 - Step 2 for (ubuntu) directly install
 ```
-sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.disable_ipv6=1 && apt update && apt install -y bzip2 gzip coreutils screen curl unzip && wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/setup.sh && chmod +x setup.sh && sed -i -e 's/\r$//' setup.sh && screen -S setup ./setup.sh
+sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.disable_ipv6=1 && apt update && apt install -y bzip2 gzip coreutils screen curl unzip && wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/haproxy/setup/setup.sh && chmod +x setup.sh && sed -i -e 's/\r$//' setup.sh && screen -S setup ./setup.sh
 ```
+# HAProxy Version Port:
+<br>
+- OpenSSH                  : 22, 2222<br>
+- SSH/SSL                  : 1445, 1446<br>
+- HAProxy SSH SSL WS       : 1443<br>
+- HAProxy SSH WS           : 1444<br>
+- Badvpn                   : 7100-7900<br>
+- Nginx                    : 80<br>
+- Vmess WS TLS             : 443<br>
+- Vless WS TLS             : 443<br>
+- Trojan WS TLS            : 443<br>
+- Shadowsocks WS TLS       : 443<br>
+- Vmess WS none TLS        : 80<br>
+- Vless WS none TLS        : 80<br>
+- Trojan WS none TLS       : 80<br>
+- Shadowsocks WS none TLS  : 80<br>
+- Vmess gRPC               : 443<br>
+- Vless gRPC               : 443<br>
+- Trojan gRPC              : 443<br>
+- Shadowsocks gRPC         : 443<br>
+<br>
 
 # Telegram
 [![Telegram](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
