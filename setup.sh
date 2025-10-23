@@ -66,22 +66,80 @@ sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 mkdir -p /usr/local/etc/xray
 mkdir -p /etc/log
 
-echo ""
+MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
+clear
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}           SETUP DOMAIN VPS               ${nc}"
+echo -e "${green}     CUSTOM SETUP DOMAIN VPS     ${nc}"
 echo -e "${red}=========================================${nc}"
-echo -e "${white} 1 = Use Domain Random ${nc}"
-echo -e "${white} 2 = Choose Your Own Domain ${nc}"
+echo -e "${white}1${nc} Use Domain From Script"
+echo -e "${white}2${nc} Choose Your Own Domain"
 echo -e "${red}=========================================${nc}"
-read -rp " input 1 or 2 / pilih 1 atau 2 : " dns
-if test $dns -eq 1; then
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/cf.sh && chmod +x cf.sh && ./cf.sh
-elif test $dns -eq 2; then
-read -rp "Enter Your Domain : " dom
-echo "$dom" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
+read -rp "Choose Your Domain Installation : " dom 
+
+if [[ $dom -eq 1 ]]; then
+    clear
+    rm -f /root/cf.sh
+    wget -q -O /root/cf.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/cf.sh"
+    chmod +x /root/cf.sh && bash /root/cf.sh
+
+elif [[ $dom -eq 2 ]]; then
+    read -rp "Enter Your Domain : " domen
+    rm -f /usr/local/etc/xray/domain /root/domain
+    echo "$domen" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
+
+    echo -e "\n${yellow}Checking DNS record for ${domen}...${nc}"
+    DNS_IP=$(dig +short A "$domen" @1.1.1.1 | head -n1)
+
+    if [[ -z "$DNS_IP" ]]; then
+        echo -e "${red}No DNS record found for ${domen}.${nc}"
+    elif [[ "$DNS_IP" != "$MYIP" ]]; then
+        echo -e "${yellow}⚠ Domain does not point to this VPS.${nc}"
+        echo -e "Your VPS IP: ${green}$MYIP${nc}"
+        echo -e "Current DNS IP: ${red}$DNS_IP${nc}"
+    else
+        echo -e "${green}✅ Domain already points to this VPS.${nc}"
+    fi
+
+    # If not pointing, offer Cloudflare API creation
+    if [[ "$DNS_IP" != "$MYIP" ]]; then
+        echo -e "\n${yellow}Would you like to create an A record on Cloudflare using API Token?${nc}"
+        read -rp "Create record automatically? (y/n): " ans
+        if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
+            read -rp "Enter your Cloudflare API Token: " CF_API
+            read -rp "Enter your Cloudflare Zone Name / Primary Domain Name (e.g. example.com): " CF_ZONE
+            ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${CF_ZONE}" \
+                -H "Authorization: Bearer ${CF_API}" \
+                -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+            if [[ -z "$ZONE_ID" || "$ZONE_ID" == "null" ]]; then
+                echo -e "${red}Failed to get Zone ID. Please check your token and zone name.${nc}"
+            else
+                echo -e "${green}Zone ID found: ${ZONE_ID}${nc}"
+                # Create or update DNS record
+                RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?name=${domen}" \
+                    -H "Authorization: Bearer ${CF_API}" \
+                    -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+                if [[ "$RECORD_ID" == "null" || -z "$RECORD_ID" ]]; then
+                    echo -e "${yellow}Creating new A record for ${domen}...${nc}"
+                    curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" \
+                        -H "Authorization: Bearer ${CF_API}" \
+                        -H "Content-Type: application/json" \
+                        --data "{\"type\":\"A\",\"name\":\"${domen}\",\"content\":\"${MYIP}\",\"ttl\":120,\"proxied\":false}" >/dev/null
+                else
+                    echo -e "${yellow}Updating existing A record for ${domen}...${nc}"
+                    curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${RECORD_ID}" \
+                        -H "Authorization: Bearer ${CF_API}" \
+                        -H "Content-Type: application/json" \
+                        --data "{\"type\":\"A\",\"name\":\"${domen}\",\"content\":\"${MYIP}\",\"ttl\":120,\"proxied\":false}" >/dev/null
+                fi
+                echo -e "${green}✅ DNS record set to ${MYIP}${nc}"
+            fi
+        fi
+    fi
 else 
-echo "Wrong input"
-exit 1
+    echo -e "${red}Wrong Argument${nc}"
+    exit 1
 fi
 echo -e "${green}Done${nc}"
 
