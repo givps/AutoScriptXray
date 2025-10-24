@@ -191,18 +191,17 @@ END
 systemctl reload-daemon
 
 # SSH ports
-iptables -A INPUT -p tcp -m multiport --dports 22,2222 -j ACCEPT
-
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
 # HTTP/HTTPS
-iptables -A INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
-
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 # HAProxy ports
-iptables -A INPUT -p tcp -m multiport --dports 1443,1444,1445,1446,1936 -j ACCEPT
-
-# WS
-iptables -A INPUT -p tcp -m multiport --dports 10001,10002,10003,10004 -j ACCEPT
-# gRPC
-iptables -A INPUT -p tcp -m multiport --dports 10005,10006,10007,10008 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1443 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1444 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1446 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
 
 # Save rules
 iptables-save > /etc/iptables/rules.v4
