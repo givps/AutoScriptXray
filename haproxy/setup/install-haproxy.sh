@@ -350,6 +350,11 @@ systemctl restart ssh
 # =========================================
 echo -e "\n${blue}[7/8] Configuring iptables${nc}"
 
+#!/bin/bash
+# =========================================
+# Firewall script for Xray + Nginx + HAProxy
+# =========================================
+
 # Flush existing rules
 iptables -F
 iptables -X
@@ -368,23 +373,21 @@ iptables -A OUTPUT -o lo -j ACCEPT
 # Allow established connections
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# Allow SSH on default port
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
+# SSH ports
+iptables -A INPUT -p tcp -m multiport --dports 22,2222 -j ACCEPT
 
-# Allow public ports
-iptables -A INPUT -p tcp --dport 1443 -j ACCEPT  # HAProxy SSL WS
-iptables -A INPUT -p tcp --dport 1444 -j ACCEPT  # HAProxy non-SSL WS
-iptables -A INPUT -p tcp --dport 1445 -j ACCEPT  # SSH Direct SSL
-iptables -A INPUT -p tcp --dport 1446 -j ACCEPT  # SSH Direct non-SSL
-iptables -A INPUT -p tcp --dport 1936 -j ACCEPT  # HAProxy Stats
-iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+# HTTP/HTTPS
+iptables -A INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
 
-# Allow ICMP (ping)
-iptables -A INPUT -p icmp -j ACCEPT
+# HAProxy ports
+iptables -A INPUT -p tcp -m multiport --dports 1443,1444,1445,1446,1936 -j ACCEPT
 
-# Save iptables rules
+# WS
+iptables -A INPUT -p tcp -m multiport --dports 10001,10002,10003,10004 -j ACCEPT
+# gRPC
+iptables -A INPUT -p tcp -m multiport --dports 10005,10006,10007,10008 -j ACCEPT
+
+# Save rules
 netfilter-persistent save
 netfilter-persistent reload
 
