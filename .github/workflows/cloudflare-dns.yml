@@ -1,20 +1,4 @@
-name: Prepare Call API
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 */1 * * *"
-
-jobs:
-  prepare-env:
-    runs-on: ubuntu-latest
-
-    env:
-      CF_TOKEN: ${{ secrets.CF_TOKEN }}
-      CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-      DEFAULT_CF_TOKEN: ${{ secrets.CF_TOKEN }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        
+env:
+  CF_TOKEN: ${{ secrets.CF_TOKEN }}
+  CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+  DEFAULT_CF_TOKEN: ${{ secrets.CF_TOKEN }}
