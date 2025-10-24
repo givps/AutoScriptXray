@@ -30,10 +30,13 @@ NS_DOMAIN="asxns${subsl}.ipgivpn.my.id"
 echo "$NS_DOMAIN" > /root/nsdomain
 
 # Ask for Cloudflare API Token manually (fallback to default if empty)
-if [ -z "${CF_TOKEN:-}" ]; then
-    read -rp "Enter your Cloudflare API Token: " CF_TOKEN
+read -rp "Enter your Cloudflare API Token (Enter to use default): " CF_TOKEN
+if [[ -z "$CF_TOKEN" ]]; then
+    CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
+    echo "Using default API token..."
+else
+    echo "Using manual API token."
 fi
-CF_TOKEN="${CF_TOKEN:?Missing CF_TOKEN}"
 
 echo "Automatically adding NS record for ${SUB_DOMAIN}..."
 
