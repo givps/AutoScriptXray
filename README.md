@@ -40,7 +40,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 ```
 # Stunnel Version Port :
 <br>
-- OpenSSH                  : 22<br>
+- OpenSSH                  : 22, 2222<br>
 - Dropbear                 : 109, 110<br>
 - SSH Websocket            : 80, 1445<br>
 - SSH SSL Websocket        : 443, 1444<br>
