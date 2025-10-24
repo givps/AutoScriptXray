@@ -1,4 +1,5 @@
 name: Prepare Call API
+
 on:
   workflow_dispatch:
   schedule:
@@ -7,30 +8,32 @@ on:
 jobs:
   prepare-env:
     runs-on: ubuntu-latest
+
     env:
       CF_TOKEN: ${{ secrets.CF_TOKEN }}
       CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
       DEFAULT_CF_TOKEN: ${{ secrets.CF_TOKEN }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        
-- name: Run Update DNS
+
+      - name: Run Update DNS
         run: |
           chmod +x ./ssh/cf.sh
           ./ssh/cf.sh
-        
-- name: Run Update TXT
+
+      - name: Run Update TXT
         run: |
           chmod +x ./xray/ins-xray.sh
           ./xray/ins-xray.sh
-        
-- name: Run Update crt
+
+      - name: Run Update crt
         run: |
           chmod +x ./xray/crt.sh
           ./xray/crt.sh
-        
-- name: Run Update ns
+
+      - name: Run Update ns
         run: |
           chmod +x ./slowdns/slowdns.sh
           ./slowdns/slowdns.sh
