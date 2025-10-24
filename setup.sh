@@ -271,6 +271,20 @@ clear
 command -v menu >/dev/null 2>&1 && menu
 EOF
 
+# Allow SSH & Dropbear
+iptables -A INPUT -p tcp -m multiport --dports 22,2222,109,110,222,444 -j ACCEPT
+
+# Allow HTTP/HTTPS
+iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
+
+# Allow WebSocket ports
+iptables -A INPUT -p tcp -m multiport --dports 1444,1445 -j ACCEPT
+
+# Save
+iptables-save > /etc/iptables/rules.v4
+netfilter-persistent save
+netfilter-persistent reload
+
 echo ""
 echo -e "========================================="  | tee -a ~/log-install.txt
 echo -e "          Service Information            "  | tee -a ~/log-install.txt
