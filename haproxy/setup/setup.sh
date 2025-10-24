@@ -221,5 +221,6 @@ echo -e "${red}=========================================${nc}" | tee -a log-inst
 echo ""
 echo -e "${yellow} Auto reboot in 10 second...${nc}"
 sleep 10
+rm -f setup.sh
 reboot
 
