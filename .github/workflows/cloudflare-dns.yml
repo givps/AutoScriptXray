@@ -17,5 +17,5 @@ jobs:
 
       - name: Run Cloudflare updater
         run: |
-          chmod +x ./cf.sh
-          ./cf.sh
+          chmod +x /ssh/cf.sh
+          bash /ssh/cf.sh
