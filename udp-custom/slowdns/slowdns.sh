@@ -32,7 +32,7 @@ echo "$NS_DOMAIN" > /root/nsdomain
 # Ask for Cloudflare API Token manually (fallback to default if empty)
 read -rp "Enter your Cloudflare API Token (Enter to use default): " CF_TOKEN
 if [[ -z "$CF_TOKEN" ]]; then
-    CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
+    CF_TOKEN="${CF_TOKEN:?Missing CF_TOKEN}"
     echo "Using default API token..."
 else
     echo "Using manual API token."
