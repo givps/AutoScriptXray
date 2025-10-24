@@ -75,14 +75,14 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22,2222
+port = 22
 logpath = /var/log/auth.log
 maxretry = 3
 bantime = 3600
 
 [sshd-ddos]
 enabled = true
-port = 22,2222
+port = 22
 logpath = /var/log/auth.log
 maxretry = 5
 bantime = 86400
