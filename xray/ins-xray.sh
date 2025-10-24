@@ -350,14 +350,16 @@ EOF
 #nginx config
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 80;
-    server_name 127.0.0.1;
+    listen 80 default_server;
+    server_name _;
+
     return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl;
-    server_name 127.0.0.1;
+    listen 443 ssl default_server;
+    server_name _;
+
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
     
