@@ -190,6 +190,13 @@ END
 
 systemctl reload-daemon
 
+# Flush
+iptables -F
+iptables -X
+# Allow loopback
+iptables -A INPUT -i lo -j ACCEPT
+# Allow established connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 # SSH ports
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
