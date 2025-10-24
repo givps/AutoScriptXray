@@ -178,38 +178,6 @@ accept = 444
 connect = 127.0.0.1:110
 EOF
 
-# Allow loopback
-iptables -A INPUT -i lo -j ACCEPT
-
-# Allow established connections
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# Allow SSH & Dropbear
-iptables -A INPUT -p tcp -m multiport --dports 22,2222,109,110,222,444 -j ACCEPT
-
-# Allow HTTP/HTTPS
-iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
-
-# Allow WebSocket ports
-iptables -A INPUT -p tcp -m multiport --dports 1444,1445 -j ACCEPT
-
-# Allow ping
-iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-
-# Masquerade outbound traffic
-iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
-
-# Allow forwarding
-iptables -P FORWARD ACCEPT
-
-# Drop other inputs
-iptables -A INPUT -j DROP
-
-# Save
-iptables-save > /etc/iptables/rules.v4
-netfilter-persistent save
-netfilter-persistent reload
-
 # make a certificate
 openssl genrsa -out key.pem 2048
 openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
