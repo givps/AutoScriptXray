@@ -1,21 +1,11 @@
-name: Update Cloudflare DNS
+name: Prepare Environment
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"
 
 jobs:
-  update-dns:
+  prepare-env:
     runs-on: ubuntu-latest
     env:
       CF_TOKEN: ${{ secrets.CF_TOKEN }}
       CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
       DEFAULT_CF_TOKEN: ${{ secrets.DEFAULT_CF_TOKEN }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run Cloudflare updater
-        run: |
-          chmod +x /ssh/cf.sh
-          bash /ssh/cf.sh
