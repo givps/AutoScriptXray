@@ -219,6 +219,7 @@ chmod 644 /etc/systemd/system/ws-proxy.service
 
 cd /usr/local/bin
 npm install ws
+npm init -y
 
 # Reload systemd to recognize new service
 systemctl daemon-reload || true
