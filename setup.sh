@@ -204,6 +204,7 @@ fi
 # Download proxy.js
 # -------------------------------
 echo "[STEP 3] Downloading proxy.js..."
+rm -f /usr/local/bin/proxy.js
 wget -q -O /usr/local/bin/proxy.js https://raw.githubusercontent.com/givps/AutoScriptXray/master/ws/proxy.js
 chmod +x /usr/local/bin/proxy.js
 echo "[STEP 3] proxy.js installed at /usr/local/bin/proxy.js"
@@ -212,6 +213,7 @@ echo "[STEP 3] proxy.js installed at /usr/local/bin/proxy.js"
 # Download systemd service
 # -------------------------------
 echo "[STEP 4] Setting up ws-proxy systemd service..."
+rm -f /etc/systemd/system/ws-proxy.service
 wget -q -O /etc/systemd/system/ws-proxy.service https://raw.githubusercontent.com/givps/AutoScriptXray/master/ws/ws-proxy.service
 chmod 644 /etc/systemd/system/ws-proxy.service
 
