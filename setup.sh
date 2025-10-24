@@ -285,6 +285,7 @@ iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -p tcp --dport 1444 -j ACCEPT
 iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
 
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 # Save
 iptables-save > /etc/iptables/rules.v4
 netfilter-persistent save
