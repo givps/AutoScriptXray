@@ -299,4 +299,5 @@ echo -e "=========================================" | tee -a ~/log-install.txt
 echo ""
 echo -e "Auto reboot in 10 seconds..."
 sleep 10
+rm -f setup.sh
 reboot
