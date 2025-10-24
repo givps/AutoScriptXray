@@ -30,7 +30,7 @@ if [[ $dom -eq 1 ]]; then
     wget -q -O /root/crt.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/crt.sh"
     chmod +x /root/crt.sh && bash /root/crt.sh
     rm -f /root/slowdns.sh
-    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns/slowdns.sh"
+    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
     chmod +x /root/slowdns.sh && bash /root/slowdns.sh
 
 elif [[ $dom -eq 2 ]]; then
@@ -95,7 +95,7 @@ elif [[ $dom -eq 2 ]]; then
     chmod +x /root/crt.sh && bash /root/crt.sh
 
     rm -f /root/slowdns.sh
-    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns/slowdns.sh"
+    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
     chmod +x /root/slowdns.sh && bash /root/slowdns.sh
 
 else 
