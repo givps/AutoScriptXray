@@ -1,56 +1,15 @@
 [Unit]
 Description=WebSocket to TCP Proxy Service
-Documentation=man:systemd.service(5)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=exec
+Type=simple
 User=root
-Group=root
 WorkingDirectory=/usr/local/bin
 ExecStart=/usr/bin/node /usr/local/bin/proxy.js
-ExecReload=/bin/kill -HUP $MAINPID
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=30
-
-# Restart policy
 Restart=on-failure
 RestartSec=5
-StartLimitInterval=100
-StartLimitBurst=10
-
-# Security hardening
-CapabilityBoundingSet=
-NoNewPrivileges=yes
-PrivateTmp=yes
-PrivateDevices=yes
-ProtectSystem=full
-ProtectHome=yes
-ReadWritePaths=/usr/local/bin /tmp
-ProtectKernelTunables=yes
-ProtectKernelModules=yes
-ProtectControlGroups=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-RestrictNamespaces=yes
-RestrictRealtime=yes
-SystemCallFilter=@system-service
-SystemCallArchitectures=native
-LockPersonality=yes
-MemoryDenyWriteExecute=yes
-
-# Logging
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=ws-proxy
-LogRateLimitIntervalSec=30
-LogRateLimitBurst=1000
-
-# Environment
-Environment=NODE_ENV=production
-Environment=UV_THREADPOOL_SIZE=16
 
 [Install]
 WantedBy=multi-user.target
-Alias=ws-proxy.service
