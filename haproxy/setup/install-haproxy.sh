@@ -282,7 +282,7 @@ echo -e "\n${blue}[6/8] Configuring SSH Direct Ports${nc}"
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 
 # Update SSH config untuk listen multiple ports
-cat > /etc/ssh/sshd_config <<'EOF'
+cat > /etc/ssh/sshd_config <<EOF
 # =========================================
 # SSHD Configuration - HAProxy WebSocket
 # Optimized for SSH & WebSocket Proxy
