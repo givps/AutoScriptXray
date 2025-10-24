@@ -343,60 +343,10 @@ Match Address 127.0.0.1
 # End of configuration
 EOF
 
-systemctl restart ssh
-
-# =========================================
-# CONFIGURE IPTABLES
-# =========================================
-echo -e "\n${blue}[7/8] Configuring iptables${nc}"
-
-# =========================================
-# Firewall script for Xray + Nginx + HAProxy
-# =========================================
-
-# Flush existing rules
-iptables -F
-iptables -X
-iptables -t nat -F
-iptables -t nat -X
-
-# Default policies
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT ACCEPT
-
-# Allow loopback
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
-
-# Allow established connections
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-# SSH ports
-iptables -A INPUT -p tcp -m multiport --dports 22,2222 -j ACCEPT
-
-# HTTP/HTTPS
-iptables -A INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
-
-# HAProxy ports
-iptables -A INPUT -p tcp -m multiport --dports 1443,1444,1445,1446,1936 -j ACCEPT
-
-# WS
-iptables -A INPUT -p tcp -m multiport --dports 10001,10002,10003,10004 -j ACCEPT
-# gRPC
-iptables -A INPUT -p tcp -m multiport --dports 10005,10006,10007,10008 -j ACCEPT
-
-# Save rules
-netfilter-persistent save
-netfilter-persistent reload
-
-# =========================================
-# FINAL SETUP & VERIFICATION
-# =========================================
-echo -e "\n${blue}[8/8] Final Verification${nc}"
+service restart ssh
 
 # Restart services
-systemctl restart ssh haproxy ws-proxy
+systemctl restart haproxy ws-proxy
 
 sleep 3
 
