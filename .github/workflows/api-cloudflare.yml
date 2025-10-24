@@ -1,4 +1,4 @@
-name: Prepare Call API
+name: Call API Token
 
 on:
   workflow_dispatch:
