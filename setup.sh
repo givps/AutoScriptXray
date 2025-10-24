@@ -277,7 +277,7 @@ echo -e "          Service Information            "  | tee -a ~/log-install.txt
 echo -e "========================================="  | tee -a ~/log-install.txt
 echo ""
 echo "   >>> Service & Port"  | tee -a ~/log-install.txt
-echo "   - OpenSSH                  : 22"  | tee -a ~/log-install.txt
+echo "   - OpenSSH                  : 22, 2222"  | tee -a ~/log-install.txt
 echo "   - Dropbear                 : 109, 110" | tee -a ~/log-install.txt
 echo "   - SSH Websocket            : 80, 1445" | tee -a ~/log-install.txt
 echo "   - SSH SSL Websocket        : 443, 1444" | tee -a ~/log-install.txt
