@@ -42,6 +42,8 @@ apt install -y curl wget net-tools build-essential iptables-persistent
 # Disable ufw jika ada
 systemctl stop ufw 2>/dev/null
 systemctl disable ufw 2>/dev/null
+apt-get remove --purge ufw firewalld -y
+apt-get remove --purge exim4 -y
 
 # =========================================
 # INSTALL NODE.JS & DEPENDENCIES
