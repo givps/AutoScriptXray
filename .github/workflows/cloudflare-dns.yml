@@ -1,4 +1,4 @@
-name: Prepare Environment
+name: Prepare Call API
 on:
   workflow_dispatch:
   schedule:
