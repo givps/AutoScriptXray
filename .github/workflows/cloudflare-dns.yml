@@ -17,23 +17,4 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Run Update DNS
-        run: |
-          chmod +x ./ssh/cf.sh
-          ./ssh/cf.sh
-
-      - name: Run Update TXT
-        run: |
-          chmod +x ./xray/ins-xray.sh
-          ./xray/ins-xray.sh
-
-      - name: Run Update crt
-        run: |
-          chmod +x ./xray/crt.sh
-          ./xray/crt.sh
-
-      - name: Run Update ns
-        run: |
-          chmod +x ./slowdns/slowdns.sh
-          ./slowdns/slowdns.sh
+        
