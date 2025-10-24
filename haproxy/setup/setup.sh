@@ -166,7 +166,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}             Install SlowDNS            ${nc}"
 echo -e "${red}=========================================${nc}"
 # install slowdns
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}           Install UDP CUSTOM           ${nc}"
