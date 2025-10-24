@@ -416,8 +416,11 @@ systemctl daemon-reload
 
 # start
 systemctl start cron
-systemctl start xray.service
+systemctl start xray
 systemctl start nginx
+systemctl enable cron
+systemctl enable xray
+systemctl enable nginx
 
 cd /usr/bin
 # vless
