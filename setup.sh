@@ -187,13 +187,14 @@ apt install -y wget curl lsof net-tools ufw build-essential || true
 # Install Node.js
 # -------------------------------
 echo "[STEP 2] Checking Node.js version..."
+apt remove -y nodejs npm
 NODE_VERSION=$(node -v 2>/dev/null || echo "v0")
 NODE_MAJOR=${NODE_VERSION#v}
 NODE_MAJOR=${NODE_MAJOR%%.*}
 
 if [[ $NODE_MAJOR -lt 16 ]]; then
     echo "Node.js version too old ($NODE_VERSION). Installing Node.js 18..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - || true
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - || true
     apt install -y nodejs || true
 else
     echo "Node.js version is sufficient ($NODE_VERSION)"
