@@ -8,8 +8,9 @@ Type=simple
 User=root
 WorkingDirectory=/usr/local/bin
 ExecStart=/usr/bin/node /usr/local/bin/proxy.js
-Restart=on-failure
-RestartSec=5
+Environment=NODE_PATH=/usr/lib/node_modules
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
