@@ -205,6 +205,7 @@ iptables -A INPUT -p tcp -m multiport --dports 10001,10002,10003,10004 -j ACCEPT
 iptables -A INPUT -p tcp -m multiport --dports 10005,10006,10007,10008 -j ACCEPT
 
 # Save rules
+iptables-save > /etc/iptables/rules.v4
 netfilter-persistent save
 netfilter-persistent reload
 
