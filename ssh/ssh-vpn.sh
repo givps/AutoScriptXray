@@ -132,8 +132,9 @@ sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
 sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 600/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/g' /etc/ssh/sshd_config
-systemctl enable ssh
-systemctl restart ssh
+grep -qxF "Port 2222" /etc/ssh/sshd_config || echo "Port 2222" >> /etc/ssh/sshd_config
+service ssh restart
+service sshd restart
 
 echo "=== install dropbear ==="
 # install dropbear
@@ -167,7 +168,7 @@ socket = r:TCP_NODELAY=1
 # =====================================
 [ssh-ssl]
 accept = 222
-connect = 127.0.0.1:22
+connect = 127.0.0.1:2222
 
 # =====================================
 # Dropbear
@@ -184,7 +185,7 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Allow SSH & Dropbear
-iptables -A INPUT -p tcp -m multiport --dports 22,109,110,222,444 -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --dports 22,2222,109,110,222,444 -j ACCEPT
 
 # Allow HTTP/HTTPS
 iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
