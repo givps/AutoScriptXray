@@ -284,28 +284,24 @@ cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 # Update SSH config untuk listen multiple ports
 cat > /etc/ssh/sshd_config <<EOF
 # =========================================
-# SSHD Configuration - HAProxy WebSocket
-# Optimized for SSH & WebSocket Proxy
+# Minimal & Safe SSHD Configuration
 # =========================================
 
-# Basic Settings
+# Ports
 Port 22
 Port 2222
 Port 1445
 Port 1446
 Protocol 2
 
-# Security Settings
+# Authentication
 PermitRootLogin yes
 PasswordAuthentication yes
 PermitEmptyPasswords no
-ChallengeResponseAuthentication no
-UsePAM yes
+PubkeyAuthentication yes
 
 # Connection Settings
 X11Forwarding no
-PrintMotd no
-PrintLastLog yes
 TCPKeepAlive yes
 ClientAliveInterval 300
 ClientAliveCountMax 2
@@ -313,42 +309,28 @@ MaxAuthTries 3
 MaxSessions 10
 MaxStartups 10:30:100
 
-# Authentication Settings
-PubkeyAuthentication yes
-IgnoreRhosts yes
-HostbasedAuthentication no
-RhostsRSAAuthentication no
+# Security & Performance
+UsePAM yes
+ChallengeResponseAuthentication no
+UseDNS no
+Compression delayed
+GSSAPIAuthentication no
 
-# Encryption Settings
-Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
-MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com
-KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
-
-# Logging Settings
+# Logging
 SyslogFacility AUTH
 LogLevel INFO
 
-# Performance Settings
-Compression delayed
-UseDNS no
-GSSAPIAuthentication no
-
-# Match blocks for specific configurations
-# Allow HAProxy local connections
+# Match blocks for local HAProxy/WebSocket connections
 Match Address 127.0.0.1
-    PasswordAuthentication yes
     AllowTcpForwarding yes
     PermitTTY yes
 
-# End of configuration
 EOF
 
-service restart ssh
+systemctl restart sshd
 
 # Restart services
 systemctl restart haproxy ws-proxy
-
-sleep 3
 
 # Verification
 echo -e "${yellow}🔧 Service Status:${nc}"
