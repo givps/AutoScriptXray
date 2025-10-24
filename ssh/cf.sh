@@ -14,7 +14,7 @@ blue='\e[1;34m'
 nc='\e[0m'
 
 #delete old
-rm -f /usr/local/etc/xray/domain # /root/domain
+rm -f /usr/local/etc/xray/domain /root/domain
 mkdir -p /var/log
 # ==============================
 # Dependencies
@@ -168,7 +168,7 @@ if ! create_or_update "$WILDCARD_DOMAIN" "A" "$IP"; then
 fi
 
 # Save info
-echo "$SUB_DOMAIN" | tee /usr/local/etc/xray/domain  >/dev/null # /root/domain
+echo "$SUB_DOMAIN" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 
 # Log
 {
