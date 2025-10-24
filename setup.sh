@@ -187,7 +187,7 @@ apt install -y wget curl lsof net-tools ufw build-essential || true
 # Install Node.js
 # -------------------------------
 echo "[STEP 2] Checking Node.js version..."
-apt remove -y nodejs npm
+apt remove -y nodejs npm || true
 NODE_VERSION=$(node -v 2>/dev/null || echo "v0")
 NODE_MAJOR=${NODE_VERSION#v}
 NODE_MAJOR=${NODE_MAJOR%%.*}
