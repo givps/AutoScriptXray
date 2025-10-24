@@ -27,8 +27,8 @@ done
 # Config
 # ==============================
 DOMAIN="ipgivpn.my.id"
-CF_ZONE_ID="bf7189e2d65747e6b9a0c85786652e8f"
-CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
+CF_ZONE_ID="${CF_ZONE_ID:?Missing CF_ZONE_ID}"
+CF_TOKEN="${CF_TOKEN:?Missing CF_TOKEN}"
 IP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
 
 mkdir -p /etc/xray /var/lib/vps
