@@ -350,7 +350,6 @@ systemctl restart ssh
 # =========================================
 echo -e "\n${blue}[7/8] Configuring iptables${nc}"
 
-#!/bin/bash
 # =========================================
 # Firewall script for Xray + Nginx + HAProxy
 # =========================================
