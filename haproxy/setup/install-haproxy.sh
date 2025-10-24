@@ -49,7 +49,7 @@ systemctl disable ufw 2>/dev/null
 echo -e "\n${blue}[2/8] Installing Node.js${nc}"
 
 # Install Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
 # Verify installation
