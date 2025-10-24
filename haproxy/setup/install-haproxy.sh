@@ -301,6 +301,8 @@ PermitEmptyPasswords no
 PubkeyAuthentication yes
 
 # Connection Settings
+AllowTcpForwarding yes
+PermitTTY yes
 X11Forwarding no
 TCPKeepAlive yes
 ClientAliveInterval 300
@@ -319,11 +321,6 @@ GSSAPIAuthentication no
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
-
-# Match blocks for local HAProxy/WebSocket connections
-Match Address 127.0.0.1
-    AllowTcpForwarding yes
-    PermitTTY yes
 
 EOF
 
