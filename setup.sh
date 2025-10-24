@@ -272,13 +272,18 @@ command -v menu >/dev/null 2>&1 && menu
 EOF
 
 # Allow SSH & Dropbear
-iptables -A INPUT -p tcp -m multiport --dports 22,2222,109,110,222,444 -j ACCEPT
-
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
+iptables -A INPUT -p tcp --dport 109 -j ACCEPT
+iptables -A INPUT -p tcp --dport 110 -j ACCEPT
+iptables -A INPUT -p tcp --dport 222 -j ACCEPT
+iptables -A INPUT -p tcp --dport 444 -j ACCEPT
 # Allow HTTP/HTTPS
-iptables -A INPUT -p tcp -m multiport --dports 80,81,443 -j ACCEPT
-
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 # Allow WebSocket ports
-iptables -A INPUT -p tcp -m multiport --dports 1444,1445 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1444 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
 
 # Save
 iptables-save > /etc/iptables/rules.v4
