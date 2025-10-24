@@ -189,7 +189,7 @@ menu
 END
 
 systemctl reload-daemon
-
+apt install -y iptables-persistent
 # Flush
 iptables -F
 iptables -X
