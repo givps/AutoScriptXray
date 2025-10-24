@@ -271,6 +271,13 @@ clear
 command -v menu >/dev/null 2>&1 && menu
 EOF
 
+# Flush
+iptables -F
+iptables -X
+# Allow loopback
+iptables -A INPUT -i lo -j ACCEPT
+# Allow established connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 # Allow SSH & Dropbear
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
