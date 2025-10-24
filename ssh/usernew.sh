@@ -20,8 +20,8 @@ slkey=$(cat /etc/slowdns/server.pub)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
-sshws=`cat ~/log-install.txt | grep -w "SSH Websocket" | cut -d: -f2 | awk '{print $1}'`
-sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -d: -f2 | awk '{print $1}'`
+sshws=`cat ~/log-install.txt | grep -w "SSH Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
+sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
 ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2}'`
 
 echo -e "${red}=========================================${nc}"
