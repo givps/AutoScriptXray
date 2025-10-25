@@ -100,6 +100,14 @@ wget -O /etc/issue.net "https://raw.githubusercontent.com/givps/AutoScriptXray/m
 echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
 
+# Download banner
+BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
+BANNER_FILE="/etc/issue.net"
+wget -q -O "$BANNER_FILE" "$BANNER_URL"
+if ! grep -q "^Banner $BANNER_FILE" /etc/ssh/sshd_config; then
+    echo "Banner $BANNER_FILE" >> /etc/ssh/sshd_config
+fi
+
 systemctl restart sshd
 
 # install blokir torrent
