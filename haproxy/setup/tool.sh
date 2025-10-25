@@ -4,7 +4,8 @@ apt update -y
 apt upgrade -y
 
 # Install iptables directly
-apt install -y netfilter-persistent iptables-persistent
+apt install -y netfilter-persistent
+apt install -y iptables-persistent
 apt-get remove --purge ufw firewalld -y
 apt-get remove --purge exim4 -y
 
