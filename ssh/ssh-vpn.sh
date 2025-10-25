@@ -135,8 +135,9 @@ sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 600/g' /etc/ssh/sshd_config
 sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/g' /etc/ssh/sshd_config
 grep -qxF "Port 2222" /etc/ssh/sshd_config || echo "Port 2222" >> /etc/ssh/sshd_config
-service ssh restart
-service sshd restart
+
+systemctl enable sshd
+systemctl restart sshd
 
 echo "=== install dropbear ==="
 # install dropbear
