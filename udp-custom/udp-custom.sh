@@ -34,6 +34,9 @@ ExecStart=/root/udp/udp-custom server $EXCLUDE_ARG
 WorkingDirectory=/root/udp/
 Restart=always
 RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=udp-custom
 
 [Install]
 WantedBy=multi-user.target
