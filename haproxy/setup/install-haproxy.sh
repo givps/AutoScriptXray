@@ -141,6 +141,7 @@ listen stats
     stats auth admin:${Pass}
 EOF
 
+systemctl daemon-reload
 systemctl enable haproxy
 systemctl start haproxy
 
@@ -329,7 +330,8 @@ EOF
 systemctl restart sshd
 
 # Restart services
-systemctl restart haproxy ws-proxy
+systemctl restart haproxy
+systemctl restart ws-proxy
 
 # Verification
 echo -e "${yellow}🔧 Service Status:${nc}"
@@ -374,5 +376,4 @@ timeout 2 bash -c "echo > /dev/tcp/localhost/1445" && echo -e "✅ Port 1445 (SS
 timeout 2 bash -c "echo > /dev/tcp/localhost/1446" && echo -e "✅ Port 1446 (SSH Direct non-SSL) listening" || echo -e "❌ Port 1446 not responding"
 
 echo -e "\n${green}🎯 Setup completed successfully!${nc}"
-echo -e "${yellow}You can now test the connections using the information above.${nc}"
 
