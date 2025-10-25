@@ -14,7 +14,6 @@ nc='\e[0m'
 # ---------- Check Installation ----------
 if ! command -v wg >/dev/null 2>&1; then
   echo -e "${red}❌ WireGuard is not installed.${nc}"
-  echo -e "Please install WireGuard first!"
   exit 1
 fi
 
@@ -45,8 +44,14 @@ psk=$(wg genpsk)
 
 # ---------- Auto Assign IP ----------
 last_ip=$(grep AllowedIPs /etc/wireguard/wg0.conf | tail -n1 | awk '{print $3}' | cut -d'.' -f4 | cut -d'/' -f1)
-[[ -z "$last_ip" ]] && last_ip=1
+if ! [[ "$last_ip" =~ ^[0-9]+$ ]]; then
+    last_ip=1
+fi
 next_ip=$((last_ip + 1))
+if [ "$next_ip" -ge 255 ]; then
+    echo -e "${red}❌ IP range exceeded. Cannot assign new client IP.${nc}"
+    exit 1
+fi
 client_ip="10.88.88.$next_ip/32"
 
 # ---------- Get Server Info ----------
@@ -88,7 +93,10 @@ chmod 600 "$client_config"
 
 # ---------- Apply Config ----------
 wg syncconf wg0 <(wg-quick strip wg0)
-systemctl restart wg-quick@wg0
+if ! systemctl restart wg-quick@wg0; then
+    echo -e "${red}❌ Failed to restart wg-quick@wg0. Check configuration.${nc}"
+    exit 1
+fi
 
 # ---------- Output ----------
 echo -e "${red}=========================================${nc}"
@@ -102,8 +110,6 @@ echo -e "${red}=========================================${nc}"
 if command -v qrencode >/dev/null 2>&1; then
   echo -e "${yellow}📷 QR Code (scan in WireGuard app):${nc}"
   qrencode -t ansiutf8 < "$client_config"
-else
-  echo -e "${red}⚠️ qrencode is not installed. QR code cannot be displayed.${nc}"
 fi
 
 # ---------- Save Log ----------
