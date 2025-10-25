@@ -229,10 +229,13 @@ systemctl start fail2ban
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
 
-# // banner /etc/issue.net
-wget -O /etc/issue.net "https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
-echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
-sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
+# Download banner
+BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
+BANNER_FILE="/etc/issue.net"
+wget -q -O "$BANNER_FILE" "$BANNER_URL"
+if ! grep -q "^Banner $BANNER_FILE" /etc/ssh/sshd_config; then
+    echo "Banner $BANNER_FILE" >> /etc/ssh/sshd_config
+fi
 
 systemctl restart sshd
 
