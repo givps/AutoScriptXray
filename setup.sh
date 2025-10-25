@@ -305,7 +305,6 @@ iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
 # Drop
 iptables -P INPUT DROP
 # Save
-iptables-save > /etc/iptables/rules.v4
 netfilter-persistent save
 netfilter-persistent reload
 
