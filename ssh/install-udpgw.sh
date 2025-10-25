@@ -164,13 +164,29 @@ EOF
 systemctl daemon-reload
 systemctl enable badvpn-udpgw.service
 
-# Setup firewall
-if command -v ufw > /dev/null; then
-    for port in 7100 7200 7300 7400 7500 7600 7700 7800 7900; do
-        ufw allow $port/tcp
-    done
-    echo "Firewall rules added"
-fi
+# Allow BadVpn
+iptables -C INPUT -p tcp --dport 7100 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7100 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7200 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7200 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7300 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7300 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7400 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7400 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7500 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7500 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7600 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7600 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7700 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7700 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7800 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7800 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7900 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7900 -j ACCEPT
+
+iptables-save > /etc/iptables/rules.v4
+netfilter-persistent save
+netfilter-persistent reload
 
 echo ""
 echo "========================================"
