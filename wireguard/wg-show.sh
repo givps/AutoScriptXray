@@ -26,28 +26,39 @@ if ! systemctl is-active --quiet wg-quick@wg0; then
   exit 1
 fi
 
-# Display peer info
-echo -e "${white}User\t\tExpired\t\tLatest Handshake${nc}"
+# Display header
+printf "%-15s %-15s %s\n" "User" "Expired" "Latest Handshake"
 echo -e "${red}-----------------------------------------${nc}"
 
-# Loop through clients
-for conf in "$CLIENT_DIR"/*.conf; do
-  [[ ! -f "$conf" ]] && continue
-  user=$(basename "$conf" .conf)
-  exp_date=$(grep -m1 "^# Expired:" "$conf" | awk '{print $3}')
-  handshake=$(wg show wg0 latest-handshakes | grep -w "$(grep PublicKey "$conf" | awk '{print $3}')" | awk '{print $2}')
+# Check if client folder exists and has configs
+shopt -s nullglob
+clients=("$CLIENT_DIR"/*.conf)
+shopt -u nullglob
 
-  if [[ -z "$handshake" ]]; then
-    last_seen="❌ Never"
-  else
-    # Convert timestamp to human-readable date
-    last_seen=$(date -d @"$handshake" +"%Y-%m-%d %H:%M:%S")
-  fi
+if [[ ${#clients[@]} -eq 0 ]]; then
+  echo -e "${yellow}⚠️  No WireGuard clients found.${nc}"
+else
+  for conf in "${clients[@]}"; do
+    user=$(basename "$conf" .conf)
+    exp_date=$(grep -m1 "^# Expired:" "$conf" | awk '{print $3}')
+    pubkey=$(grep -m1 "^PublicKey" "$conf" | awk '{print $3}')
 
-  printf "%-15s %-15s %s\n" "$user" "${exp_date:-N/A}" "$last_seen"
-done
+    if [[ -z "$pubkey" ]]; then
+      last_seen="❌ No PublicKey"
+    else
+      handshake=$(wg show wg0 latest-handshakes | grep -w "$pubkey" | awk '{print $2}')
+      if [[ -z "$handshake" || "$handshake" == "0" ]]; then
+        last_seen="❌ Never"
+      else
+        last_seen=$(date -d @"$handshake" +"%Y-%m-%d %H:%M:%S")
+      fi
+    fi
+
+    printf "%-15s %-15s %s\n" "$user" "${exp_date:-N/A}" "$last_seen"
+  done
+fi
 
 echo -e "${red}=========================================${nc}"
-
 read -n 1 -s -r -p "Press any key to return to the menu..."
+clear
 m-wg
