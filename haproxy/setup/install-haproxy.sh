@@ -311,6 +311,7 @@ LogLevel INFO
 
 EOF
 
+systemctl enable sshd
 systemctl restart sshd
 
 # Restart services
