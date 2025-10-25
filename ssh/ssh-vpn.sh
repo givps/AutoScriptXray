@@ -170,7 +170,7 @@ socket = r:TCP_NODELAY=1
 # =====================================
 [ssh-ssl]
 accept = 222
-connect = 127.0.0.1:2222
+connect = 127.0.0.1:22
 
 # =====================================
 # Dropbear
@@ -208,14 +208,14 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22,109,110
+port = 22
 logpath = /var/log/auth.log
 maxretry = 3
 bantime = 3600
 
 [sshd-ddos]
 enabled = true
-port = 22,109,110
+port = 22
 logpath = /var/log/auth.log
 maxretry = 5
 bantime = 86400
