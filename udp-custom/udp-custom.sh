@@ -17,7 +17,7 @@ chmod 644 /root/udp/config.json
 SERVICE_FILE="/etc/systemd/system/udp-custom.service"
 
 if [ -z "$1" ]; then
-    EXCLUDE_ARG="-exclude 53 5300 7300"
+    EXCLUDE_ARG="-exclude 53 5300 7100 7200 7300 7400 7500 7600 7700 7800 7900"
 else
     EXCLUDE_ARG="-exclude $1"
 fi
@@ -41,4 +41,6 @@ EOF
 
 # enable udp-custom
 systemctl daemon-reload
-systemctl enable --now udp-custom
+systemctl enable udp-custom.service
+systemctl start udp-custom.service
+
