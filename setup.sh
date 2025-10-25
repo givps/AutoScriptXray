@@ -280,17 +280,27 @@ iptables -A INPUT -i lo -j ACCEPT
 # Allow established connections
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 # Allow SSH & Dropbear
+iptables -C INPUT -p tcp --dport 22 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -C INPUT -p tcp --dport 2222 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
+iptables -C INPUT -p tcp --dport 109 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 109 -j ACCEPT
+iptables -C INPUT -p tcp --dport 110 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 110 -j ACCEPT
+iptables -C INPUT -p tcp --dport 222 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 222 -j ACCEPT
+iptables -C INPUT -p tcp --dport 444 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 444 -j ACCEPT
 # Allow HTTP/HTTPS
+iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -C INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 # Allow WebSocket ports
+iptables -C INPUT -p tcp --dport 1444 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1444 -j ACCEPT
+iptables -C INPUT -p tcp --dport 1445 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
 # Drop
 iptables -P INPUT DROP
