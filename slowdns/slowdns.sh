@@ -64,8 +64,8 @@ RESULT=$(curl -sLX PUT "https://api.cloudflare.com/client/v4/zones/${ZONE}/dns_r
      -H "Content-Type: application/json" \
      --data '{"type":"NS","name":"'${NS_DOMAIN}'","content":"'${SUB_DOMAIN}'","ttl":120,"proxied":false}')
 
-service cron reload
-service cron restart
+systemctl enable cron
+systemctl restart cron
 
 nameserver=$(cat /root/nsdomain)
 
