@@ -4,6 +4,8 @@
 # =========================================
 
 # Tambah rule INPUT UDP 5300 kalau belum ada
+iptables -C INPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p udp --dport 53 -j ACCEPT
 iptables -C INPUT -p udp --dport 5300 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p udp --dport 5300 -j ACCEPT
 
