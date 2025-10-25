@@ -13,7 +13,7 @@ chmod +x /root/udp/udp-custom
 wget -q --show-progress --load-cookies /tmp/cookies.txt "https://github.com/givps/AutoScriptXray/raw/master/udp-custom/config.json" -O /root/udp/config.json && rm -rf /tmp/cookies.txt
 chmod 644 /root/udp/config.json
 
-# if need EXCLUDE_ARG="-exclude 443 80"
+# if need EXCLUDE_ARG="-exclude 53 5300 7100 7200 7300 7400 7500 7600 7700 7800 7900"
 SERVICE_FILE="/etc/systemd/system/udp-custom.service"
 
 if [ -z "$1" ]; then
