@@ -188,7 +188,6 @@ clear
 menu
 END
 
-apt install -y netfilter-persistent iptables-persistent
 # Flush
 iptables -F
 iptables -X
