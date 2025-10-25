@@ -11,11 +11,6 @@ iptables -I INPUT -p udp --dport 5300 -j ACCEPT
 iptables -t nat -C PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300 2>/dev/null || \
 iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300
 
-# Simpan & reload
-iptables-save > /etc/iptables/rules.v4
-netfilter-persistent save
-netfilter-persistent reload
-
 # Remove old directory/file
 rm -rf /root/nsdomain
 rm -f nsdomain
