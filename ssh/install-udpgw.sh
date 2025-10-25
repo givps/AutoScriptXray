@@ -184,10 +184,6 @@ iptables -A INPUT -p udp --dport 7800 -j ACCEPT
 iptables -C INPUT -p udp --dport 7900 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p udp --dport 7900 -j ACCEPT
 
-iptables-save > /etc/iptables/rules.v4
-netfilter-persistent save
-netfilter-persistent reload
-
 echo ""
 echo "========================================"
 echo "✅ BadVPN UDPGW Installation Complete!"
