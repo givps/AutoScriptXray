@@ -30,9 +30,6 @@ echo -e "Log file: $LOG_FILE"
 # =========================================
 # SYSTEM PREPARATION
 # =========================================
-echo -e "\n${blue}[1/8] System Preparation${nc}"
-
-# Update system
 apt update -y
 apt upgrade -y
 
@@ -48,7 +45,6 @@ apt-get remove --purge exim4 -y
 # =========================================
 # INSTALL NODE.JS & DEPENDENCIES
 # =========================================
-echo -e "\n${blue}[2/8] Installing Node.js${nc}"
 apt remove -y nodejs npm || true
 # Install Node.js 18
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
@@ -61,8 +57,6 @@ echo -e "NPM: $(npm -v)"
 # =========================================
 # INSTALL HAPROXY
 # =========================================
-echo -e "\n${blue}[3/8] Installing HAProxy${nc}"
-
 apt install -y haproxy
 
 # Auto-detect Xray SSL and convert
@@ -87,8 +81,6 @@ fi
 # username=admin password=generated random
 Pass=`</dev/urandom tr -dc a-zA-Z0-9 | head -c10`
 # =========================================
-echo -e "\n${blue}[4/8] Configuring HAProxy${nc}"
-
 cat > /etc/haproxy/haproxy.cfg << EOF
 global
     daemon
@@ -148,8 +140,6 @@ systemctl start haproxy
 # =========================================
 # CREATE WEBSOCKET PROXY
 # =========================================
-echo -e "\n${blue}[5/8] Creating WebSocket Proxy${nc}"
-
 cat > /usr/local/bin/ws-proxy.js << 'EOF'
 const WebSocket = require('ws');
 const net = require('net');
@@ -279,12 +269,6 @@ systemctl start ws-proxy
 # =========================================
 # CONFIGURE SSH DIRECT PORTS
 # =========================================
-echo -e "\n${blue}[6/8] Configuring SSH Direct Ports${nc}"
-
-# Backup SSH config
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-
-# Update SSH config untuk listen multiple ports
 cat > /etc/ssh/sshd_config <<EOF
 # =========================================
 # Minimal & Safe SSHD Configuration
