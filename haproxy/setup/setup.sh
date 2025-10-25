@@ -188,8 +188,7 @@ clear
 menu
 END
 
-systemctl reload-daemon
-apt install -y iptables-persistent
+apt install -y netfilter-persistent iptables-persistent
 # Flush
 iptables -F
 iptables -X
