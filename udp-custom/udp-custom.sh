@@ -17,7 +17,7 @@ chmod 644 /root/udp/config.json
 SERVICE_FILE="/etc/systemd/system/udp-custom.service"
 
 if [ -z "$1" ]; then
-    EXCLUDE_ARG="-exclude 53 5300 7100 7200 7300 7400 7500 7600 7700 7800 7900"
+    EXCLUDE_ARG="-exclude 53 5300 7100 7200 7300 7400 7500 7600 7700 7800 7900 8888"
 else
     EXCLUDE_ARG="-exclude $1"
 fi
