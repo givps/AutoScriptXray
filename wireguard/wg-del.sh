@@ -17,18 +17,22 @@ CLIENT_DIR="/etc/wireguard/clients"
 # ---------- Function: Delete Specific User ----------
 delete_user() {
   local user=$1
-  local pubkey
+  local pubkey line_start
 
-  pubkey=$(grep -A 3 "# $user" "$WG_CONF" | grep PublicKey | awk '{print $3}')
+  line_start=$(grep -n "^# $user\$" "$WG_CONF" | cut -d: -f1)
 
-  if [[ -z "$pubkey" ]]; then
+  if [[ -z "$line_start" ]]; then
     echo -e "${red}❌ User '$user' not found!${nc}"
     return 1
   fi
 
-  # Remove from WireGuard configuration and delete client file
-  sed -i "/# $user/,+4d" "$WG_CONF"
-  rm -f "$CLIENT_DIR/$user.conf"
+  # Remove 5 lines starting from the comment
+  sed -i "${line_start},$((line_start+4))d" "$WG_CONF"
+
+  # Delete client config if exists
+  if [[ -f "$CLIENT_DIR/$user.conf" ]]; then
+    rm -f "$CLIENT_DIR/$user.conf"
+  fi
 
   echo -e "${green}✅ User '$user' has been successfully deleted.${nc}"
 }
@@ -69,15 +73,17 @@ echo -e "${red}=========================================${nc}"
 echo -e " ${white}0${nc}) Back to main menu"
 echo -e " Press ${yellow}x${nc} or Ctrl+C to exit"
 echo -e "${red}=========================================${nc}"
-read -rp "Select an option [1-2]: " opt
+read -rp "Select an option [0-2]: " opt
+
+restart_needed=false
 
 case "$opt" in
   1)
     read -rp "Enter username to delete: " user
-    delete_user "$user"
+    delete_user "$user" && restart_needed=true
     ;;
   2)
-    delete_expired_users
+    delete_expired_users && restart_needed=true
     ;;
   0)
     clear
@@ -90,9 +96,11 @@ case "$opt" in
     ;;
 esac
 
-# ---------- Restart WireGuard ----------
-systemctl restart wg-quick@wg0 >/dev/null 2>&1
-echo -e "${yellow}🔄 WireGuard service restarted.${nc}"
+# ---------- Restart WireGuard if needed ----------
+if [[ "$restart_needed" = true ]]; then
+    systemctl restart wg-quick@wg0 >/dev/null 2>&1
+    echo -e "${yellow}🔄 WireGuard service restarted.${nc}"
+fi
 
 read -n 1 -s -r -p "Press any key to return to menu..."
 clear
