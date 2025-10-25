@@ -33,7 +33,7 @@ Type=simple
 ExecStart=/root/udp/udp-custom server $EXCLUDE_ARG
 WorkingDirectory=/root/udp/
 Restart=always
-RestartSec=5
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
