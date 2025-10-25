@@ -73,8 +73,9 @@ nameserver=$(cat /root/nsdomain)
 grep -qxF "Port 2200" /etc/ssh/sshd_config || echo "Port 2200" >> /etc/ssh/sshd_config
 grep -qxF "Port 2299" /etc/ssh/sshd_config || echo "Port 2299" >> /etc/ssh/sshd_config
 sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
-service ssh restart
-service sshd restart
+
+systemctl enable sshd
+systemctl restart sshd
 
 #konfigurasi slowdns
 rm -rf /etc/slowdns
