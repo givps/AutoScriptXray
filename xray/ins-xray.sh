@@ -296,10 +296,6 @@ server {
     location /ss-grpc {
         grpc_pass grpc://127.0.0.1:10008;
     }
-
-    location / {
-        return 404;
-    }
 }
 EOF
 
