@@ -4,6 +4,8 @@
 # =========================================
 apt install -y dnsutils
 apt install -y bind9
+systemctl enable bind9
+systemctl start bind9
 # Tambah rule INPUT UDP 5300 kalau belum ada
 iptables -C INPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
