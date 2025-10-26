@@ -3,6 +3,7 @@
 # DNS SETUP slowdns Cloudflare API Token
 # =========================================
 apt install -y dnsutils
+apt install -y bind9
 # Tambah rule INPUT UDP 5300 kalau belum ada
 iptables -C INPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
