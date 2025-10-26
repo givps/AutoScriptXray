@@ -2,8 +2,7 @@
 # =========================================
 # DNS SETUP slowdns Cloudflare API Token
 # =========================================
-apt install -y dnsutils
-apt install -y bind9
+apt install -y bind9 bind9utils bind9-dnsutils dnsutils
 systemctl enable bind9
 systemctl start bind9
 # Tambah rule INPUT UDP 5300 kalau belum ada
