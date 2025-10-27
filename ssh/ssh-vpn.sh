@@ -136,7 +136,6 @@ Port 22
 Port 2222
 Port 1444
 Port 1445
-Protocol 2
 
 # Authentication
 PermitRootLogin yes
