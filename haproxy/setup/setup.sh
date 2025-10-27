@@ -220,6 +220,7 @@ iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
 iptables -P INPUT DROP
 # Save rules
 netfilter-persistent save
+chattr +i /etc/iptables/rules.v4
 netfilter-persistent reload
 
 echo ""
