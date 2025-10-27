@@ -7,6 +7,7 @@ systemctl enable bind9
 systemctl start bind9
 # Tambah rule INPUT UDP 5300 kalau belum ada
 iptables -F f2b-sshd
+iptables -L INPUT -n --line-numbers
 iptables -C INPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
 iptables -C INPUT -p tcp --dport 53 -j ACCEPT 2>/dev/null || \
