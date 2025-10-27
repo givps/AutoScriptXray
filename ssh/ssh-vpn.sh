@@ -301,7 +301,7 @@ wget -O lock-unlock "https://raw.githubusercontent.com/givps/AutoScriptXray/mast
 # menu system
 wget -O m-system "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-system.sh"
 wget -O m-domain "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-domain.sh"
-wget -O certv2ray "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/certv2ray.sh"
+wget -O crt "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/crt.sh"
 wget -O auto-reboot "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/auto-reboot.sh"
 wget -O restart "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/restart.sh"
 wget -O bw "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/bw.sh"
@@ -334,7 +334,7 @@ chmod +x lock-unlock
 
 chmod +x m-system
 chmod +x m-domain
-chmod +x certv2ray
+chmod +x crt
 chmod +x auto-reboot
 chmod +x restart
 chmod +x bw
