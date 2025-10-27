@@ -18,6 +18,10 @@ apt update -y
 # Install iptables directly
 apt install -y netfilter-persistent
 apt install -y iptables-persistent
+systemctl enable netfilter-persistent
+systemctl enable iptables-persistent
+systemctl start netfilter-persistent
+systemctl start iptables-persistent
 systemctl stop ufw 2>/dev/null
 systemctl disable ufw 2>/dev/null
 apt-get remove --purge ufw firewalld -y
