@@ -183,6 +183,24 @@ iptables -C INPUT -p udp --dport 7800 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p udp --dport 7800 -j ACCEPT
 iptables -C INPUT -p udp --dport 7900 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p udp --dport 7900 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7100 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7100 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7200 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7200 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7300 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7300 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7400 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7400 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7500 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7500 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7600 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7600 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7700 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7700 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7800 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7800 -j ACCEPT
+iptables -C INPUT -p tcp --dport 7900 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 7900 -j ACCEPT
 
 netfilter-persistent save
 netfilter-persistent reload
