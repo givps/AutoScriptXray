@@ -218,7 +218,7 @@ iptables -C INPUT -p tcp --dport 1936 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
 # Save rules
 netfilter-persistent save
-# chattr +i /etc/iptables/rules.v4
+chattr +i /etc/iptables/rules.v4
 netfilter-persistent reload
 
 echo ""
