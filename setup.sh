@@ -273,7 +273,6 @@ EOF
 
 apt install -y netfilter-persistent iptables-persistent
 # Flush
-iptables -F
 iptables -X
 # Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
@@ -302,8 +301,6 @@ iptables -C INPUT -p tcp --dport 1444 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1444 -j ACCEPT
 iptables -C INPUT -p tcp --dport 1445 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
-# Drop
-iptables -P INPUT DROP
 # Save
 netfilter-persistent save
 chattr +i /etc/iptables/rules.v4
