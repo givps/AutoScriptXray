@@ -126,15 +126,47 @@ wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/inst
 wget -O /usr/bin/m-badvpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/m-badvpn.sh"
 chmod +x /usr/bin/m-badvpn
 
-# Enable password auth for initial setup, but consider disabling later
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
+cat > /etc/ssh/sshd_config <<EOF
+# =========================================
+# Minimal & Safe SSHD Configuration
+# =========================================
 
-# Additional security settings
-sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
-sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 600/g' /etc/ssh/sshd_config
-sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/g' /etc/ssh/sshd_config
-grep -qxF "Port 2222" /etc/ssh/sshd_config || echo "Port 2222" >> /etc/ssh/sshd_config
+# Ports
+Port 22
+Port 2222
+Port 1444
+Port 1445
+Protocol 2
+
+# Authentication
+PermitRootLogin yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+
+# Connection Settings
+AllowTcpForwarding yes
+PermitTTY yes
+X11Forwarding no
+TCPKeepAlive yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+MaxAuthTries 3
+MaxSessions 10
+MaxStartups 10:30:100
+
+# Security & Performance
+UsePAM yes
+ChallengeResponseAuthentication no
+UseDNS no
+Compression delayed
+GSSAPIAuthentication no
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+EOF
 
 systemctl enable sshd
 systemctl restart sshd
