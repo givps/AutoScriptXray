@@ -111,8 +111,8 @@ printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.s
 
 # Restart Nginx
 systemctl daemon-reload
-systemctl start nginx
 systemctl enable nginx
+systemctl start nginx
 
 # Setup web root directory
 wget -q -O /usr/share/nginx/html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
@@ -349,12 +349,3 @@ apt-get -y --purge remove bind9* >/dev/null 2>&1
 apt-get -y remove sendmail* >/dev/null 2>&1
 apt autoremove -y >/dev/null 2>&1
 
-systemctl daemon-reload
-systemctl restart rsyslog
-systemctl restart vnstat
-systemctl restart rc-local
-systemctl restart nginx
-systemctl restart dropbear
-systemctl restart stunnel4
-systemctl restart fail2ban
-systemctl restart cron
