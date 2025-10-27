@@ -189,7 +189,6 @@ menu
 END
 
 # Flush
-iptables -F
 iptables -X
 # Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
@@ -216,8 +215,6 @@ iptables -C INPUT -p tcp --dport 1446 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1446 -j ACCEPT
 iptables -C INPUT -p tcp --dport 1936 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
-# Drop
-iptables -P INPUT DROP
 # Save rules
 netfilter-persistent save
 chattr +i /etc/iptables/rules.v4
