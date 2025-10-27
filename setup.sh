@@ -275,6 +275,7 @@ apt install -y netfilter-persistent iptables-persistent
 # Flush
 iptables -F f2b-sshd
 iptables -X
+iptables -L INPUT -n --line-numbers
 # Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
 # Allow established connections
