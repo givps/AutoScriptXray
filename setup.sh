@@ -273,6 +273,7 @@ EOF
 
 apt install -y netfilter-persistent iptables-persistent
 # Flush
+iptables -F f2b-sshd
 iptables -X
 # Allow loopback
 iptables -A INPUT -i lo -j ACCEPT
