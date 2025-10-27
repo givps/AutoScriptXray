@@ -14,7 +14,6 @@ nc='\e[0m'
 
 # Update system first
 apt update -y
-apt upgrade -y
 
 # Install iptables directly
 apt install -y netfilter-persistent
