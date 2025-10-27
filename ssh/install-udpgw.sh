@@ -203,7 +203,6 @@ iptables -C INPUT -p tcp --dport 7900 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 7900 -j ACCEPT
 
 netfilter-persistent save
-netfilter-persistent reload
 echo ""
 echo "========================================"
 echo "✅ BadVPN UDPGW Installation Complete!"
