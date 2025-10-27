@@ -22,7 +22,6 @@ iptables -t nat -C PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 5300 2>/d
 iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 5300
 
 netfilter-persistent save
-netfilter-persistent reload
 # Remove old directory/file
 rm -rf /root/nsdomain
 rm -f nsdomain
