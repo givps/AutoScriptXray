@@ -136,8 +136,6 @@ Port 22
 Port 2222
 Port 109
 Port 110
-Port 1444
-Port 1445
 
 # Authentication
 PermitRootLogin yes
