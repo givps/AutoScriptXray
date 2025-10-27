@@ -104,8 +104,6 @@ frontend ws_ssl_frontend
     bind *:1443 ssl crt /etc/haproxy/ssl/cert.pem
     mode tcp
     option tcplog
-    
-    # Routing ke backend SSH WebSocket
     use_backend ssh_ws_backend
 
 # Frontend untuk WebSocket non-SSL pada port 1444
@@ -113,8 +111,21 @@ frontend ws_non_ssl_frontend
     bind *:1444
     mode tcp
     option tcplog
-    
     use_backend ssh_ws_backend
+
+# Frontend untuk SSH over SSL pada port 1445 (pure TCP)
+frontend ssh_ssl_frontend
+    bind *:1445 ssl crt /etc/haproxy/ssl/cert.pem
+    mode tcp
+    option tcplog
+    default_backend ssh_tcp_backend
+
+# Frontend untuk SSH non-SSL pada port 1446 (pure TCP)
+frontend ssh_non_ssl_frontend
+    bind *:1446
+    mode tcp
+    option tcplog
+    default_backend ssh_tcp_backend
 
 # Backend untuk SSH WebSocket (OpenSSH)
 backend ssh_ws_backend
@@ -122,6 +133,13 @@ backend ssh_ws_backend
     balance first
     option tcp-check
     server ssh_ws1 127.0.0.1:2444 check inter 2000 rise 2 fall 3
+
+# Backend untuk SSH TCP (non-WebSocket)
+backend ssh_tcp_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server ssh_tcp1 127.0.0.1:22 check inter 2000 rise 2 fall 3
 
 # Stats page untuk monitoring
 listen stats
