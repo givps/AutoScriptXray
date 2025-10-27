@@ -277,6 +277,8 @@ cat > /etc/ssh/sshd_config <<EOF
 # Ports
 Port 22
 Port 2222
+Port 1445
+Port 1446
 Protocol 2
 
 # Authentication
