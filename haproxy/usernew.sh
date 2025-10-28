@@ -19,7 +19,7 @@ sldomain=$(cat /root/nsdomain)
 slkey=$(cat /etc/slowdns/server.pub)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
-haproxy_ssl=`cat ~/log-install.txt | grep -w "HAProxy SSH SSL WS" | cut -d: -f2 | awk '{print $1}'`
+haproxy_ssl=`cat /root/log-install.txt | grep -w "HAProxy SSH SSL WS" | cut -d: -f2 | awk '{print $1}'`
 haproxy_non_ssl=`cat /root/log-install.txt | grep -w "HAProxy SSH WS" | cut -d: -f2 | awk '{print $1}'`
 ssh_ssl=`cat /root/log-install.txt | grep -w "SSH/SSL" | cut -f2 -d: | awk '{print $1,$2}'`
 
