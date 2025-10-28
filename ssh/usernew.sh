@@ -15,8 +15,8 @@ nc='\e[0m'
 clear
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
-sldomain=$(cat /root/nsdomain)
-slkey=$(cat /etc/slowdns/server.pub)
+#sldomain=$(cat /root/nsdomain)
+#slkey=$(cat /etc/slowdns/server.pub)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
