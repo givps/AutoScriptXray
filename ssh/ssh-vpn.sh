@@ -191,6 +191,7 @@ systemctl start dropbear
 
 # install stunnel
 apt install -y stunnel4
+
 cat > /etc/stunnel/stunnel.conf <<EOF
 pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
@@ -212,6 +213,13 @@ connect = 127.0.0.1:22
 [dropbear-ssl]
 accept = 444
 connect = 127.0.0.1:110
+
+# =====================================
+# Tor
+# =====================================
+[tor-ssl]
+accept = 0.0.0.0:777
+connect = 127.0.0.1:2222
 EOF
 
 # make a certificate
