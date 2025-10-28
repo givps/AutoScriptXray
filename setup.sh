@@ -309,7 +309,7 @@ iptables -C INPUT -p tcp --dport 1445 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1445 -j ACCEPT
 # Save
 netfilter-persistent save
-chattr +i /etc/iptables/rules.v4
+# chattr +i /etc/iptables/rules.v4
 netfilter-persistent reload
 
 echo ""
