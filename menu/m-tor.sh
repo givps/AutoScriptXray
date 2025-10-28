@@ -3,6 +3,15 @@
 # TOR CONTROL SCRIPT (Enable / Disable)
 # =====================================
 
+# Color definitions
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+white='\e[1;37m'
+cyan='\e[1;36m'
+nc='\e[0m'
+
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
 
 # ---------- FUNCTIONS ----------
@@ -67,15 +76,23 @@ status_tor() {
 
 # ---------- MENU ----------
 clear
-echo "========== TOR CONTROL =========="
-echo "1) Enable Tor (all TCP + DNS through Tor)"
-echo "2) Disable Tor (restore normal connections)"
-echo "3) Enable Tor Autostart After Boot"
-echo "4) Disable Tor Autostart After Boot"
-echo "5) Tor Status"
-echo "0) Exit"
-echo "================================"
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}             TOR CONTROL                ${nc}"
+echo -e "${red}=========================================${nc}"
+echo -e ""
+echo -e " ${white}1${nc}) Enable Tor (all TCP + DNS through Tor)"
+echo -e " ${white}2${nc}) Disable Tor (restore normal connections)"
+echo -e " ${white}3${nc}) Enable Tor Autostart After Boot"
+echo -e " ${white}4${nc}) Disable Tor Autostart After Boot"
+echo -e " ${white}5${nc}) Tor Status"
+echo -e ""
+echo -e "${red}=========================================${nc}"
+echo -e " ${white}0${nc} Back to Menu"
+echo -e " Press ${yellow}x${nc} or Ctrl+C to Exit"
+echo -e "${red}=========================================${nc}"
+echo -e ""
 read -p "Select option: " opt
+echo -e ""
 
 case $opt in
     1) enable_tor ;;
