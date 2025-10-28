@@ -235,7 +235,7 @@ OPTIONS=""
 PPP_RESTART=0
 EOF
 systemctl enable tor
-systemctl start tor
+systemctl start tor@default
 systemctl enable stunnel4
 systemctl start stunnel4
 
