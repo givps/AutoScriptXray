@@ -22,7 +22,7 @@ openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{pri
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
 sshws=`cat /root/log-install.txt | grep -w "SSH Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
 sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
-ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2}'`
+ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2,$3}'`
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}            SSH Account            ${nc}"
@@ -53,11 +53,11 @@ echo -e "Dropbear    : $db" | tee -a /var/log/create-ssh.log
 echo -e "SSH WS      : $sshws" | tee -a /var/log/create-ssh.log
 echo -e "SSH SSL WS  : $sshwsssl" | tee -a /var/log/create-ssh.log
 echo -e "SSH/SSL     : $ssl" | tee -a /var/log/create-ssh.log
-echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
-echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
-echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
+#echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
+#echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
+#echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
 echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
-echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
+#echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Payload WSS" | tee -a /var/log/create-ssh.log
 echo -e "
@@ -85,11 +85,11 @@ echo -e "Dropbear    : $db" | tee -a /var/log/create-ssh.log
 echo -e "SSH WS      : $sshws" | tee -a /var/log/create-ssh.log
 echo -e "SSH SSL WS  : $sshwsssl" | tee -a /var/log/create-ssh.log
 echo -e "SSH/SSL     : $ssl" | tee -a /var/log/create-ssh.log
-echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
-echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
-echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
+#echo -e "Port NS     : ALL Port" | tee -a /var/log/create-ssh.log
+#echo -e "Nameserver  : $sldomain" | tee -a /var/log/create-ssh.log
+#echo -e "Pubkey      : $slkey" | tee -a /var/log/create-ssh.log
 echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
-echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
+#echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Expired On     : $exp" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
