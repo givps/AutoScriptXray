@@ -320,6 +320,7 @@ wget -O m-tcp "https://raw.githubusercontent.com/givps/AutoScriptXray/master/men
 wget -O xp "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/xp.sh"
 wget -O sshws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/sshws.sh"
 wget -O m-dns "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-dns.sh"
+wget -O m-tor "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-tor.sh"
 
 chmod +x menu
 chmod +x m-vmess
@@ -353,6 +354,7 @@ chmod +x m-tcp
 chmod +x xp
 chmod +x sshws
 chmod +x m-dns
+chmod +x m-tor
 
 # Install speedtest (using modern method)
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
