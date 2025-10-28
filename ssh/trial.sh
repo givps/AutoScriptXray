@@ -22,7 +22,7 @@ openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{pri
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
 sshws=`cat /root/log-install.txt | grep -w "SSH Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
 sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
-ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2}'`
+ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2,$3}'`
 
 Login=trial`</dev/urandom tr -dc X-Z0-9 | head -c4`
 hari="1"
@@ -53,11 +53,11 @@ echo -e "Dropbear    : $db"
 echo -e "SSH WS      : $sshws"
 echo -e "SSH SSL WS  : $sshwssl"
 echo -e "SSH/SSL     : $ssl"
-echo -e "Port NS     : ALL Port"
-echo -e "Nameserver  : $sldomain"
-echo -e "Pubkey      : $slkey"
+#echo -e "Port NS     : ALL Port"
+#echo -e "Nameserver  : $sldomain"
+#echo -e "Pubkey      : $slkey"
 echo -e "UDPGW       : 7100-7900"
-echo -e "UDP Custom  : 1-65350"
+#echo -e "UDP Custom  : 1-65350"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
 echo -e "GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]"
@@ -82,11 +82,11 @@ echo -e "Dropbear    : $db"
 echo -e "SSH WS      : $sshws"
 echo -e "SSH SSL WS  : $sshwssl"
 echo -e "SSH/SSL     : $ssl"
-echo -e "Port NS     : ALL Port"
-echo -e "Nameserver  : $sldomain"
-echo -e "Pubkey      : $slkey"
+#echo -e "Port NS     : ALL Port"
+#echo -e "Nameserver  : $sldomain"
+#echo -e "Pubkey      : $slkey"
 echo -e "UDPGW       : 7100-7900"
-echo -e "UDP Custom  : 1-65350"
+#echo -e "UDP Custom  : 1-65350"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
 echo -e "GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]"
