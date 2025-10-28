@@ -75,6 +75,7 @@ iptables -t nat -C OUTPUT -p tcp -j TOR 2>/dev/null || \
 
 # Save iptables persistently
 netfilter-persistent save
+netfilter-persistent reload
 
 echo "=== Setup complete! ==="
 echo "Tor TransPort: 127.0.0.1:9040"
