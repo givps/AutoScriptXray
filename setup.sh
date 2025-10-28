@@ -279,6 +279,7 @@ iptables -L INPUT -n --line-numbers
 iptables -A INPUT -i lo -j ACCEPT
 # Allow established connections
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Allow SSH & Dropbear
 iptables -C INPUT -p tcp --dport 22 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
