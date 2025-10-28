@@ -235,8 +235,9 @@ FILES="/etc/stunnel/*.conf"
 OPTIONS=""
 PPP_RESTART=0
 EOF
+
 systemctl enable stunnel4
-systemctl start stunnel4
+systemctl restart stunnel4
 
 # install fail2ban
 apt -y install fail2ban
