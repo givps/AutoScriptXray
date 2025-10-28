@@ -190,7 +190,7 @@ systemctl start dropbear
 
 
 # install stunnel
-apt install stunnel4 -y
+apt install -y tor stunnel4
 cat > /etc/stunnel/stunnel.conf <<EOF
 pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
@@ -212,6 +212,13 @@ connect = 127.0.0.1:22
 [dropbear-ssl]
 accept = 444
 connect = 127.0.0.1:110
+
+# =====================================
+# Tor Socks
+# =====================================
+[tor_socks_tls]
+accept = 777
+connect = 127.0.0.1:9050
 EOF
 
 # make a certificate
@@ -227,7 +234,8 @@ FILES="/etc/stunnel/*.conf"
 OPTIONS=""
 PPP_RESTART=0
 EOF
-
+systemctl enable tor
+systemctl start tor
 systemctl enable stunnel4
 systemctl start stunnel4
 
