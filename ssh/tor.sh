@@ -1,3 +1,7 @@
+#!/bin/bash
+# =====================================
+# Tor
+# =====================================
 apt install -y tor stunnel4
 
 cat > /etc/tor/torrc <<'EOF'
@@ -46,8 +50,6 @@ EOF
 
 systemctl restart stunnel4
 systemctl enable stunnel4
-
-#!/bin/bash
 
 iptables -t nat -L TOR &>/dev/null || iptables -t nat -N TOR
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
