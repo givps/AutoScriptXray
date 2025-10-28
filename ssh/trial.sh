@@ -15,13 +15,13 @@ nc='\e[0m'
 clear
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
-sldomain=$(cat /root/nsdomain)
-slkey=$(cat /etc/slowdns/server.pub)
+#sldomain=$(cat /root/nsdomain)
+#slkey=$(cat /etc/slowdns/server.pub)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
 sshws=`cat /root/log-install.txt | grep -w "SSH Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
-sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
+sshwsssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
 ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2,$3}'`
 
 Login=trial`</dev/urandom tr -dc X-Z0-9 | head -c4`
@@ -51,7 +51,7 @@ echo -e "Host        : $domain"
 echo -e "OpenSSH     : $openssh"
 echo -e "Dropbear    : $db"
 echo -e "SSH WS      : $sshws"
-echo -e "SSH SSL WS  : $sshwssl"
+echo -e "SSH SSL WS  : $sshwsssl"
 echo -e "SSH/SSL     : $ssl"
 #echo -e "Port NS     : ALL Port"
 #echo -e "Nameserver  : $sldomain"
@@ -80,7 +80,7 @@ echo -e "Host        : $domain"
 echo -e "OpenSSH     : $openssh"
 echo -e "Dropbear    : $db"
 echo -e "SSH WS      : $sshws"
-echo -e "SSH SSL WS  : $sshwssl"
+echo -e "SSH SSL WS  : $sshwsssl"
 echo -e "SSH/SSL     : $ssl"
 #echo -e "Port NS     : ALL Port"
 #echo -e "Nameserver  : $sldomain"
