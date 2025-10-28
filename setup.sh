@@ -245,17 +245,17 @@ echo "WebSocket Proxy.js installation complete!"
 echo "You can check the service status: systemctl status ws-proxy"
 echo "========================================="
 
-echo -e "${red}=========================================${nc}"
-echo -e "${blue}             Install SlowDNS            ${nc}"
-echo -e "${red}=========================================${nc}"
+#echo -e "${red}=========================================${nc}"
+#echo -e "${blue}             Install SlowDNS            ${nc}"
+#echo -e "${red}=========================================${nc}"
 # install slowdns
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
+#wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
 
-echo -e "${red}=========================================${nc}"
-echo -e "${blue}           Install UDP CUSTOM           ${nc}"
-echo -e "${red}=========================================${nc}"
+#echo -e "${red}=========================================${nc}"
+#echo -e "${blue}           Install UDP CUSTOM           ${nc}"
+#echo -e "${red}=========================================${nc}"
 # install udp-custom
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/udp-custom.sh && chmod +x udp-custom.sh && ./udp-custom.sh
+#wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/udp-custom.sh && chmod +x udp-custom.sh && ./udp-custom.sh
 
 cat > /root/.profile <<'EOF'
 # ~/.profile: executed by Bourne-compatible login shells.
