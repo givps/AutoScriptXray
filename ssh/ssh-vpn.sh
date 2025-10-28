@@ -128,6 +128,7 @@ wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/inst
 wget -O /usr/bin/m-badvpn "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/m-badvpn.sh"
 chmod +x /usr/bin/m-badvpn
 
+# setup sshd
 cat > /etc/ssh/sshd_config <<EOF
 # =========================================
 # Minimal & Safe SSHD Configuration
@@ -169,12 +170,12 @@ LogLevel INFO
 
 EOF
 
-systemctl enable sshd
 systemctl restart sshd
+systemctl enable sshd
 
-echo "=== install dropbear ==="
 # install dropbear
 apt -y install dropbear
+
 cat > /etc/default/dropbear <<EOF
 # Dropbear configuration
 NO_START=0
@@ -185,9 +186,8 @@ EOF
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
+systemctl restart dropbear
 systemctl enable dropbear
-systemctl start dropbear
-
 
 # install stunnel
 apt install -y stunnel4
@@ -236,11 +236,12 @@ OPTIONS=""
 PPP_RESTART=0
 EOF
 
-systemctl enable stunnel4
 systemctl restart stunnel4
+systemctl enable stunnel4
 
 # install fail2ban
 apt -y install fail2ban
+
 cat > /etc/fail2ban/jail.local <<EOF
 [DEFAULT]
 bantime = 3600
@@ -263,8 +264,8 @@ maxretry = 5
 bantime = 86400
 EOF
 
+systemctl restart fail2ban
 systemctl enable fail2ban
-systemctl start fail2ban
 
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
