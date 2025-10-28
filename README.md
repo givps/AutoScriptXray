@@ -29,7 +29,7 @@
 # Pointing
 ![Pointing](https://raw.githubusercontent.com/givps/AutoScriptXray/master/image/pointing.png)
 
-# Stunnel Version install
+# Stunnel Version with Tor install
 - Step 1 for (debian) please update first
 ```
 apt update && apt upgrade -y && apt autoremove -y && reboot
