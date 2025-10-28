@@ -22,7 +22,7 @@ openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{pri
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
 sshws=`cat ~/log-install.txt | grep -w "SSH Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
 sshwssl=`cat /root/log-install.txt | grep -w "SSH SSL Websocket" | cut -f2 -d: | awk '{print $1,$2}'`
-ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2}'`
+ssl=`cat /root/log-install.txt | grep -w "Stunnel4" | cut -f2 -d: | awk '{print $1,$2,$3}'`
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}            SSH Account            ${nc}"
