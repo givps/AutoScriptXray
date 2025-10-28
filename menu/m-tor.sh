@@ -25,7 +25,7 @@ enable_tor() {
     iptables -t nat -C TOR -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
         iptables -t nat -A TOR -p udp --dport 53 -j REDIRECT --to-ports 5353
 
-    # Redirect TCP traffic to Tor TransPort
+    # Redirect all TCP traffic to Tor TransPort
     iptables -t nat -C TOR -p tcp -j REDIRECT --to-ports 9040 2>/dev/null || \
         iptables -t nat -A TOR -p tcp -j REDIRECT --to-ports 9040
 
@@ -33,7 +33,7 @@ enable_tor() {
     iptables -t nat -C OUTPUT -p tcp -j TOR 2>/dev/null || \
         iptables -t nat -I OUTPUT -p tcp -j TOR
 
-    # Save rules
+    # Save iptables persistently
     netfilter-persistent save
     netfilter-persistent reload
 
@@ -47,11 +47,11 @@ disable_tor() {
     # Remove TOR chain rules from OUTPUT
     iptables -t nat -D OUTPUT -p tcp -j TOR 2>/dev/null || true
 
-    # Flush TOR chain if exists
+    # Flush and delete TOR chain if exists
     iptables -t nat -F TOR 2>/dev/null || true
     iptables -t nat -X TOR 2>/dev/null || true
 
-    # Save rules
+    # Save iptables persistently
     netfilter-persistent save
     netfilter-persistent reload
 
@@ -60,6 +60,9 @@ disable_tor() {
 
 status_tor() {
     systemctl status tor --no-pager
+    echo
+    echo "===== Tor IPTABLES Chain ====="
+    iptables -t nat -L TOR -n --line-numbers 2>/dev/null || echo "TOR chain does not exist."
 }
 
 # ---------- MENU ----------
@@ -67,14 +70,19 @@ clear
 echo "========== TOR CONTROL =========="
 echo "1) Enable Tor (all TCP + DNS through Tor)"
 echo "2) Disable Tor (restore normal connections)"
-echo "3) Tor Status"
+echo "3) Enable Tor Autostart After Boot"
+echo "4) Disable Tor Autostart After Boot"
+echo "5) Tor Status"
 echo "0) Exit"
 echo "================================"
 read -p "Select option: " opt
+
 case $opt in
     1) enable_tor ;;
     2) disable_tor ;;
-    3) status_tor ;;
+    3) systemctl enable tor && echo "Tor will start automatically after reboot ✅" ;;
+    4) systemctl disable tor && echo "Tor autostart disabled ✅" ;;
+    5) status_tor ;;
     0) exit ;;
     *) echo "Invalid choice" ;;
 esac
