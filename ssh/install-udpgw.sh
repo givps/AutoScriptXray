@@ -165,7 +165,6 @@ systemctl daemon-reload
 systemctl enable badvpn-udpgw.service
 
 # Allow BadVpn
-iptables -F f2b-sshd
 iptables -L INPUT -n --line-numbers
 iptables -C INPUT -p udp --dport 7100 -j ACCEPT 2>/dev/null || \
 iptables -A INPUT -p udp --dport 7100 -j ACCEPT
