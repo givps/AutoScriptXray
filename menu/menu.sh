@@ -115,17 +115,18 @@ display_menu() {
     echo -e "${blue}                       MENU                       ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e ""
-    echo -e "${white} 1 ${nc} : Menu SSH"
-    echo -e "${white} 2 ${nc} : Menu Vmess"
-    echo -e "${white} 3 ${nc} : Menu Vless"
-    echo -e "${white} 4 ${nc} : Menu Trojan"
-    echo -e "${white} 5 ${nc} : Menu Shadowsocks"
-    echo -e "${white} 6 ${nc} : Menu Setting"
-    echo -e "${white} 7 ${nc} : Xray Log"
-    echo -e "${white} 8 ${nc} : Status Service"
-    echo -e "${white} 9 ${nc} : Clear RAM Cache"
-    echo -e "${white}10 ${nc} : Reboot VPS"
-    echo -e "${white} x ${nc} : Exit Script"
+    echo -e "${white} 1 ${nc}  : Menu SSH"
+    echo -e "${white} 2 ${nc}  : Menu Vmess"
+    echo -e "${white} 3 ${nc}  : Menu Vless"
+    echo -e "${white} 4 ${nc}  : Menu Trojan"
+    echo -e "${white} 5 ${nc}  : Menu Shadowsocks"
+    echo -e "${white} 6 ${nc}  : Menu Setting"
+    echo -e "${white} 7 ${nc}  : Menu TOR"
+    echo -e "${white} 8 ${nc}  : Xray Log"
+    echo -e "${white} 9 ${nc}  : Status Service"
+    echo -e "${white} 10 ${nc} : Clear RAM Cache"
+    echo -e "${white} 11 ${nc} : Reboot VPS"
+    echo -e "${white} x ${nc}  : Exit Script"
     echo -e ""
     echo -e "${red}=========================================${nc}"
     echo -e "${white} Client Name ${nc}: VIP-MEMBERS"
@@ -175,10 +176,11 @@ main_menu() {
             4) clear ; m-trojan ;;
             5) clear ; m-ssws ;;
             6) clear ; m-system ;;
-            7) clear ; xray-log ;;
-            8) clear ; running ;;
-            9) clear ; clear_ram_cache ;;
-            10) clear ; safe_reboot ;;
+            7) clear ; m-tor ;;
+            8) clear ; xray-log ;;
+            9) clear ; running ;;
+            10) clear ; clear_ram_cache ;;
+            11) clear ; safe_reboot ;;
             x|X) 
                 echo -e "${green}Goodbye! To restart the menu use: menu${nc}"
                 exit 0 
