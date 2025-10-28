@@ -2,7 +2,7 @@
 # =====================================
 # Tor
 # =====================================
-apt install -y tor stunnel4
+apt install -y tor
 
 cat > /etc/tor/torrc <<'EOF'
 Log notice file /var/log/tor/notices.log
@@ -17,39 +17,6 @@ EOF
 
 systemctl restart tor
 systemctl enable tor
-
-cat > /etc/stunnel/stunnel.conf <<EOF
-pid = /var/run/stunnel.pid
-cert = /etc/stunnel/stunnel.pem
-client = no
-socket = a:SO_REUSEADDR=1
-socket = l:TCP_NODELAY=1
-socket = r:TCP_NODELAY=1
-
-# =====================================
-# SSH
-# =====================================
-[ssh-ssl]
-accept = 222
-connect = 127.0.0.1:22
-
-# =====================================
-# Dropbear
-# =====================================
-[dropbear-ssl]
-accept = 444
-connect = 127.0.0.1:110
-
-# =====================================
-# Tor
-# =====================================
-[tor-ssl]
-accept = 0.0.0.0:777
-connect = 127.0.0.1:2222
-EOF
-
-systemctl restart stunnel4
-systemctl enable stunnel4
 
 iptables -t nat -L TOR &>/dev/null || iptables -t nat -N TOR
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
