@@ -15,8 +15,10 @@ ControlPort 9051
 CookieAuthentication 1
 EOF
 
-systemctl restart tor
-systemctl enable tor
+# disable auto start after reboot
+systemctl disable tor
+# enable auto start after reboot
+# systemctl enable tor
 
 iptables -t nat -L TOR &>/dev/null || iptables -t nat -N TOR
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
