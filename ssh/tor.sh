@@ -11,8 +11,8 @@ ControlPort 9051
 CookieAuthentication 1
 EOF
 
-systemctl restart tor
 systemctl enable tor
+systemctl start tor
 
 cat > /etc/stunnel/stunnel.conf <<EOF
 pid = /var/run/stunnel.pid
@@ -44,8 +44,8 @@ accept = 0.0.0.0:777
 connect = 127.0.0.1:2222
 EOF
 
-systemctl restart stunnel4
 systemctl enable stunnel4
+systemctl start stunnel4
 
 # check if chain TOR exists, create if not
 iptables -t nat -L TOR &>/dev/null
