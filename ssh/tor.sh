@@ -58,7 +58,7 @@ iptables -t nat -L TOR &>/dev/null || iptables -t nat -N TOR
 
 # Get debian-tor UID (to prevent redirecting Tor itself)
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
-
+iptables -L INPUT -n --line-numbers
 # TOR chain rules
 iptables -t nat -C TOR -m owner --uid-owner $TOR_UID -j RETURN 2>/dev/null || \
     iptables -t nat -A TOR -m owner --uid-owner $TOR_UID -j RETURN
