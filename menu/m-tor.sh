@@ -1,6 +1,6 @@
 #!/bin/bash
 # =========================================
-# TOR MENU
+# MENU TOR
 # =========================================
 
 # ---------- Colors ----------
@@ -39,7 +39,7 @@ while true; do
     clear
     echo -e ""
     echo -e "${red}=========================================${nc}"
-    echo -e "${blue}               TOR MENU                 ${nc}"
+    echo -e "${blue}               MENU TOR                 ${nc}"
     echo -e "${red}=========================================${nc}"
     echo -e ""
     tor_status
