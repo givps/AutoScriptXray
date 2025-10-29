@@ -106,7 +106,7 @@ chmod 600 /etc/haproxy/ssl/cert.pem
 chown haproxy:haproxy /etc/haproxy/ssl/cert.pem
 echo "✅ SSL converted from Xray"
 else
-# Buat sertifikat self-signed
+# make a certificate
 openssl genrsa -out key.pem 2048
 openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
 -subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
