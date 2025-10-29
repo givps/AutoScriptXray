@@ -125,13 +125,9 @@ The script provider does not store or track any of your activity.
 
 🐞 Found a bug...? Please report it here → [GitHub Issues](https://github.com/givps/AutoScriptXray/issues)
 
-<p align="center">
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" style="max-width:200%;">
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/Auto_Script_VPS-blue" alt="Auto Script VPS" style="max-width:200%;">
-  </a>
+<p align="left">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Auto_Script_VPS-blue" alt="Auto Script VPS"></a>
 </p>
 
-  
+
