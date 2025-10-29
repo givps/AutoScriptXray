@@ -115,8 +115,6 @@ The script provider does not store or track any of your activity.
 
 ⚙️ Use Responsibly — Use this script wisely to avoid legal or ethical problems.
 
-🔞 Adult Content Warning — Viewing adult material is your personal choice and responsibility.
-
 🧾 FINAL MESSAGE
 
 🙏 Thank you for taking the time to read this notice.
