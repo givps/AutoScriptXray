@@ -251,11 +251,11 @@ echo "========================================="
 # install slowdns
 # wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh && chmod +x slowdns.sh && ./slowdns.sh
 
-echo -e "${red}=========================================${nc}"
-echo -e "${blue}               Install Tor              ${nc}"
-echo -e "${red}=========================================${nc}"
+#echo -e "${red}=========================================${nc}"
+#echo -e "${blue}               Install Tor              ${nc}"
+#echo -e "${red}=========================================${nc}"
 # install tor
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/tor.sh && chmod +x tor.sh && ./tor.sh
+#wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/tor.sh && chmod +x tor.sh && ./tor.sh
 
 #echo -e "${red}=========================================${nc}"
 #echo -e "${blue}           Install UDP CUSTOM           ${nc}"
