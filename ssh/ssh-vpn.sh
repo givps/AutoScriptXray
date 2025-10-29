@@ -41,11 +41,11 @@ gem install lolcat
 
 # Configure essential services
 systemctl enable rsyslog
-systemctl start rsyslog
+systemctl restart rsyslog
 
 # Configure vnstat for network monitoring
 systemctl enable vnstat
-systemctl start vnstat
+systemctl restart vnstat
 
 # Create secure PAM configuration
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
