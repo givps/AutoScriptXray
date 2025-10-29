@@ -18,7 +18,7 @@ STATS_FILE="/tmp/service_restart_stats.txt"
 
 # ---------- Service Definitions ----------
 declare -A SERVICES=(
-    ["openssh"]="systemctl restart sshd"
+    ["sshd"]="systemctl restart sshd"
     ["dropbear"]="systemctl restart dropbear" 
     ["stunnel4"]="systemctl restart stunnel4"
     ["fail2ban"]="systemctl restart fail2ban"
@@ -212,7 +212,7 @@ show_service_status() {
     echo -e ""
     echo -e "[ ${yellow}SERVICE STATUS${nc} ]"
     echo -e "${red}-----------------------------------------${nc}"
-    check_service_status "ssh" "OpenSSH"
+    check_service_status "sshd" "OpenSSH"
     check_service_status "dropbear" "Dropbear" 
     check_service_status "stunnel4" "Stunnel4"
     check_service_status "nginx" "Nginx"
@@ -256,9 +256,6 @@ restart_all_services() {
     echo -e "[ ${yellow}INFO${nc} ] Restarting Additional Services..."
     echo -e "${red}-----------------------------------------${nc}"
     
-    # Restart Xray run service
-    restart_service "xray" "systemctl restart run.service" "Run Xray"
-    
     # Restart BadVPN
     restart_badvpn
     
@@ -301,7 +298,7 @@ restart() {
                 ;;
             2)
                 display_header
-                restart_service "ssh" "systemctl restart sshd" "OpenSSH"
+                restart_service "sshd" "systemctl restart sshd" "OpenSSH"
                 show_service_status
                 wait_for_input
                 ;;
@@ -332,7 +329,6 @@ restart() {
             7)
                 display_header
                 restart_service "xray" "systemctl restart xray.service" "Xray Service"
-                restart_service "xray" "systemctl restart run.service" "Run Xray"
                 show_service_status
                 wait_for_input
                 ;;
