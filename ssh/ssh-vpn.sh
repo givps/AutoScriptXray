@@ -41,11 +41,11 @@ gem install lolcat
 
 # Configure essential services
 systemctl enable rsyslog
-systemctl restart rsyslog
+systemctl start rsyslog
 
 # Configure vnstat for network monitoring
 systemctl enable vnstat
-systemctl restart vnstat
+systemctl start vnstat
 
 # Create secure PAM configuration
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
@@ -80,7 +80,7 @@ chmod +x /etc/rc.local
 
 # enable rc local
 systemctl enable rc-local
-systemctl restart rc-local
+systemctl start rc-local
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
@@ -186,7 +186,7 @@ EOF
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
-systemctl restart dropbear
+systemctl start dropbear
 systemctl enable dropbear
 
 # install stunnel
@@ -236,7 +236,7 @@ OPTIONS=""
 PPP_RESTART=0
 EOF
 
-systemctl restart stunnel4
+systemctl start stunnel4
 systemctl enable stunnel4
 
 # install tor
