@@ -104,7 +104,9 @@ rm -f /etc/nginx/conf.d/vps.conf
 
 # Download custom configs
 wget -q -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
-# wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
+mkdir -p /home/vps/public_html
+chown -R www-data:www-data /home/vps/public_html
+wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
 
 # Add systemd override (fix for early startup)
 mkdir -p /etc/systemd/system/nginx.service.d
@@ -117,9 +119,6 @@ systemctl start nginx
 
 # Setup web root directory
 wget -q -O /usr/share/nginx/html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
-mkdir -p /home/vps/public_html
-# Set ownership
-chown -R www-data:www-data /home/vps/public_html
 
 # install badvpn
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/install-udpgw.sh | bash
