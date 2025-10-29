@@ -29,9 +29,9 @@ if [[ $dom -eq 1 ]]; then
     rm -f /root/crt.sh
     wget -q -O /root/crt.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/crt.sh"
     chmod +x /root/crt.sh && bash /root/crt.sh
-    rm -f /root/slowdns.sh
-    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
-    chmod +x /root/slowdns.sh && bash /root/slowdns.sh
+    #rm -f /root/slowdns.sh
+    #wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
+    #chmod +x /root/slowdns.sh && bash /root/slowdns.sh
 
 elif [[ $dom -eq 2 ]]; then
     read -rp "Enter Your Domain : " domen
@@ -94,9 +94,9 @@ elif [[ $dom -eq 2 ]]; then
     wget -q -O /root/crt.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/crt.sh"
     chmod +x /root/crt.sh && bash /root/crt.sh
 
-    rm -f /root/slowdns.sh
-    wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
-    chmod +x /root/slowdns.sh && bash /root/slowdns.sh
+    #rm -f /root/slowdns.sh
+    #wget -q -O /root/slowdns.sh "https://raw.githubusercontent.com/givps/AutoScriptXray/master/slowdns/slowdns.sh"
+    #chmod +x /root/slowdns.sh && bash /root/slowdns.sh
 
 else 
     echo -e "${red}Wrong Argument${nc}"
