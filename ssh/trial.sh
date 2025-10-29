@@ -17,6 +17,7 @@ MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me)
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
 #sldomain=$(cat /root/nsdomain)
 #slkey=$(cat /etc/slowdns/server.pub)
+key=$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | base64)
 
 openssh=`cat /root/log-install.txt | grep -w "OpenSSH" | cut -f2 -d: | awk '{print $1,$2}'`
 db=`cat /root/log-install.txt | grep -w "Dropbear" | cut -f2 -d: | awk '{print $1,$2}'`
@@ -60,10 +61,28 @@ echo -e "UDPGW       : 7100-7900"
 #echo -e "UDP Custom  : 1-65350"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
-echo -e "GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]"
+echo -e "
+GET / HTTP/1.1[crlf]
+Host: ${domain}[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+Sec-WebSocket-Version: 13[crlf]
+Sec-WebSocket-Key: ${key}[crlf]
+User-Agent: okhttp/4.9.0[crlf]
+[crlf]
+"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WS"
-echo -e "GET / HTTP/1.1[crlf]Host: $domain[crlf]Upgrade: websocket[crlf][crlf]"
+echo -e "
+GET / HTTP/1.1[crlf]
+Host: ${domain}[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+Sec-WebSocket-Version: 13[crlf]
+Sec-WebSocket-Key: ${key}[crlf]
+User-Agent: okhttp/4.9.0[crlf]
+[crlf]
+"
 echo -e "${red}=========================================${nc}"
 
 else
@@ -89,10 +108,28 @@ echo -e "UDPGW       : 7100-7900"
 #echo -e "UDP Custom  : 1-65350"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
-echo -e "GET wss://bug.com HTTP/1.1[crlf]Host: ${domain}[crlf]Upgrade: websocket[crlf][crlf]"
+echo -e "
+GET / HTTP/1.1[crlf]
+Host: ${domain}[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+Sec-WebSocket-Version: 13[crlf]
+Sec-WebSocket-Key: ${key}[crlf]
+User-Agent: okhttp/4.9.0[crlf]
+[crlf]
+"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WS"
-echo -e "GET / HTTP/1.1[crlf]Host: $domain[crlf]Upgrade: websocket[crlf][crlf]"
+echo -e "
+GET / HTTP/1.1[crlf]
+Host: ${domain}[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+Sec-WebSocket-Version: 13[crlf]
+Sec-WebSocket-Key: ${key}[crlf]
+User-Agent: okhttp/4.9.0[crlf]
+[crlf]
+"
 echo -e "${red}=========================================${nc}"
 fi
 echo ""
