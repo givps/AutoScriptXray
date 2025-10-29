@@ -480,9 +480,9 @@ systemctl daemon-reload
 systemctl enable cron
 systemctl enable xray
 systemctl enable nginx
-systemctl restart cron
-systemctl restart xray
-systemctl restart nginx
+systemctl start cron
+systemctl start xray
+systemctl start nginx
 
 cd /usr/bin
 # vless
