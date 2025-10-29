@@ -136,8 +136,6 @@ cat > /etc/ssh/sshd_config <<EOF
 # Ports
 Port 22
 Port 2222
-Port 109
-Port 110
 
 # Authentication
 PermitRootLogin yes
