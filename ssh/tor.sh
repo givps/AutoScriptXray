@@ -19,7 +19,7 @@ EOF
 #systemctl disable tor
 # enable auto start after reboot
 systemctl enable tor
-systemctl start tor
+systemctl restart tor
 
 iptables -t nat -L TOR &>/dev/null || iptables -t nat -N TOR
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
