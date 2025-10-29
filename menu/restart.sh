@@ -18,7 +18,7 @@ STATS_FILE="/tmp/service_restart_stats.txt"
 
 # ---------- Service Definitions ----------
 declare -A SERVICES=(
-    ["openssh"]="systemctl restart ssh"
+    ["openssh"]="systemctl restart sshd"
     ["dropbear"]="systemctl restart dropbear" 
     ["stunnel4"]="systemctl restart stunnel4"
     ["fail2ban"]="systemctl restart fail2ban"
@@ -301,7 +301,7 @@ restart() {
                 ;;
             2)
                 display_header
-                restart_service "ssh" "systemctl restart ssh" "OpenSSH"
+                restart_service "ssh" "systemctl restart sshd" "OpenSSH"
                 show_service_status
                 wait_for_input
                 ;;
