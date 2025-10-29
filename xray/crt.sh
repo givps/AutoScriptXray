@@ -89,3 +89,32 @@ systemctl start xray 2>/dev/null || true
 systemctl start nginx 2>/dev/null || true
 echo -e "[ ${green}INFO${NC} ] All finished !" 
 
+# Auto-detect Xray SSL and convert
+XRAY_DIR="/usr/local/etc/xray"
+# Cari file SSL Xray
+CERT=$(find $XRAY_DIR -name "*.crt" -o -name "*.pem" -o -name "fullchain.cer" | head -1)
+KEY=$(find $XRAY_DIR -name "*.key" -o -name "private.key" | head -1)
+
+if [ -f "$CERT" ] && [ -f "$KEY" ]; then
+    mkdir -p /etc/stunnel
+    mkdir -p /etc/haproxy/ssl
+    cat "$CERT" "$KEY" > /etc/stunnel/stunnel.pem
+    chmod 600 /etc/stunnel/stunnel.pem
+    cat "$CERT" "$KEY" > /etc/haproxy/ssl/cert.pem
+    chmod 600 /etc/haproxy/ssl/cert.pem
+    chown haproxy:haproxy /etc/haproxy/ssl/cert.pem
+    echo "✅ SSL converted from Xray"
+else
+    # Buat sertifikat self-signed
+    mkdir -p /etc/stunnel
+    mkdir -p /etc/haproxy/ssl
+    openssl genrsa -out key.pem 2048
+    openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
+        -subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
+    cat key.pem cert.pem > /etc/stunnel/stunnel.pem
+    chmod 600 /etc/stunnel/stunnel.pem
+    cat key.pem cert.pem > /etc/haproxy/ssl/cert.pem
+    chmod 600 /etc/haproxy/ssl/cert.pem
+    chown haproxy:haproxy /etc/haproxy/ssl/cert.pem
+    echo "✅ Use Self-signed SSL"
+fi
