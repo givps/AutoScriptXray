@@ -1,15 +1,15 @@
 [Unit]
-Description=WebSocket SSH Proxy Service
+Description=WS->TCP Proxy (WS & WSS for SSH)
 After=network.target
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/usr/local/bin
-ExecStart=/usr/bin/node /usr/local/bin/proxy.js
+Environment=WS_PORT=1445 WSS_PORT=1444 TARGET_HOST=127.0.0.1 TARGET_PORT=109 BIND_HOST=0.0.0.0
+ExecStart=/usr/bin/node /usr/local/bin/ws-proxy.js
 Restart=always
 RestartSec=3
-Environment=NODE_ENV=production
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
