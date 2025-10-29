@@ -55,9 +55,9 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 <br>
 - OpenSSH                  : 22, 2222<br>
 - Dropbear                 : 109, 110<br>
-- SSH Websocket            : 80, 1445<br>
 - SSH SSL Websocket        : 443, 1444<br>
-- Stunnel4                 : 222, 444, 777<br>
+- SSH Websocket            : 80, 1445<br>
+- SSH/SSL Stunnel4         : 222, 444, 777<br>
 - Badvpn                   : 7100-7900<br>
 - Nginx                    : 80<br>
 - Vmess WS TLS             : 443<br>
@@ -88,7 +88,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 # HAProxy Version Port :
 <br>
 - OpenSSH                  : 22, 2222<br>
-- SSH/SSL                  : 1445, 1446<br>
+- SSH/SSL HAProxy          : 1445, 1446<br>
 - HAProxy SSH SSL WS       : 1443<br>
 - HAProxy SSH WS           : 1444<br>
 - Badvpn                   : 7100-7900<br>
