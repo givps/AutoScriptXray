@@ -115,7 +115,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 
 <p align="left">
   <a href="#"><img src="https://img.shields.io/badge/Donate-green" alt="Donate"></a>
-  <a href="https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab"><img src="https://img.shields.io/badge/allEVM-blue" alt="allEVM"></a>
+  <a href="https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab"><img src="https://img.shields.io/badge/allEVM-white" alt="allEVM"></a>
   <a href="https://ko-fi.com/givps"><img src="https://img.shields.io/badge/Ko--fi-orange" alt="Ko-fi"></a>
   <a href="https://trakteer.id/givps/tip"><img src="https://img.shields.io/badge/Trakteer-red" alt="Trakteer"></a>
 </p>
