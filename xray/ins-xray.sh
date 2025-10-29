@@ -492,3 +492,16 @@ wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/
 
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
+
+# Cari file SSL Xray
+CERT=$(find $XRAY_DIR -name "*.crt" -o -name "*.pem" -o -name "fullchain.cer" | head -1)
+KEY=$(find $XRAY_DIR -name "*.key" -o -name "private.key" | head -1)
+
+if [ -f "$CERT" ] && [ -f "$KEY" ]; then
+    mkdir -p /etc/stunnel
+    cat "$CERT" "$KEY" > /etc/stunnel/stunnel.pem
+    chmod 600 /etc/stunnel/stunnel.pem
+    echo "✅ SSL converted from Xray"
+else
+    echo "❌ Xray SSL not found"
+fi
