@@ -61,12 +61,12 @@ echo -e "UDPGW       : 7100-7900"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
 echo -e "
-GET wss://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
+GET wss://bug.com HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 "
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WS"
 echo -e "
-GET ws://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
+GET / HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 "
 echo -e "${red}=========================================${nc}"
 
@@ -94,13 +94,12 @@ echo -e "UDPGW       : 7100-7900"
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WSS"
 echo -e "
-GET wss://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
+GET wss://bug.com HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 "
 echo -e "${red}=========================================${nc}"
 echo -e "Payload WS"
 echo -e "
-GET ws://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
-"
+GET / HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 "
 echo -e "${red}=========================================${nc}"
 fi
