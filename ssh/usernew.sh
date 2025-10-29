@@ -61,12 +61,12 @@ echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Payload WSS" | tee -a /var/log/create-ssh.log
 echo -e "
-GET wss://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
+GET wss://bug.com HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 " | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "Payload WS" | tee -a /var/log/create-ssh.log
 echo -e "
-GET ws://bug.com [protocol][crlf]Host: [host][crlf]Connection: Keep-Alive[crlf]Connection: Upgrade[crlf]Upgrade: websocket[crlf][crlf]
+GET / HTTP/1.1[crlf] Host: ${domain}[crlf] Upgrade: websocket[crlf] Connection: Upgrade[crlf]
 " | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 else
