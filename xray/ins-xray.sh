@@ -500,6 +500,7 @@ CERT=$(find $XRAY_DIR -name "*.crt" -o -name "*.pem" -o -name "fullchain.cer" | 
 KEY=$(find $XRAY_DIR -name "*.key" -o -name "private.key" | head -1)
 
 mkdir -p /etc/stunnel
+# convert from xray
 if [ -f "$CERT" ] && [ -f "$KEY" ]; then
 cat "$CERT" "$KEY" > /etc/stunnel/stunnel.pem
 chmod 600 /etc/stunnel/stunnel.pem
