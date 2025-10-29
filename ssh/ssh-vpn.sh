@@ -117,7 +117,7 @@ systemctl start nginx
 
 # Setup web root directory
 wget -q -O /usr/share/nginx/html/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/index"
-
+mkdir -p /home/vps/public_html
 # Set ownership
 chown -R www-data:www-data /home/vps/public_html
 
