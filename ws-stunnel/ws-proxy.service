@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 Environment=WS_PORT=1445 WSS_PORT=1444 TARGET_HOST=127.0.0.1 TARGET_PORT=109 BIND_HOST=0.0.0.0
-ExecStart=/usr/bin/node /usr/local/bin/ws-proxy.js
+ExecStart=/usr/bin/node /usr/local/bin/proxy.js
 Restart=always
 RestartSec=3
 LimitNOFILE=65536
