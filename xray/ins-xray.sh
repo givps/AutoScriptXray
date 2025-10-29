@@ -20,7 +20,7 @@ apt install -y \
     curl python3 socat xz-utils wget apt-transport-https \
     gnupg gnupg2 gnupg1 dnsutils lsb-release \
     cron bash-completion \
-    zip pwgen openssl netcat
+    zip pwgen openssl #netcat
 
 # Clean up packages
 echo -e "[ ${green}INFO${nc} ] Cleaning up..."
