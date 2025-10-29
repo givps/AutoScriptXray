@@ -493,6 +493,8 @@ wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
 
+# Auto-detect Xray SSL and convert
+XRAY_DIR="/usr/local/etc/xray"
 # Cari file SSL Xray
 CERT=$(find $XRAY_DIR -name "*.crt" -o -name "*.pem" -o -name "fullchain.cer" | head -1)
 KEY=$(find $XRAY_DIR -name "*.key" -o -name "private.key" | head -1)
