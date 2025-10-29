@@ -1,42 +1,46 @@
-// proxy.js
-const http = require("http");
-const WebSocket = require("ws");
-const net = require("net");
+const http = require('http');
+const net = require('net');
 
-// === WSS NONE TLS STUNNEL ===
-const wsServer = http.createServer();
-const wss = new WebSocket.Server({ server: wsServer });
+const WS_PORT = 1445;      // none TLS
+const WSS_PORT = 1444;     // TLS via stunnel
+const TARGET_HOST = '127.0.0.1';
+const TARGET_PORT = 109;
 
-wss.on("connection", (ws, req) => {
-  console.log("[WS] Client:", req.socket.remoteAddress);
-  const ssh = net.connect({ host: "127.0.0.1", port: 109 });
+function createServer(listenPort, label) {
+  const server = http.createServer();
 
-  ws.on("message", msg => ssh.write(msg));
-  ssh.on("data", data => ws.readyState === WebSocket.OPEN && ws.send(data));
+  server.on('connect', (req, clientSocket, head) => {
+    const remote = net.connect(TARGET_PORT, TARGET_HOST, () => {
+      clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+      remote.write(head);
+      remote.pipe(clientSocket);
+      clientSocket.pipe(remote);
+    });
+  });
 
-  ws.on("close", () => ssh.end());
-  ssh.on("close", () => ws.close());
-});
+  server.on('request', (req, res) => {
+    const remote = net.connect(TARGET_PORT, TARGET_HOST, () => {
+      req.socket.pipe(remote);
+      remote.pipe(req.socket);
+    });
+  });
 
-wsServer.listen(1445, () => {
-  console.log("[WS] Listening on port 1445 (no TLS)");
-});
+  server.on('upgrade', (req, socket) => {
+    socket.write(
+      'HTTP/1.1 101 Switching Protocols\r\n' +
+      'Connection: Upgrade\r\n' +
+      'Upgrade: websocket\r\n' +
+      '\r\n'
+    );
+    const remote = net.connect(TARGET_PORT, TARGET_HOST);
+    socket.pipe(remote);
+    remote.pipe(socket);
+  });
 
-// === WSS VIA STUNNEL ===
-const tlsServer = http.createServer();
-const wssTLS = new WebSocket.Server({ server: tlsServer });
+  server.listen(listenPort, '0.0.0.0', () => {
+    console.log(`[${label}] Listening on port ${listenPort}`);
+  });
+}
 
-wssTLS.on("connection", (ws, req) => {
-  console.log("[WSS] Client:", req.socket.remoteAddress);
-  const ssh = net.connect({ host: "127.0.0.1", port: 109 });
-
-  ws.on("message", msg => ssh.write(msg));
-  ssh.on("data", data => ws.readyState === WebSocket.OPEN && ws.send(data));
-
-  ws.on("close", () => ssh.end());
-  ssh.on("close", () => ws.close());
-});
-
-tlsServer.listen(1444, "127.0.0.1", () => {
-  console.log("[WSS] Listening on 127.0.0.1:1444 (for stunnel)");
-});
+createServer(WS_PORT, 'WS');
+createServer(WSS_PORT, 'WSS');
