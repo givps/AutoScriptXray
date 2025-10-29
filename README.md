@@ -92,9 +92,14 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 - Shadowsocks gRPC         : 443<br>
 <br>
 
-# Telegram
-[![Telegram](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
-[![allEVM donate button](https://img.shields.io/badge/Donate-allEVM-blue)](https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab)
+<p align="left">
+  <a href="https://t.me/givps_com"><img src="https://img.shields.io/badge/Telegram-blue" alt="Donate"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Donate-green" alt="Donate"></a>
+  <a href="https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab"><img src="https://img.shields.io/badge/allEVM-blue" alt="allEVM"></a>
+  <a href="https://ko-fi.com/givps"><img src="https://img.shields.io/badge/Ko--fi-orange" alt="Ko-fi"></a>
+  <a href="https://trakteer.id/givps/tip"><img src="https://img.shields.io/badge/Trakteer-red" alt="Trakteer"></a>
+</p>
+
 
 ⚠️ ATTENTION (MUST READ CAREFULLY)
 
@@ -118,6 +123,12 @@ The script provider does not store or track any of your activity.
 🐞 Found a bug...? Please report it here → [GitHub Issues](https://github.com/givps/AutoScriptXray/issues)
 
 <p align="center">
-<a href="https://opensource.org/licenses/MIT"> <img src="https://img.shields.io/badge/License-MIT-yellow.svg" style="max-width:200%;"> <a><img src="https://img.shields.io/badge/Auto_Script_VPS-blue" style="max-width:200%;">
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" style="max-width:200%;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Auto_Script_VPS-blue" alt="Auto Script VPS" style="max-width:200%;">
+  </a>
+</p>
 
   
