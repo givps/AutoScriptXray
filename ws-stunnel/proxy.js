@@ -37,6 +37,6 @@ wssTLS.on("connection", (ws, req) => {
   ssh.on("close", () => ws.close());
 });
 
-tlsServer.listen(1443, "127.0.0.1", () => {
-  console.log("[WSS] Listening on 127.0.0.1:1443 (for stunnel)");
+tlsServer.listen(1444, "127.0.0.1", () => {
+  console.log("[WSS] Listening on 127.0.0.1:1444 (for stunnel)");
 });
