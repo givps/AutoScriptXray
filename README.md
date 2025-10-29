@@ -96,17 +96,26 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 [![Telegram](https://img.shields.io/badge/Telegram-blue)](https://t.me/givps_com/)
 [![allEVM donate button](https://img.shields.io/badge/Donate-allEVM-blue)](https://www.blockchain.com/explorer/addresses/eth/0xa7431b95bbd425303812b610626a4e784551cdab)
 
-# ATTENTION (MUST READ) CAREFULLY
-- PROHIBITED FOR SALE BECAUSE I GET FREE FROM THE INTERNET
-- DATA SECURITY / YOUR USE HISTORY ON THE INTERNET IS NOT MY RESPONSIBILITY AS A SCRIPT PROVIDER
-- ALL YOUR DATA / USAGE HISTORY ON THE INTERNET ONLY VPS NETWORK PROVIDERS MANAGE IT AND (FBI) maybe
-- USE IT WISELY THEN YOU WILL AVOID PROBLEMS
-- WATCHING ADULT FILM IS YOUR OWN RESPONSIBILITY
+⚠️ ATTENTION (MUST READ CAREFULLY)
 
-# FINAL MESSAGE
-- THANK YOU FOR TAKING THE TIME TO READ AND SORRY IF THERE ARE IMPACT WORDS
-- BECAUSE I AM ALSO A HUMAN WHO DOESN'T ESCAPE FROM MISTAKES
-- if you find bug , create a [issues](https://github.com/givps/AutoScriptXray/issues) thx github :)
+🚫 Not for Sale — This script is distributed free of charge. Selling it is strictly prohibited.
+
+🔒 Data & Privacy Disclaimer — Your internet usage history and data security are your own responsibility.
+The script provider does not store or track any of your activity.
+
+🌐 Network Monitoring — All your traffic and logs are managed by your VPS provider and possibly government agencies (e.g., FBI).
+
+⚙️ Use Responsibly — Use this script wisely to avoid legal or ethical problems.
+
+🔞 Adult Content Warning — Viewing adult material is your personal choice and responsibility.
+
+🧾 FINAL MESSAGE
+
+🙏 Thank you for taking the time to read this notice.
+
+💬 Apologies if any words sound harsh — I am human and not free from mistakes.
+
+🐞 Found a bug...? Please report it here → [GitHub Issues](https://github.com/givps/AutoScriptXray/issues)
 
 <p align="center">
 <a href="https://opensource.org/licenses/MIT"> <img src="https://img.shields.io/badge/License-MIT-yellow.svg" style="max-width:200%;"> <a><img src="https://img.shields.io/badge/Auto_Script_VPS-blue" style="max-width:200%;">
