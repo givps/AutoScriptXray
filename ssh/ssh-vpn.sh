@@ -220,13 +220,6 @@ connect = 127.0.0.1:1444
 [tor-ssl]
 accept = 0.0.0.0:777
 connect = 127.0.0.1:2222
-
-# =====================================
-# Dropbear
-# =====================================
-[dropbear-ssl]
-accept = 888
-connect = 127.0.0.1:110
 EOF
 
 # make a certificate
