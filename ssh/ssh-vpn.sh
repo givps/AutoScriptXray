@@ -223,11 +223,11 @@ connect = 127.0.0.1:2222
 EOF
 
 # make a certificate
-#openssl genrsa -out key.pem 2048
-#openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
-#-subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
-#cat key.pem cert.pem > /etc/stunnel/stunnel.pem
-#chmod 600 /etc/stunnel/stunnel.pem
+openssl genrsa -out key.pem 2048
+openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
+-subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
+cat key.pem cert.pem > /etc/stunnel/stunnel.pem
+chmod 600 /etc/stunnel/stunnel.pem
 
 cat > /etc/default/stunnel4 <<EOF
 ENABLED=1
