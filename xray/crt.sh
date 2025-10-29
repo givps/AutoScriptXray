@@ -84,11 +84,6 @@ echo -e "[${green}SUCCESS${nc}] ACME.sh + Cloudflare setup completed!"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
 echo -e "KEY: /usr/local/etc/xray/xray.key"
 
-echo -e "[ ${green}INFO${NC} ] Restart All Service" 
-systemctl start xray 2>/dev/null || true
-systemctl start nginx 2>/dev/null || true
-echo -e "[ ${green}INFO${NC} ] All finished !" 
-
 # Auto-detect Xray SSL and convert
 XRAY_DIR="/usr/local/etc/xray"
 # Cari file SSL Xray
@@ -117,3 +112,8 @@ chmod 600 /etc/haproxy/ssl/cert.pem
 chown haproxy:haproxy /etc/haproxy/ssl/cert.pem
 echo "✅ Use Self-signed SSL"
 fi
+
+echo -e "[ ${green}INFO${NC} ] Restart All Service" 
+systemctl start xray 2>/dev/null || true
+systemctl start nginx 2>/dev/null || true
+echo -e "[ ${green}INFO${NC} ] All finished !" 
