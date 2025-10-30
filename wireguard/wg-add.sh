@@ -1,15 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 # =========================================
-# CREATE WIREGUARD USER - IMPROVED VERSION
+# CREATE WIREGUARD USER
 # =========================================
 
 # ---------- Colors ----------
-red='\e[1;31m'
-green='\e[0;32m'
-yellow='\e[1;33m'
-blue='\e[1;34m'
-white='\e[1;37m'
-nc='\e[0m'
+red='\e[1;31m'; green='\e[0;32m'; yellow='\e[1;33m'; blue='\e[1;34m'; nc='\e[0m'
 
 # ---------- Functions ----------
 log_error() { echo -e "${red}❌ $1${nc}"; }
@@ -25,6 +21,7 @@ fi
 
 if ! systemctl is-active --quiet wg-quick@wg0; then
   log_warn "WireGuard service is not active. Starting..."
+  systemctl daemon-reload
   if ! systemctl start wg-quick@wg0; then
     log_error "Failed to start wg-quick@wg0"
     exit 1
@@ -38,8 +35,8 @@ if [[ -z "$user" ]]; then
   log_error "Username cannot be empty!"
   exit 1
 fi
+user=$(echo "$user" | tr '[:upper:]' '[:lower:]')
 
-# Validasi username (hanya huruf, angka, underscore)
 if [[ ! "$user" =~ ^[a-zA-Z0-9_]+$ ]]; then
   log_error "Username can only contain letters, numbers, and underscores"
   exit 1
@@ -59,55 +56,43 @@ priv_key=$(wg genkey)
 pub_key=$(echo "$priv_key" | wg pubkey)
 psk=$(wg genpsk)
 
-# ---------- Improved IP Assignment ----------
+# ---------- Dynamic IP Allocation ----------
 find_available_ip() {
-    local base_network="10.88.88"
+    local base_network
+    base_network=$(grep -m1 Address /etc/wireguard/wg0.conf | cut -d'=' -f2 | tr -d ' ' | cut -d'/' -f1 | cut -d'.' -f1-3)
     local used_ips=()
-    
-    # Get all currently used IPs
-    if command -v wg >/dev/null 2>&1; then
-        # Try to get from running interface first
-        used_ips+=($(wg show wg0 allowed-ips 2>/dev/null | awk '{print $2}' | cut -d'.' -f4 | cut -d'/' -f1))
-    fi
-    
-    # Also check config file
-    if [[ -f /etc/wireguard/wg0.conf ]]; then
-        used_ips+=($(grep AllowedIPs /etc/wireguard/wg0.conf | awk '{print $3}' | cut -d'.' -f4 | cut -d'/' -f1))
-    fi
-    
-    # Remove duplicates and sort
+
+    used_ips+=($(wg show wg0 allowed-ips 2>/dev/null | awk '{print $2}' | cut -d'.' -f4 | cut -d'/' -f1))
+    used_ips+=($(grep AllowedIPs /etc/wireguard/wg0.conf | awk '{print $3}' | cut -d'.' -f4 | cut -d'/' -f1))
     used_ips=($(printf "%s\n" "${used_ips[@]}" | sort -nu))
-    
-    # Find first available IP starting from 2
+
     for i in {2..254}; do
-        if [[ ! " ${used_ips[@]} " =~ " $i " ]]; then
-            echo "$i"
+        if [[ ! " ${used_ips[*]} " =~ " $i " ]]; then
+            echo "$base_network.$i"
             return 0
         fi
     done
-    
-    log_error "No available IP addresses in range"
+    log_error "No available IP addresses in range."
     exit 1
 }
 
-ip_suffix=$(find_available_ip)
-client_ip="10.88.88.$ip_suffix/32"
-
+client_ip="$(find_available_ip)/32"
 log_info "Assigned IP: $client_ip"
 
-# ---------- Get Server Info ----------
+# ---------- Server Info ----------
 log_info "Retrieving server information..."
 server_ip=$(curl -s -4 ipv4.icanhazip.com || curl -s -4 ifconfig.me || curl -s -4 icanhazip.com)
-server_port=$(grep ListenPort /etc/wireguard/wg0.conf | awk '{print $3}')
-server_pubkey=$(wg show wg0 public-key 2>/dev/null)
+server_ip=$(echo "$server_ip" | tr -d '\r')
+server_port=$(grep -m1 ListenPort /etc/wireguard/wg0.conf | awk '{print $3}')
+server_pubkey=$(wg show wg0 | awk '/public key/ {print $3; exit}')
 
 if [[ -z "$server_ip" ]]; then
-    log_warn "Could not detect public IP automatically"
-    read -rp "Please enter server public IP: " server_ip
-    if [[ -z "$server_ip" ]]; then
-        log_error "Server IP is required"
-        exit 1
-    fi
+  log_warn "Could not detect public IP automatically"
+  read -rp "Please enter server public IP: " server_ip
+  if [[ -z "$server_ip" ]]; then
+    log_error "Server IP is required"
+    exit 1
+  fi
 fi
 
 if [[ -z "$server_port" || -z "$server_pubkey" ]]; then
@@ -118,13 +103,13 @@ fi
 # ---------- Backup Original Config ----------
 config_backup="/etc/wireguard/wg0.conf.backup.$(date +%Y%m%d_%H%M%S)"
 cp /etc/wireguard/wg0.conf "$config_backup"
-log_info "Config backed up to: $config_backup"
+log_info "Backup created: $config_backup"
 
 # ---------- Append to Server Config ----------
-log_info "Updating server configuration..."
+log_info "Adding new peer to server config..."
 cat >> /etc/wireguard/wg0.conf <<EOF
 
-# $user
+# $user - added on $(date '+%Y-%m-%d %H:%M:%S')
 [Peer]
 PublicKey = $pub_key
 PresharedKey = $psk
@@ -136,8 +121,8 @@ log_info "Creating client configuration..."
 cat > "$client_config" <<EOF
 [Interface]
 PrivateKey = $priv_key
-Address = 10.88.88.$ip_suffix/24
-DNS = 1.1.1.1,8.8.8.8
+Address = ${client_ip%/*}/24
+DNS = 1.1.1.1,8.8.8.8,9.9.9.9
 
 [Peer]
 PublicKey = $server_pubkey
@@ -149,31 +134,31 @@ EOF
 
 chmod 600 "$client_config"
 
-# ---------- Apply Config ----------
+# ---------- Apply Config (Safe Reload) ----------
 log_info "Applying configuration changes..."
-if wg syncconf wg0 <(wg-quick strip wg0 2>/dev/null); then
+if wg-quick strip wg0 >/tmp/wg-temp.conf 2>/dev/null && wg syncconf wg0 /tmp/wg-temp.conf; then
     log_success "Configuration applied successfully (live reload)"
 else
-    log_warn "Live reload failed, restarting service..."
+    log_warn "Live reload failed — restarting service..."
     if ! systemctl restart wg-quick@wg0; then
-        log_error "Failed to restart WireGuard service. Restoring backup..."
+        log_error "Failed to restart WireGuard. Restoring backup..."
         cp "$config_backup" /etc/wireguard/wg0.conf
         rm -f "$client_config"
         exit 1
     fi
 fi
 
-# ---------- Verify Installation ----------
+# ---------- Verify ----------
 if wg show wg0 | grep -q "$pub_key"; then
-    log_success "Peer verified in running configuration"
+    log_success "Peer verified in running configuration."
 else
-    log_warn "Peer not found in running configuration but config file was updated"
+    log_warn "Peer not detected live, but config updated successfully."
 fi
 
 # ---------- Output ----------
 echo
 echo -e "${green}=========================================${nc}"
-log_success "WireGuard user '$user' has been created successfully!"
+log_success "WireGuard user '$user' created successfully!"
 echo "👤 Username   : $user"
 echo "📍 Client IP  : $client_ip"
 echo "🌍 Endpoint   : $server_ip:$server_port"
@@ -188,24 +173,29 @@ if command -v qrencode >/dev/null 2>&1; then
   echo
 fi
 
-# ---------- Display Config Content ----------
-echo -e "${yellow}📄 Client config content:${nc}"
+# ---------- Display Config ----------
+echo -e "${yellow}📄 Client configuration content:${nc}"
 cat "$client_config"
 echo
 
-# ---------- Save Log ----------
+# ---------- Log Creation ----------
 mkdir -p /var/log/wireguard
+chmod 700 /var/log/wireguard
 {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Created: $user ($client_ip)"
   echo "PublicKey: $pub_key"
   echo "Endpoint: $server_ip:$server_port"
   echo "---"
 } >> /var/log/wireguard/user-creation.log
+chmod 600 /var/log/wireguard/user-creation.log
 
-# ---------- Final Instructions ----------
+# ---------- Final Notes ----------
 log_info "To revoke this user, run: wg-del $user"
 log_info "To show all users, run: wg-show"
 
-read -n 1 -s -r -p "Press any key to return to menu..."
-clear
-m-wg
+# ---------- Return to Menu ----------
+if command -v m-wg >/dev/null 2>&1; then
+  read -n 1 -s -r -p "Press any key to return to menu..."
+  clear
+  m-wg
+fi
