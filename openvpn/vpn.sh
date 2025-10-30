@@ -101,7 +101,3 @@ netfilter-persistent reload
 # Restart OpenVPN
 systemctl restart openvpn
 
-# =========================================
-# Cleanup
-history -c
-rm -f /root/vpn.sh
