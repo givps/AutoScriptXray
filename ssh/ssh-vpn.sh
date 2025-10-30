@@ -217,6 +217,13 @@ connect = 127.0.0.1:1444
 [tor-ssl]
 accept = 0.0.0.0:777
 connect = 127.0.0.1:2222
+
+# =====================================
+# openvpn
+# =====================================
+[openvpn-ssl]
+accept = 888
+connect = 127.0.0.1:1196
 EOF
 
 # make a certificate
