@@ -32,6 +32,8 @@ echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 echo -e "[ INFO ] Creating directories and setting permissions..."
 # Set ownership recursive untuk config dan log
 mkdir -p /var/log/xray
+chmod 755 /var/log/xray
+chmod 755 /usr/local/etc/xray
 mkdir -p /usr/local/etc/xray
 chown -R www-data:www-data /var/log/xray
 chown -R www-data:www-data /usr/local/etc/xray
