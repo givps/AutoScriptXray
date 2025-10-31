@@ -75,31 +75,6 @@ bantime = 3600
 findtime = 600
 maxretry = 3
 banaction = iptables-multiport
-
-[sshd]
-enabled = true
-port    = ssh
-filter  = sshd
-backend = systemd
-logpath = %(sshd_log)s
-maxretry = 3
-bantime = 3600
-
-[sshd-ddos]
-enabled = true
-port    = ssh
-filter  = sshd-ddos
-backend = systemd
-logpath = %(sshd_log)s
-maxretry = 5
-bantime = 86400
-EOF
-
-cat > /etc/fail2ban/filter.d/sshd-ddos.conf << 'EOF'
-[Definition]
-failregex = ^<HOST> .*sshd.*Did not receive identification string from
-            ^<HOST> .*sshd.*Connection closed by invalid user
-ignoreregex =
 EOF
 
 systemctl enable fail2ban
