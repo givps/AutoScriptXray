@@ -11,7 +11,8 @@ nc='\e[0m'
 
 # Get domain
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
-
+mkdir -p /myinfo
+curl -s https://api.country.is | jq -r '.country' | sudo tee /myinfo/country > /dev/null
 # Install all packages in one command (more efficient)
 echo -e "[ ${green}INFO${nc} ] Installing dependencies..."
 apt update -y >/dev/null 2>&1
