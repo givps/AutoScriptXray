@@ -76,6 +76,7 @@ display_header() {
     MYIP=$(get_ip)
     domain=$(get_domain)
     tlsStatus=$(check_cert_status "$domain")
+    country=$(cat /myinfo/country 2>/dev/null || echo "API limit..." 2>/dev/null)
     uptime=$(uptime -p | cut -d " " -f 2-10)
     DATE2=$(date -R | cut -d " " -f -5)
     cpu_usage=$(get_cpu_usage)
@@ -94,6 +95,7 @@ display_header() {
     echo -e "${white} OS            ${nc}: $os_info"
     echo -e "${white} Uptime        ${nc}: $uptime"
     echo -e "${white} IP            ${nc}: $MYIP"
+    echo -e "${white} Country       ${nc}: $country"
     echo -e "${white} DOMAIN        ${nc}: $domain"
     echo -e "${white} TLS Status    ${nc}: $tlsStatus"
     echo -e "${white} CPU Usage     ${nc}: $cpu_usage"
