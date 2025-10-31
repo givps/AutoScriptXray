@@ -104,9 +104,9 @@ rm -f /etc/nginx/conf.d/vps.conf
 
 # Download custom configs
 wget -q -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
-mkdir -p /home/vps/public_html
-chown -R www-data:www-data /home/vps/public_html
-wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
+#mkdir -p /home/vps/public_html
+#chown -R www-data:www-data /home/vps/public_html
+#wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
 
 # Add systemd override (fix for early startup)
 mkdir -p /etc/systemd/system/nginx.service.d
@@ -217,13 +217,6 @@ connect = 127.0.0.1:1444
 [tor-ssl]
 accept = 0.0.0.0:777
 connect = 127.0.0.1:2222
-
-# =====================================
-# openvpn
-# =====================================
-[openvpn-ssl]
-accept = 888
-connect = 127.0.0.1:1196
 EOF
 
 # make a certificate
