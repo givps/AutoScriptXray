@@ -369,7 +369,7 @@ LimitNOFILE=1000000
 WantedBy=multi-user.target
 EOF
 
-cat > /etc/nginx/conf.d/xray.conf <<'EOF'
+cat > /etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
