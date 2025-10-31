@@ -285,10 +285,15 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22
-logpath = /var/log/auth.log
+port = 22,2222,109,110
 maxretry = 3
 bantime = 3600
+
+[sshd-ddos]
+enabled = true
+port = 22,2222,109,110
+maxretry = 5
+bantime = 86400
 EOF
 
 systemctl restart fail2ban
