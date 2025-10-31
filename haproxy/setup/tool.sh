@@ -32,6 +32,21 @@ apt purge -y nginx nginx-common
 apt autoremove -y
 apt update -y
 
+cat > /etc/rc.local <<EOF
+#!/bin/sh -e
+netfilter-persistent reload
+# rc.local
+# By default this script does nothing.
+exit 0
+EOF
+
+# Ubah izin akses
+chmod +x /etc/rc.local
+
+# enable rc local
+systemctl enable rc-local
+systemctl start rc-local
+
 # Install Nginx
 apt update -y && apt install -y nginx
 
