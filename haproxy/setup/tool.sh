@@ -14,7 +14,7 @@ apt-get remove --purge exim4 -y
 # Install all packages in single command (faster and more efficient)
 apt install -y \
 python3 python3-dnslib net-tools ncurses-utils dnsutils git curl wget screen cron iptables jq whois dropbear sudo gnutls-bin dos2unix debconf-utils \
-shc figlet ruby make cmake iptables-persistent netfilter-persistent coreutils rsyslog htop zip unzip nano sed gnupg bc bzip2 gzip apt-transport-https build-essential dirmngr libxml-parser-perl neofetch lsof vnstat iftop libsqlite3-dev libz-dev gcc g++ libreadline-dev zlib1g-dev libssl-dev
+shc figlet ruby make cmake iptables-persistent netfilter-persistent coreutils rsyslog htop zip unzip nano sed gnupg bc bzip2 gzip apt-transport-https build-essential dirmngr libxml-parser-perl neofetch lsof iftop libsqlite3-dev libz-dev gcc g++ libreadline-dev zlib1g-dev libssl-dev
 
 # Install Ruby gem
 gem install lolcat
@@ -23,6 +23,7 @@ gem install lolcat
 systemctl enable rsyslog
 systemctl start rsyslog
 # Configure vnstat for network monitoring
+apt install -y vnstat
 systemctl enable vnstat
 systemctl start vnstat
 # Remove old NGINX
