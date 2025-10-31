@@ -276,8 +276,7 @@ systemctl stop tor
 
 # install fail2ban
 apt -y install fail2ban
-
-cat > /etc/fail2ban/jail.local <<EOF
+cat > /etc/fail2ban/jail.local << 'EOF'
 [DEFAULT]
 bantime = 3600
 findtime = 600
@@ -286,17 +285,28 @@ banaction = iptables-multiport
 
 [sshd]
 enabled = true
-port = 22
-logpath = /var/log/auth.log
+port    = ssh
+filter  = sshd
+backend = systemd
+logpath = %(sshd_log)s
 maxretry = 3
 bantime = 3600
 
 [sshd-ddos]
 enabled = true
-port = 22
-logpath = /var/log/auth.log
+port    = ssh
+filter  = sshd-ddos
+backend = systemd
+logpath = %(sshd_log)s
 maxretry = 5
 bantime = 86400
+EOF
+
+cat > /etc/fail2ban/filter.d/sshd-ddos.conf << 'EOF'
+[Definition]
+failregex = ^<HOST> .*sshd.*Did not receive identification string from
+            ^<HOST> .*sshd.*Connection closed by invalid user
+ignoreregex =
 EOF
 
 systemctl restart fail2ban
