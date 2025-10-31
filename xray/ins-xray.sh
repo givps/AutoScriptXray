@@ -12,7 +12,16 @@ nc='\e[0m'
 # Get domain
 domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
 mkdir -p /myinfo
-curl -s https://api.country.is | jq -r '.country' | sudo tee /myinfo/country > /dev/null
+country=$(curl -s https://api.country.is 2>/dev/null | jq -r '.country' 2>/dev/null)
+if [[ -z "$country" || "$country" == "null" ]]; then
+    country=$(curl -s https://ipinfo.io/json 2>/dev/null | jq -r '.country' 2>/dev/null)
+fi
+if [[ -z "$country" || "$country" == "null" ]]; then
+    country="API limit..."
+fi
+sudo mkdir -p /myinfo
+echo "$country" | sudo tee /myinfo/country > /dev/null
+curl -s https://api.country.is | https://ipinfo.io/country | jq -r '.country' | sudo tee /myinfo/country > /dev/null
 # Install all packages in one command (more efficient)
 echo -e "[ ${green}INFO${nc} ] Installing dependencies..."
 apt update -y >/dev/null 2>&1
