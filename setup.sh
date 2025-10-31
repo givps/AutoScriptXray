@@ -312,6 +312,9 @@ netfilter-persistent save
 # chattr +i /etc/iptables/rules.v4
 netfilter-persistent reload
 
+systemctl enable netfilter-persistent
+systemctl start netfilter-persistent
+
 echo ""
 echo -e "========================================="  | tee -a ~/log-install.txt
 echo -e "          Service Information            "  | tee -a ~/log-install.txt
