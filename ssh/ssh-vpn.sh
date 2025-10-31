@@ -70,6 +70,7 @@ EOF
 # nano /etc/rc.local
 cat > /etc/rc.local <<EOF
 #!/bin/sh -e
+netfilter-persistent reload
 # rc.local
 # By default this script does nothing.
 exit 0
