@@ -20,7 +20,7 @@ if [[ -z "$country" || "$country" == "null" ]]; then
     country="API limit..."
 fi
 sudo mkdir -p /myinfo
-echo "$country" | sudo tee /myinfo/country > /dev/null
+echo "$country" | tee /myinfo/country > /dev/null
 # Install all packages in one command (more efficient)
 echo -e "[ ${green}INFO${nc} ] Installing dependencies..."
 apt update -y >/dev/null 2>&1
