@@ -30,16 +30,11 @@ apt clean all && apt autoremove -y
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
-mkdir -p /usr/local/etc/xray /var/log/xray /home/vps/public_html /run/xray
 # Set ownership recursive untuk config dan log
-chown -R www-data:www-data /usr/local/etc/xray /var/log/xray /run/xray
-# Set permissions
-chmod 755 /var/log/xray /run/xray
-chmod 750 /usr/local/etc/xray
-# Create directory
-mkdir -p /var/run/xray
-chown www-data:www-data /var/run/xray
-chmod 755 /var/run/xray
+mkdir -p /var/log/xray
+mkdir -p /usr/local/etc/xray
+chown -R www-data:www-data /var/log/xray
+chown -R www-data:www-data /usr/local/etc/xray
 # Create log files
 touch /var/log/xray/access.log /var/log/xray/error.log
 chmod 644 /var/log/xray/access.log /var/log/xray/error.log
