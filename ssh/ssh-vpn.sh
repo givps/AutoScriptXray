@@ -107,7 +107,7 @@ rm -f /etc/nginx/conf.d/vps.conf
 wget -q -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/nginx.conf"
 mkdir -p /home/vps/public_html
 chown -R www-data:www-data /home/vps/public_html
-#wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
+wget -q -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/vps.conf"
 
 # Add systemd override (fix for early startup)
 mkdir -p /etc/systemd/system/nginx.service.d
