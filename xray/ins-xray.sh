@@ -21,7 +21,6 @@ if [[ -z "$country" || "$country" == "null" ]]; then
 fi
 sudo mkdir -p /myinfo
 echo "$country" | sudo tee /myinfo/country > /dev/null
-curl -s https://api.country.is | https://ipinfo.io/country | jq -r '.country' | sudo tee /myinfo/country > /dev/null
 # Install all packages in one command (more efficient)
 echo -e "[ ${green}INFO${nc} ] Installing dependencies..."
 apt update -y >/dev/null 2>&1
