@@ -32,9 +32,9 @@ echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 echo -e "[ INFO ] Creating directories and setting permissions..."
 # Set ownership recursive untuk config dan log
 mkdir -p /var/log/xray
+mkdir -p /usr/local/etc/xray
 chmod 755 /var/log/xray
 chmod 755 /usr/local/etc/xray
-mkdir -p /usr/local/etc/xray
 chown -R www-data:www-data /var/log/xray
 chown -R www-data:www-data /usr/local/etc/xray
 # Create log files
@@ -141,7 +141,6 @@ chmod 600 /etc/stunnel/stunnel.pem
 echo "✅ Use Self-signed SSL"
 fi
 
-# generate uuid
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
 cat > /usr/local/etc/xray/config.json <<EOF
@@ -366,18 +365,23 @@ LimitNOFILE=1000000
 WantedBy=multi-user.target
 EOF
 
+systemctl daemon-reload
+systemctl enable xray
+systemctl start xray
+
 cat > /etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
     server_name _;
 
-    return 301 https://$host$request_uri;
+    return 301 https://\$host\$request_uri;
 }
 
 server {
-    listen 443 ssl http2 default_server;
-    listen [::]:443 ssl http2 default_server;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name _;
 
     ssl_certificate /usr/local/etc/xray/xray.crt;
@@ -391,94 +395,89 @@ server {
     add_header X-Content-Type-Options nosniff always;
     add_header X-XSS-Protection "1; mode=block" always;
 
+    # WebSocket locations
     location /vless {
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
     location /vmess {
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
     location /trojan-ws {
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
     location /ss-ws {
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
+    # gRPC locations
     location /vless-grpc {
         grpc_pass grpc://127.0.0.1:10005;
         client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$host;
     }
 
     location /vmess-grpc {
         grpc_pass grpc://127.0.0.1:10006;
         client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$host;
     }
 
     location /trojan-grpc {
         grpc_pass grpc://127.0.0.1:10007;
         client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$host;
     }
 
     location /ss-grpc {
         grpc_pass grpc://127.0.0.1:10008;
         client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$host;
     }
-
 }
 EOF
 
-# reload
+# Reload systemd and start Xray
 systemctl daemon-reload
-
-# start
-systemctl enable cron
-systemctl enable xray
 systemctl enable nginx
-systemctl start cron
-systemctl start xray
 systemctl start nginx
 
 cd /usr/bin
