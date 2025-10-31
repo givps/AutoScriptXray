@@ -18,7 +18,7 @@ STATS_FILE="/tmp/service_restart_stats.txt"
 
 # ---------- Service Definitions ----------
 declare -A SERVICES=(
-    ["openssh"]="systemctl restart ssh"
+    ["sshd"]="systemctl restart sshd"
     ["fail2ban"]="systemctl restart fail2ban"
     ["cron"]="systemctl restart cron"
     ["nginx"]="systemctl restart nginx"
@@ -209,7 +209,7 @@ show_service_status() {
     echo -e ""
     echo -e "[ ${yellow}SERVICE STATUS${nc} ]"
     echo -e "${red}-----------------------------------------${nc}"
-    check_service_status "ssh" "OpenSSH"
+    check_service_status "sshd" "OpenSSH"
     check_service_status "nginx" "Nginx"
     check_service_status "xray" "Xray"
     check_service_status "fail2ban" "Fail2Ban"
@@ -297,7 +297,7 @@ restart() {
                 ;;
             2)
                 display_header
-                restart_service "ssh" "systemctl restart ssh" "OpenSSH"
+                restart_service "sshd" "systemctl restart sshd" "OpenSSH"
                 show_service_status
                 wait_for_input
                 ;;
