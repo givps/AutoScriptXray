@@ -55,7 +55,7 @@ apt update && apt install -y bzip2 gzip coreutils screen curl unzip && wget http
 <br>
 - OpenSSH                  : 22, 2222<br>
 - Dropbear                 : 109, 110<br>
-- SSH SSL Websocket        : 443, 1444<br>
+- SSH SSL Websocket        : 444, 1444<br>
 - SSH Websocket            : 80, 1445<br>
 - Stunnel4                 : 222, 333, 777<br>
 - Badvpn                   : 7100-7900<br>
