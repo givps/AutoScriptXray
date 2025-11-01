@@ -188,13 +188,9 @@ GSSAPIAuthentication no
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
-
 EOF
 
-systemctl enable sshd
-systemctl restart sshd
-
-# // banner /etc/issue.net
+# banner /etc/issue.net
 BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
 BANNER_FILE="/etc/issue.net"
 wget -q -O "$BANNER_FILE" "$BANNER_URL"
@@ -203,6 +199,7 @@ if ! grep -q "^Banner $BANNER_FILE" /etc/ssh/sshd_config; then
 fi
 
 systemctl restart sshd
+systemctl enable sshd
 
 # install blokir torrent
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-torrent-blocker.sh | bash
@@ -300,6 +297,7 @@ END
 
 systemctl enable cron
 systemctl start cron
+
 # remove unnecessary files
 apt autoclean -y >/dev/null 2>&1
 
