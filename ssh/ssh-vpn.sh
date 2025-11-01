@@ -15,47 +15,68 @@ nc='\e[0m'
 # Update system first
 apt update -y
 
-# Install iptables directly
-apt install -y netfilter-persistent
-apt install -y iptables-persistent
-systemctl enable netfilter-persistent
-systemctl start netfilter-persistent
+# Remove unused or conflicting firewall/mail services
 systemctl stop ufw 2>/dev/null
 systemctl disable ufw 2>/dev/null
-apt-get remove --purge ufw firewalld -y
-apt-get remove --purge exim4 -y
+apt-get remove --purge -y ufw firewalld exim4
 
-# Install all packages in single command (faster and more efficient)
+# Install base system tools and network utilities
 apt install -y \
   shc wget curl figlet ruby python3 make cmake \
   iptables iptables-persistent netfilter-persistent \
   coreutils rsyslog net-tools htop screen \
   zip unzip nano sed gnupg bc jq bzip2 gzip \
   apt-transport-https build-essential dirmngr \
-  libxml-parser-perl neofetch git lsof vnstat iftop \
+  libxml-parser-perl neofetch git lsof iftop \
   libsqlite3-dev libz-dev gcc g++ libreadline-dev \
   zlib1g-dev libssl-dev dos2unix
 
-# Install Ruby gem
+# Install Ruby gem (colorized text)
 gem install lolcat
 
-# Configure essential services
+# Enable and start logging service
 systemctl enable rsyslog
 systemctl start rsyslog
 
 # Configure vnstat for network monitoring
+if ! command -v vnstat &> /dev/null; then
+    apt install -y vnstat
+fi
+INTERFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -v lo | head -n1)
+mkdir -p /var/lib/vnstat
+chown vnstat:vnstat /var/lib/vnstat
+if [ ! -f "/var/lib/vnstat/$INTERFACE" ]; then
+    vnstat -u -i "$INTERFACE"
+fi
+systemctl daemon-reload
 systemctl enable vnstat
-systemctl start vnstat
+systemctl restart vnstat
 
 # Create secure PAM configuration
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
 chmod +x /etc/pam.d/common-password
 
-# Edit file /etc/systemd/system/rc-local.service
-cat > /etc/systemd/system/rc-local.service <<EOF
+# /etc/rc.local
+cat > /etc/rc.local <<'EOF'
+#!/bin/sh -e
+# rc.local file created by setup script
+
+# Reload netfilter rules
+netfilter-persistent reload
+
+# Disable IPv6
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+
+exit 0
+EOF
+
+chmod +x /etc/rc.local
+
+cat > /etc/systemd/system/rc-local.service <<'EOF'
 [Unit]
-Description=/etc/rc.local
+Description=/etc/rc.local Compatibility
 ConditionPathExists=/etc/rc.local
+
 [Service]
 Type=forking
 ExecStart=/etc/rc.local start
@@ -63,35 +84,19 @@ TimeoutSec=0
 StandardOutput=tty
 RemainAfterExit=yes
 SysVStartPriority=99
+
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# nano /etc/rc.local
-cat > /etc/rc.local <<EOF
-#!/bin/sh -e
-netfilter-persistent reload
-# rc.local
-# By default this script does nothing.
-exit 0
-EOF
-
-# Ubah izin akses
-chmod +x /etc/rc.local
-
-# enable rc local
+systemctl daemon-reload
 systemctl enable rc-local
 systemctl start rc-local
 
-# disable ipv6
-echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
-
 # Remove old NGINX
-apt remove -y nginx nginx-common
-apt purge -y nginx nginx-common
+apt purge -y nginx nginx-common nginx-core nginx-full
+apt remove -y nginx nginx-common nginx-core nginx-full
 apt autoremove -y
-apt update -y
 
 # Install Nginx
 apt update -y && apt install -y nginx
@@ -165,8 +170,15 @@ GSSAPIAuthentication no
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
-
 EOF
+
+# Download banner
+BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
+BANNER_FILE="/etc/issue.net"
+wget -q -O "$BANNER_FILE" "$BANNER_URL"
+if ! grep -q "^Banner $BANNER_FILE" /etc/ssh/sshd_config; then
+    echo "Banner $BANNER_FILE" >> /etc/ssh/sshd_config
+fi
 
 systemctl restart sshd
 systemctl enable sshd
@@ -184,8 +196,8 @@ EOF
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
-systemctl start dropbear
 systemctl enable dropbear
+systemctl start dropbear
 
 # install stunnel
 apt install -y stunnel4
@@ -234,8 +246,8 @@ OPTIONS=""
 PPP_RESTART=0
 EOF
 
-systemctl start stunnel4
 systemctl enable stunnel4
+systemctl start stunnel4
 
 # install tor
 apt install -y tor
@@ -297,21 +309,11 @@ maxretry = 5
 bantime = 86400
 EOF
 
-systemctl restart fail2ban
 systemctl enable fail2ban
+systemctl start fail2ban
 
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
-
-# Download banner
-BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
-BANNER_FILE="/etc/issue.net"
-wget -q -O "$BANNER_FILE" "$BANNER_URL"
-if ! grep -q "^Banner $BANNER_FILE" /etc/ssh/sshd_config; then
-    echo "Banner $BANNER_FILE" >> /etc/ssh/sshd_config
-fi
-
-systemctl restart sshd
 
 # install blokir torrent
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-torrent-blocker.sh | bash
