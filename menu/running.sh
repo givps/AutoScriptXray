@@ -179,6 +179,7 @@ display_service_status() {
     echo -e "${WHITE} XRAY Vless None TLS    ${NC}: $(check_service_status xray systemctl)"
     echo -e "${WHITE} XRAY Trojan            ${NC}: $(check_service_status xray systemctl)"
     echo -e "${WHITE} XRAY Shadowsocks       ${NC}: $(check_service_status xray systemctl)"
+    echo -e "${WHITE} SSLH                   ${NC}: $(check_service_status sslh systemctl)"
     
     # WebSocket Services
     echo -e "${WHITE} SSH WebSocket          ${NC}: $(check_service_status ws-proxy.service systemctl)"
