@@ -286,7 +286,7 @@ clear
 command -v menu >/dev/null 2>&1 && menu
 EOF
 
-apt install -y netfilter-persistent iptables-persistent
+apt install -y netfilter-persistent iptables-persisten
 # Flush
 iptables -L INPUT -n --line-numbers
 # Allow loopback
@@ -306,13 +306,24 @@ iptables -C INPUT -p tcp --dport 110 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 110 -j ACCEPT
 iptables -C INPUT -p tcp --dport 222 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 222 -j ACCEPT
+iptables -C INPUT -p tcp --dport 333 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 333 -j ACCEPT
 iptables -C INPUT -p tcp --dport 444 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 444 -j ACCEPT
+iptables -C INPUT -p tcp --dport 777 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 777 -j ACCEPT
+iptables -C INPUT -p tcp --dport 999 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 999 -j ACCEPT
 # Allow HTTP/HTTPS
 iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -C INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+# Allow HTTP/HTTPS nginx
+iptables -C INPUT -p tcp --dport 8080 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+iptables -C INPUT -p tcp --dport 4433 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 4433 -j ACCEPT
 # Allow WebSocket ports
 iptables -C INPUT -p tcp --dport 1444 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 1444 -j ACCEPT
