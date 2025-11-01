@@ -11,7 +11,9 @@ blue='\e[1;34m'
 white='\e[1;37m'
 cyan='\e[1;36m'
 nc='\e[0m'
-
+if ! id -u debian-tor >/dev/null 2>&1; then
+    useradd -r -s /usr/sbin/nologin debian-tor
+fi
 TOR_UID=$(id -u debian-tor 2>/dev/null || echo 0)
 
 # ---------- FUNCTIONS ----------
