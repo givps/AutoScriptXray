@@ -281,8 +281,10 @@ apt install -y netfilter-persistent iptables-persistent
 # Flush
 iptables -L INPUT -n --line-numbers
 # Allow loopback
+iptables -C INPUT -i lo -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -i lo -j ACCEPT
 # Allow established connections
+iptables -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 # Allow SSH & Dropbear
 iptables -C INPUT -p tcp --dport 22 -j ACCEPT 2>/dev/null || \
