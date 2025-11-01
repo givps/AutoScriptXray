@@ -19,6 +19,7 @@ STATS_FILE="/tmp/service_restart_stats.txt"
 # ---------- Service Definitions ----------
 declare -A SERVICES=(
     ["sshd"]="systemctl restart sshd"
+    ["sslh"]="systemctl restart sslh"
     ["dropbear"]="systemctl restart dropbear" 
     ["stunnel4"]="systemctl restart stunnel4"
     ["fail2ban"]="systemctl restart fail2ban"
@@ -89,15 +90,16 @@ display_header() {
 
 # Function to display menu options
 display_menu() {
-    echo -e " ${cyan}1${nc}  Restart All Services"
-    echo -e " ${cyan}2${nc}  Restart OpenSSH"
-    echo -e " ${cyan}3${nc}  Restart Dropbear"
-    echo -e " ${cyan}4${nc}  Restart Stunnel4"
-    echo -e " ${cyan}5${nc}  Restart Nginx"
-    echo -e " ${cyan}6${nc}  Restart Badvpn"
-    echo -e " ${cyan}7${nc}  Restart Xray"
-    echo -e " ${cyan}8${nc}  Restart Websocket"
-    echo -e " ${cyan}9${nc}  Show Service Status"
+    echo -e " ${cyan}1${nc}   Restart All Services"
+    echo -e " ${cyan}2${nc}   Restart OpenSSH"
+    echo -e " ${cyan}3${nc}   Restart Dropbear"
+    echo -e " ${cyan}4${nc}   Restart Stunnel4"
+    echo -e " ${cyan}5${nc}   Restart Nginx"
+    echo -e " ${cyan}6${nc}   Restart Badvpn"
+    echo -e " ${cyan}7${nc}   Restart Xray"
+    echo -e " ${cyan}8${nc}   Restart Websocket"
+    echo -e " ${cyan}9${nc}   Restart SSLH"
+    echo -e " ${cyan}10${nc}  Show Service Status"
     echo -e ""
     echo -e " [${red}0${nc}] ${red}Back To Main Menu${nc}"
     echo -e ""
@@ -213,6 +215,7 @@ show_service_status() {
     echo -e "[ ${yellow}SERVICE STATUS${nc} ]"
     echo -e "${red}-----------------------------------------${nc}"
     check_service_status "sshd" "OpenSSH"
+    check_service_status "sslh" "SSLH"
     check_service_status "dropbear" "Dropbear" 
     check_service_status "stunnel4" "Stunnel4"
     check_service_status "nginx" "Nginx"
@@ -339,6 +342,12 @@ restart() {
                 wait_for_input
                 ;;
             9)
+                display_header
+                restart_service "sslh" "systemctl restart sslh" "SSLH"
+                show_service_status
+                wait_for_input
+                ;;
+            10)
                 display_header
                 show_service_status
                 wait_for_input
