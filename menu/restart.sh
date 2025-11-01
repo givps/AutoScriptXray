@@ -294,7 +294,7 @@ restart() {
         display_header
         display_menu
         
-        read -p " Select menu [0-9]: " Restart
+        read -p " Select menu [0-11]: " Restart
         
         case $Restart in
             1)
