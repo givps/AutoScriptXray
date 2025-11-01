@@ -319,6 +319,7 @@ OPTIONS=""
 PPP_RESTART=0
 EOF
 
+systemctl daemon-reload
 systemctl enable stunnel4
 systemctl start stunnel4
 
