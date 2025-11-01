@@ -31,8 +31,8 @@ enable_tor() {
         iptables -t nat -A TOR -d 127.0.0.0/8 -j RETURN
 
     # Redirect DNS
-    iptables -t nat -C TOR -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
-        iptables -t nat -A TOR -p udp --dport 53 -j REDIRECT --to-ports 5353
+    #iptables -t nat -C TOR -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
+        #iptables -t nat -A TOR -p udp --dport 53 -j REDIRECT --to-ports 5353
 
     # Redirect all TCP traffic to Tor TransPort
     iptables -t nat -C TOR -p tcp -j REDIRECT --to-ports 9040 2>/dev/null || \
