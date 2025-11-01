@@ -247,7 +247,6 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
-fi
 
 # Create directory for PID file
 mkdir -p /var/run/sslh
