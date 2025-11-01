@@ -199,6 +199,70 @@ echo "/usr/sbin/nologin" >> /etc/shells
 systemctl enable dropbear
 systemctl start dropbear
 
+# SSLH Multi-port Installer Script
+# Update system
+apt update -y
+
+# Install dependencies
+apt install -y wget build-essential libconfig-dev
+
+# Install SSLH
+apt install -y sslh
+
+cat > /etc/default/sslh << 'EOF'
+# Default options for sslh initscript
+# sourced by /etc/init.d/sslh
+
+# Disabled by default, to force yourself to have a configuration
+# file and avoid that your machine is an open relay.
+RUN=yes
+
+# Daemon options
+# DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --ssl 127.0.0.1:4433 --http 127.0.0.1:80 --pidfile /var/run/sslh/sslh.pid -n"
+DAEMON_OPTS="--user sslh \
+--listen 0.0.0.0:443 \
+--listen 0.0.0.0:80 \
+--ssh 127.0.0.1:22 \
+--ssh 127.0.0.1:110 \
+--ssl 127.0.0.1:222 \
+--ssl 127.0.0.1:333 \
+--ssl 127.0.0.1:444 \
+--ssl 127.0.0.1:777 \
+--ssl 127.0.0.1:999 \
+--http 127.0.0.1:1445 \
+--openvpn 127.0.0.1:1194 \
+--ssl 127.0.0.1:4433 \
+--http 127.0.0.1:8080 \
+--pidfile /var/run/sslh/sslh.pid -n"
+EOF
+
+cat > /etc/systemd/system/sslh.service << 'EOF'
+[Unit]
+Description=SSL/SSH/OpenVPN/XMPP/tinc port multiplexer
+Documentation=man:sslh(8)
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/sslh
+ExecStart=/usr/sbin/sslh $DAEMON_OPTS
+Type=forking
+PIDFile=/var/run/sslh/sslh.pid
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+fi
+
+# Create directory for PID file
+mkdir -p /var/run/sslh
+chown sslh:sslh /var/run/sslh
+
+# Enable and start SSLH service
+systemctl daemon-reload
+systemctl enable sslh
+systemctl start sslh
+
 # install stunnel
 apt install -y stunnel4
 
