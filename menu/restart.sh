@@ -26,6 +26,7 @@ declare -A SERVICES=(
     ["cron"]="systemctl restart cron"
     ["nginx"]="systemctl restart nginx"
     ["xray"]="systemctl restart xray"
+    ["netfilter-persistent"]="systemctl restart netfilter-persistent"
     ["ws-proxy"]="systemctl restart ws-proxy"
 )
 
@@ -99,7 +100,8 @@ display_menu() {
     echo -e " ${cyan}7${nc}   Restart Xray"
     echo -e " ${cyan}8${nc}   Restart Websocket"
     echo -e " ${cyan}9${nc}   Restart SSLH"
-    echo -e " ${cyan}10${nc}  Show Service Status"
+    echo -e " ${cyan}10${nc}  Restart IPtables"
+    echo -e " ${cyan}11${nc}  Show Service Status"
     echo -e ""
     echo -e " [${red}0${nc}] ${red}Back To Main Menu${nc}"
     echo -e ""
@@ -222,6 +224,7 @@ show_service_status() {
     check_service_status "xray" "Xray"
     check_service_status "fail2ban" "Fail2Ban"
     check_service_status "cron" "Cron"
+    check_service_status "netfilter-persistent" "IPtables"
     
     # Check BadVPN status
     local badvpn_count=$(pgrep -f "badvpn-udpgw" | wc -l)
@@ -348,6 +351,12 @@ restart() {
                 wait_for_input
                 ;;
             10)
+                display_header
+                restart_service "netfilter-persistent" "systemctl restart netfilter-persistent" "IPtables"
+                show_service_status
+                wait_for_input
+                ;;
+            11)
                 display_header
                 show_service_status
                 wait_for_input
