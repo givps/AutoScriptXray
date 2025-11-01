@@ -67,10 +67,6 @@ systemctl restart cron
 echo ""
 echo "✅ VPS timezone, NTP, and cron setup complete!"
 
-# disable ipv6
-sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
-sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
-
 # create folder
 mkdir -p /usr/local/etc/xray
 mkdir -p /etc/log
