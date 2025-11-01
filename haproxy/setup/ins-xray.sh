@@ -126,28 +126,6 @@ echo -e "[${green}SUCCESS${nc}] ACME.sh + Cloudflare setup completed!"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
 echo -e "KEY: /usr/local/etc/xray/xray.key"
 
-# Auto-detect Xray SSL and convert
-XRAY_DIR="/usr/local/etc/xray"
-# Cari file SSL Xray
-CERT=$(find $XRAY_DIR -name "*.crt" -o -name "*.pem" -o -name "fullchain.cer" | head -1)
-KEY=$(find $XRAY_DIR -name "*.key" -o -name "private.key" | head -1)
-
-mkdir -p /etc/stunnel
-# convert from xray
-if [ -f "$CERT" ] && [ -f "$KEY" ]; then
-cat "$CERT" "$KEY" > /etc/stunnel/stunnel.pem
-chmod 600 /etc/stunnel/stunnel.pem
-echo "✅ SSL converted from Xray"
-else
-# make a certificate
-openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 3650 \
--subj "/C=ID/ST=Jakarta/L=Jakarta/O=givps/OU=IT/CN=localhost/emailAddress=admin@localhost"
-cat key.pem cert.pem > /etc/stunnel/stunnel.pem
-chmod 600 /etc/stunnel/stunnel.pem
-echo "✅ Use Self-signed SSL"
-fi
-
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
 cat > /usr/local/etc/xray/config.json <<EOF
