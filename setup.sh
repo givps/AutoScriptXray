@@ -18,11 +18,20 @@ rm -f ins-xray.sh >/dev/null 2>&1
 rm -f udp-custom.sh >/dev/null 2>&1
 rm -f slowdns.sh >/dev/null 2>&1
 
-# cek root
-if [ "${EUID}" -ne 0 ]; then
-		echo "${yellow}You need to run this script as root${nc}"
-    sleep 5
-		exit 1
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    print_error "Script need run AS root...!"
+    exit 1
+fi
+
+# Detect OS
+if [ -f /etc/debian_version ]; then
+    OS="debian"
+elif [ -f /etc/lsb-release ]; then
+    OS="ubuntu"
+else
+    print_error "OS Not Support. Script for OS Debian/Ubuntu."
+    exit 1
 fi
 
 # -------------------------------
