@@ -148,12 +148,53 @@ systemctl start fail2ban
 # Instal DDOS Deflate
 wget -qO- https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/auto-install-ddos.sh | bash
 
-# // banner /etc/issue.net
-wget -O /etc/issue.net "https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
-echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
-sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
+# =========================================
+# CONFIGURE SSH DIRECT PORTS
+# =========================================
+cat > /etc/ssh/sshd_config <<EOF
+# =========================================
+# Minimal & Safe SSHD Configuration
+# =========================================
 
-# Download banner
+# Ports
+Port 22
+Port 2222
+Protocol 2
+
+# Authentication
+PermitRootLogin yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+
+# Connection Settings
+AllowTcpForwarding yes
+PermitTTY yes
+X11Forwarding no
+TCPKeepAlive yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+MaxAuthTries 3
+MaxSessions 10
+MaxStartups 10:30:100
+
+# Security & Performance
+UsePAM yes
+ChallengeResponseAuthentication no
+UseDNS no
+Compression delayed
+GSSAPIAuthentication no
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+EOF
+
+systemctl enable sshd
+systemctl restart sshd
+
+# // banner /etc/issue.net
 BANNER_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/banner/banner.conf"
 BANNER_FILE="/etc/issue.net"
 wget -q -O "$BANNER_FILE" "$BANNER_URL"
