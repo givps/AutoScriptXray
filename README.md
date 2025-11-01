@@ -57,7 +57,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 && sysctl -w net.ipv6.conf.default.di
 - Dropbear                 : 109, 110<br>
 - SSH SSL Websocket        : 443, 1444<br>
 - SSH Websocket            : 80, 1445<br>
-- SSH/SSL Stunnel4         : 222, 444, 777<br>
+- Stunnel4                 : 222, 333, 777<br>
 - Badvpn                   : 7100-7900<br>
 - Nginx                    : 80<br>
 - Vmess WS TLS             : 443<br>
