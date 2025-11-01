@@ -1,51 +1,89 @@
+#!/bin/bash
+# =========================================
+# install ssh tool
+# =========================================
 
 # Update system first
 apt update -y
-apt upgrade -y
 
-# Install iptables directly
-apt install -y netfilter-persistent
-apt install -y iptables-persistent
-systemctl enable netfilter-persistent
-systemctl start netfilter-persistent
-apt-get remove --purge ufw firewalld -y
-apt-get remove --purge exim4 -y
+# Remove unused or conflicting firewall/mail services
+systemctl stop ufw 2>/dev/null
+systemctl disable ufw 2>/dev/null
+apt-get remove --purge -y ufw firewalld exim4
 
-# Install all packages in single command (faster and more efficient)
+# Install base system tools and network utilities
 apt install -y \
-python3 python3-dnslib net-tools ncurses-utils dnsutils git curl wget screen cron iptables jq whois dropbear sudo gnutls-bin dos2unix debconf-utils \
-shc figlet ruby make cmake iptables-persistent netfilter-persistent coreutils rsyslog htop zip unzip nano sed gnupg bc bzip2 gzip apt-transport-https build-essential dirmngr libxml-parser-perl neofetch lsof iftop libsqlite3-dev libz-dev gcc g++ libreadline-dev zlib1g-dev libssl-dev
+  shc wget curl figlet ruby python3 make cmake \
+  iptables iptables-persistent netfilter-persistent \
+  coreutils rsyslog net-tools htop screen \
+  zip unzip nano sed gnupg bc jq bzip2 gzip \
+  apt-transport-https build-essential dirmngr \
+  libxml-parser-perl neofetch git lsof iftop \
+  libsqlite3-dev libz-dev gcc g++ libreadline-dev \
+  zlib1g-dev libssl-dev dos2unix
 
-# Install Ruby gem
+# Install Ruby gem (colorized text)
 gem install lolcat
 
-# Configure essential services
+# Enable and start logging service
 systemctl enable rsyslog
 systemctl start rsyslog
-# Configure vnstat for network monitoring
-apt install -y vnstat
-systemctl enable vnstat
-systemctl start vnstat
-# Remove old NGINX
-apt remove -y nginx nginx-common
-apt purge -y nginx nginx-common
-apt autoremove -y
-apt update -y
 
-cat > /etc/rc.local <<EOF
+# Configure vnstat for network monitoring
+if ! command -v vnstat &> /dev/null; then
+    apt install -y vnstat
+fi
+INTERFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -v lo | head -n1)
+mkdir -p /var/lib/vnstat
+chown vnstat:vnstat /var/lib/vnstat
+if [ ! -f "/var/lib/vnstat/$INTERFACE" ]; then
+    vnstat -u -i "$INTERFACE"
+fi
+systemctl daemon-reload
+systemctl enable vnstat
+systemctl restart vnstat
+
+# /etc/rc.local
+cat > /etc/rc.local <<'EOF'
 #!/bin/sh -e
+# rc.local file created by setup script
+
+# Reload netfilter rules
 netfilter-persistent reload
-# rc.local
-# By default this script does nothing.
+
+# Disable IPv6
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+
 exit 0
 EOF
 
-# Ubah izin akses
 chmod +x /etc/rc.local
 
-# enable rc local
+cat > /etc/systemd/system/rc-local.service <<'EOF'
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
 systemctl enable rc-local
 systemctl start rc-local
+
+# Remove old NGINX
+apt purge -y nginx nginx-common nginx-core nginx-full
+apt remove -y nginx nginx-common nginx-core nginx-full
+apt autoremove -y
 
 # Install Nginx
 apt update -y && apt install -y nginx
