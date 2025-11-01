@@ -381,15 +381,15 @@ systemctl start xray
 
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 80;
-    listen [::]:80;
+    listen 8080;
+    listen [::]:8080;
     server_name _;
     return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
+    listen 4433 ssl;
+    listen [::]:4433 ssl;
     server_name _;
     
     # SSL certificates
