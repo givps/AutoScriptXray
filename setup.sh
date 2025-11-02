@@ -282,7 +282,7 @@ clear
 command -v menu >/dev/null 2>&1 && menu
 EOF
 
-apt install -y netfilter-persistent iptables-persisten
+apt install -y netfilter-persistent iptables-persistent
 # Flush
 iptables -L INPUT -n --line-numbers
 # Allow loopback
