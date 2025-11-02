@@ -361,25 +361,58 @@ bantime = 3600
 findtime = 600
 maxretry = 3
 banaction = iptables-multiport
+backend = auto
 
 [sshd]
-enabled = true
-port = 22,2222,109,110
+enabled  = true
+port     = 22,2222,109,110
+filter   = sshd
+logpath  = /var/log/auth.log
 maxretry = 3
-bantime = 3600
+findtime = 600
+bantime  = 3600
 
 [sshd-ddos]
-enabled = true
+enabled  = true
 port = 22,2222,109,110
+filter = sshd
+logpath = /var/log/auth.log
 maxretry = 5
-bantime = 86400
+findtime = 300
+bantime = 604800
 
-[openvpn]
-enabled = true
-port = 1195,51825,443
-filter = openvpn
+[openvpn-tcp]
+enabled  = true
+port     = 1195
+filter   = openvpn
+logpath  = /var/log/openvpn/server-tcp.log
 maxretry = 5
-bantime = 86400
+bantime  = 86400
+
+[openvpn-udp]
+enabled  = true
+port     = 51825
+filter   = openvpn
+logpath  = /var/log/openvpn/server-udp.log
+maxretry = 5
+bantime  = 86400
+
+[openvpn-ssl]
+enabled  = true
+port     = 443
+filter   = openvpn
+logpath  = /var/log/openvpn/server-ssl.log
+maxretry = 5
+bantime  = 86400
+
+[recidive]
+enabled = true
+filter = recidive
+logpath = /var/log/fail2ban.log
+action = iptables-allports[name=recidive, protocol=all]
+bantime = 1209600
+findtime = 86400
+maxretry = 5
 EOF
 
 systemctl enable fail2ban
