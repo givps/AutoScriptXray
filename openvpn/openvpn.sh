@@ -8,7 +8,8 @@ export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
 rm -rf /etc/openvpn/
-rm -f /home/vps/public_html/*.ovpn
+rm -f /usr/share/nginx/html/openvpn/*.ovpn
+mkdir -p /usr/share/nginx/html/openvpn/
 # Install OpenVPN dan Easy-RSA
 apt install openvpn easy-rsa unzip -y
 apt install openssl iptables iptables-persistent -y
@@ -130,11 +131,11 @@ key-direction 1
 EOF
 
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( TCP 1195 )
-cp /etc/openvpn/tcp.ovpn /home/vps/public_html/tcp.ovpn
+cp /etc/openvpn/tcp.ovpn /usr/share/nginx/html/openvpn/tcp.ovpn
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( UDP 51825 )
-cp /etc/openvpn/udp.ovpn /home/vps/public_html/udp.ovpn
+cp /etc/openvpn/udp.ovpn /usr/share/nginx/html/openvpn/udp.ovpn
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( SSL 443 )
-cp /etc/openvpn/ssl.ovpn /home/vps/public_html/ssl.ovpn
+cp /etc/openvpn/ssl.ovpn /usr/share/nginx/html/openvpn/ssl.ovpn
 # Buat direktori sementara untuk ZIP
 mkdir -p /tmp/ovpn
 # Salin semua konfigurasi ke direktori sementara
@@ -145,7 +146,7 @@ cp /etc/openvpn/ssl.ovpn /tmp/ovpn/
 cd /tmp
 zip ovpn.zip -r ovpn
 # Pindahkan ZIP ke direktori public_html agar bisa diunduh
-mv ovpn.zip /home/vps/public_html/
+mv ovpn.zip /usr/share/nginx/html/openvpn/
 # Hapus direktori sementara
 rm -rf /tmp/ovpn
 cd
