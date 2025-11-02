@@ -308,8 +308,6 @@ iptables -C INPUT -p tcp --dport 444 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 444 -j ACCEPT
 iptables -C INPUT -p tcp --dport 777 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 777 -j ACCEPT
-iptables -C INPUT -p tcp --dport 999 -j ACCEPT 2>/dev/null || \
-iptables -I INPUT -p tcp --dport 999 -j ACCEPT
 # Allow HTTP/HTTPS
 iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
