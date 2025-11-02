@@ -59,6 +59,7 @@ apt update && apt install -y bzip2 gzip coreutils screen curl unzip && wget http
 - SSH Websocket            : 80, 1445<br>
 - Stunnel4                 : 222, 333, 777<br>
 - Badvpn                   : 7100-7900<br>
+- OpenVPN                  : 443, 1195, 51825<br>
 - Nginx                    : 80<br>
 - Vmess WS TLS             : 443<br>
 - Vless WS TLS             : 443<br>
