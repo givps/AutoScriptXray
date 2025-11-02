@@ -20,6 +20,7 @@ STATS_FILE="/tmp/service_restart_stats.txt"
 declare -A SERVICES=(
     ["sshd"]="systemctl restart sshd"
     ["sslh"]="systemctl restart sslh"
+    ["openvpn"]="systemctl restart openvpn"
     ["dropbear"]="systemctl restart dropbear" 
     ["stunnel4"]="systemctl restart stunnel4"
     ["fail2ban"]="systemctl restart fail2ban"
@@ -101,7 +102,8 @@ display_menu() {
     echo -e " ${cyan}8${nc}   Restart Websocket"
     echo -e " ${cyan}9${nc}   Restart SSLH"
     echo -e " ${cyan}10${nc}  Restart IPtables"
-    echo -e " ${cyan}11${nc}  Show Service Status"
+    echo -e " ${cyan}11${nc}  Restart OpenVPN"
+    echo -e " ${cyan}12${nc}  Show Service Status"
     echo -e ""
     echo -e " [${red}0${nc}] ${red}Back To Main Menu${nc}"
     echo -e ""
@@ -218,6 +220,7 @@ show_service_status() {
     echo -e "${red}-----------------------------------------${nc}"
     check_service_status "sshd" "OpenSSH"
     check_service_status "sslh" "SSLH"
+    check_service_status "openvpn" "OpenVPN"
     check_service_status "dropbear" "Dropbear" 
     check_service_status "stunnel4" "Stunnel4"
     check_service_status "nginx" "Nginx"
@@ -294,7 +297,7 @@ restart() {
         display_header
         display_menu
         
-        read -p " Select menu [0-11]: " Restart
+        read -p " Select menu [0-12]: " Restart
         
         case $Restart in
             1)
@@ -358,6 +361,12 @@ restart() {
                 ;;
             11)
                 display_header
+                restart_service "openvpn" "systemctl restart openvpn" "OpenVPN"
+                show_service_status
+                wait_for_input
+                ;;
+            12)
+                display_header
                 show_service_status
                 wait_for_input
                 ;;
@@ -375,7 +384,7 @@ restart() {
                 exit 0
                 ;;
             *)
-                echo -e "[ ${red}ERROR${nc} ] Invalid option! Please select 0-9 or x"
+                echo -e "[ ${red}ERROR${nc} ] Invalid option! Please select 0-12 or x"
                 sleep 2
                 ;;
         esac
