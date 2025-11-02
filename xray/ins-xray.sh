@@ -379,12 +379,12 @@ systemctl daemon-reload
 systemctl enable xray
 systemctl start xray
 
+#return 301 https://$host$request_uri;
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
     listen 8080;
     listen [::]:8080;
     server_name _;
-    return 301 https://$host$request_uri;
 }
 
 server {
