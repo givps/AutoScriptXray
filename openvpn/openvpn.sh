@@ -170,7 +170,5 @@ iptables -A INPUT -p udp --dport 51825 -j ACCEPT
 iptables -C INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT
 
-iptables-save > /etc/iptables.up.rules
-iptables-restore < /etc/iptables.up.rules
 netfilter-persistent save
 netfilter-persistent reload
