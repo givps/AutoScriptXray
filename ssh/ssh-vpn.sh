@@ -373,6 +373,13 @@ enabled = true
 port = 22,2222,109,110
 maxretry = 5
 bantime = 86400
+
+[openvpn]
+enabled = true
+port = 1195,51825,443
+filter = openvpn
+maxretry = 5
+bantime = 86400
 EOF
 
 systemctl enable fail2ban
