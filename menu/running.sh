@@ -180,6 +180,7 @@ display_service_status() {
     echo -e "${WHITE} XRAY Trojan            ${NC}: $(check_service_status xray systemctl)"
     echo -e "${WHITE} XRAY Shadowsocks       ${NC}: $(check_service_status xray systemctl)"
     echo -e "${WHITE} SSLH                   ${NC}: $(check_service_status sslh systemctl)"
+    echo -e "${WHITE} OpenVPN                ${NC}: $(check_service_status openvpn systemctl)"
     
     # WebSocket Services
     echo -e "${WHITE} SSH WebSocket          ${NC}: $(check_service_status ws-proxy.service systemctl)"
