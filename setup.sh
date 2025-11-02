@@ -268,6 +268,12 @@ echo "========================================="
 # install udp-custom
 # wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/udp-custom/udp-custom.sh && chmod +x udp-custom.sh && ./udp-custom.sh
 
+echo -e "${red}=========================================${nc}"
+echo -e "${blue}           Install OpenVPN              ${nc}"
+echo -e "${red}=========================================${nc}"
+# install tor openvpn
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/openvpn.sh && chmod +x openvpn.sh && ./openvpn.sh
+
 cat > /root/.profile <<'EOF'
 # ~/.profile: executed by Bourne-compatible login shells.
 
