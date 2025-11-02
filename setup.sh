@@ -349,6 +349,7 @@ echo "   - SSH Websocket            : 80, 1445" | tee -a ~/log-install.txt
 echo "   - SSH SSL Websocket        : 444, 1444" | tee -a ~/log-install.txt
 echo "   - Stunnel4                 : 222, 333, 777" | tee -a ~/log-install.txt
 echo "   - Badvpn                   : 7100-7900" | tee -a ~/log-install.txt
+echo "   - OpenVPN                  : 443, 1195, 51825" | tee -a ~/log-install.txt
 echo "   - Nginx                    : 80" | tee -a ~/log-install.txt
 echo "   - Vmess WS TLS             : 443" | tee -a ~/log-install.txt
 echo "   - Vless WS TLS             : 443" | tee -a ~/log-install.txt
