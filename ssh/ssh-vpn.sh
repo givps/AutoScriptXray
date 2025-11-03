@@ -397,14 +397,6 @@ logpath  = /var/log/openvpn/server-udp.log
 maxretry = 5
 bantime  = 86400
 
-[openvpn-ssl]
-enabled  = true
-port     = 443
-filter   = openvpn
-logpath  = /var/log/openvpn/server-ssl.log
-maxretry = 5
-bantime  = 86400
-
 [recidive]
 enabled = true
 filter = recidive
