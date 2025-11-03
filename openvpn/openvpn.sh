@@ -8,10 +8,8 @@ export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
 rm -rf /etc/openvpn/
-rm -f /usr/share/nginx/html/openvpn/*.ovpn
-rm -f /usr/share/nginx/html/openvpn/*.html
+rm -rf /usr/share/nginx/html/openvpn/
 mkdir -p /usr/share/nginx/html/openvpn/
-wget -q -O /usr/share/nginx/html/openvpn/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/index"
 # Install OpenVPN dan Easy-RSA
 apt install openvpn easy-rsa unzip -y
 apt install openssl iptables iptables-persistent -y
@@ -35,12 +33,12 @@ systemctl enable --now openvpn-server@server-udp
 systemctl enable --now openvpn-server@server-ssl
 systemctl enable --now openvpn
 
-# Buat config client TCP 1195
+# Buat config client TCP 8443
 cat > /etc/openvpn/tcp.ovpn <<EOF
 client
 dev tun
 proto tcp
-remote $MYIP 1195
+remote $MYIP 8443
 resolv-retry infinite
 nobind
 persist-key
@@ -67,12 +65,12 @@ $(cat /etc/openvpn/server/ta.key)
 key-direction 1
 EOF
 
-# Buat config client UDP 51825
+# Buat config client UDP 3074
 cat > /etc/openvpn/udp.ovpn <<EOF
 client
 dev tun
 proto udp
-remote $MYIP 51825
+remote $MYIP 3074
 resolv-retry infinite
 route-method exe
 nobind
@@ -132,9 +130,9 @@ $(cat /etc/openvpn/server/ta.key)
 key-direction 1
 EOF
 
-# Copy config OpenVPN client ke home directory root agar mudah didownload ( TCP 1195 )
+# Copy config OpenVPN client ke home directory root agar mudah didownload ( TCP 8443 )
 cp /etc/openvpn/tcp.ovpn /usr/share/nginx/html/openvpn/tcp.ovpn
-# Copy config OpenVPN client ke home directory root agar mudah didownload ( UDP 51825 )
+# Copy config OpenVPN client ke home directory root agar mudah didownload ( UDP 3074 )
 cp /etc/openvpn/udp.ovpn /usr/share/nginx/html/openvpn/udp.ovpn
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( SSL 443 )
 cp /etc/openvpn/ssl.ovpn /usr/share/nginx/html/openvpn/ssl.ovpn
@@ -164,17 +162,14 @@ for SUBNET in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
     iptables -t nat -A POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
 done
 
-iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p tcp --dport 1195 -j ACCEPT
+iptables -C INPUT -p tcp --dport 8443 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p tcp --dport 8443 -j ACCEPT
 
-iptables -C INPUT -p udp --dport 51825 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p udp --dport 51825 -j ACCEPT
+iptables -C INPUT -p udp --dport 3074 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p udp --dport 3074 -j ACCEPT
 
-iptables -C INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT 2>/dev/null || \
-iptables -I INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT
-
-iptables -C INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT
+iptables -C INPUT -p udp --dport 3074 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT 2>/dev/null || \
+iptables -A INPUT -p udp --dport 3074 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT
 
 netfilter-persistent save
 netfilter-persistent reload
