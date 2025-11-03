@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/givps/favicon/main/favicon.ico">
+<title>OpenVPN Download Center</title>
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 50px 20px 100px;
+    }
+    h1 {
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        color: #38bdf8;
+    }
+    p {
+        color: #94a3b8;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 700px;
+        background: #1e293b;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 25px rgba(56,189,248,0.2);
+    }
+    th, td {
+        padding: 14px 20px;
+        text-align: left;
+    }
+    th {
+        background: #0f172a;
+        color: #38bdf8;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 1px;
+    }
+    tr:nth-child(even) {
+        background: #273549;
+    }
+    tr:hover {
+        background: #334155;
+        transition: background 0.2s;
+    }
+    a.download-btn {
+        color: #38bdf8;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 6px 12px;
+        border: 1px solid #38bdf8;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    a.download-btn:hover {
+        background: #38bdf8;
+        color: #0f172a;
+    }
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        padding: 12px 0;
+        background: rgba(15,23,42,0.85);
+        color: #94a3b8;
+        font-size: 0.85em;
+        backdrop-filter: blur(4px);
+        border-top: 1px solid rgba(56,189,248,0.2);
+    }
+</style>
+</head>
+<body>
+    <h1>OpenVPN Download Center</h1>
+    <p>Select your OpenVPN configuration below.</p>
+    <table id="fileTable">
+        <tr>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Action</th>
+        </tr>
+    </table>
+
+<script>
+const files = ["ovpn.zip", "ssl.ovpn", "tcp.ovpn", "udp.ovpn"];
+const table = document.getElementById("fileTable");
+
+function formatSize(bytes) {
+    if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB";
+    if (bytes >= 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return bytes + " B";
+}
+
+files.forEach(async file => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${file}</td>
+        <td id="size-${file}">Checking...</td>
+        <td><a href="${file}" class="download-btn" download>Download</a></td>
+    `;
+    table.appendChild(row);
+
+    try {
+        const res = await fetch(file, { method: 'HEAD' }); // Lebih cepat dan ringan
+        if (!res.ok) throw new Error();
+        const size = res.headers.get("content-length");
+        document.getElementById(`size-${file}`).innerText = size ? formatSize(parseInt(size)) : "Unknown";
+    } catch {
+        document.getElementById(`size-${file}`).innerText = "Not found";
+    }
+});
+</script>
+
+<footer class="footer">
+    <div class="badges">
+        <a href="https://github.com/givps" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/GitHub-Repository-blue?logo=github" alt="GitHub">
+        </a>
+        <a href="https://t.me/givps_com" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/Telegram-Group-blue?logo=telegram" alt="Telegram">
+        </a>
+        <a href="https://givps.com" target="_blank" class="badge">
+            <img src="https://img.shields.io/badge/Website-givps.com-blue?logo=web" alt="Website">
+        </a>
+    </div>
+    <p>© 2025 OpenVPN Download Center</p>
+</footer>
+</body>
+</html>
