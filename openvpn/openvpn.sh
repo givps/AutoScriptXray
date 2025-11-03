@@ -9,6 +9,7 @@ OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
+rm -f /usr/share/nginx/html/openvpn/*.html
 mkdir -p /usr/share/nginx/html/openvpn/
 wget -q -O /usr/share/nginx/html/openvpn/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/index"
 # Install OpenVPN dan Easy-RSA
