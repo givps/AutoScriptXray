@@ -229,7 +229,7 @@ DAEMON_OPTS="--user sslh \
 --ssh 127.0.0.1:22 \
 --ssh 127.0.0.1:110 \
 --http 127.0.0.1:1445 \
---openvpn 127.0.0.1:8443 \
+--openvpn 127.0.0.1:1196 \
 --ssl 127.0.0.1:4433 \
 --http 127.0.0.1:8080 \
 --pidfile /var/run/sslh/sslh.pid -n"
@@ -394,6 +394,14 @@ enabled  = true
 port     = 51825
 filter   = openvpn
 logpath  = /var/log/openvpn/server-udp.log
+maxretry = 5
+bantime  = 86400
+
+[openvpn-ssl]
+enabled  = true
+port     = 443
+filter   = openvpn
+logpath  = /var/log/openvpn/server-ssl.log
 maxretry = 5
 bantime  = 86400
 
