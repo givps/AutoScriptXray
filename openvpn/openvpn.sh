@@ -10,6 +10,8 @@ MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
 rm -rf /etc/openvpn/
 rm -rf /usr/share/nginx/html/openvpn/
 mkdir -p /usr/share/nginx/html/openvpn/
+wget -q -O /usr/share/nginx/html/openvpn/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/index"
+nginx -t && systemctl reload nginx
 # Install OpenVPN dan Easy-RSA
 apt install openvpn easy-rsa unzip -y
 apt install openssl iptables iptables-persistent -y
