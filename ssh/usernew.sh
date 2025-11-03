@@ -61,6 +61,10 @@ echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "${blue}            OpenVPN Account            ${nc}" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Username    : $Login" | tee -a /var/log/create-ssh.log
+echo -e "Password    : $Pass" | tee -a /var/log/create-ssh.log
+echo -e "Expired On  : $exp" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "openvpn tcp  : https://$domain/openvpn/tcp.ovpn" | tee -a /var/log/create-ssh.log
 echo -e "openvpn udp  : https://$domain/openvpn/udp.ovpn" | tee -a /var/log/create-ssh.log
 echo -e "openvpn ssl  : https://$domain/openvpn/ssl.ovpn" | tee -a /var/log/create-ssh.log
@@ -99,6 +103,10 @@ echo -e "UDPGW       : 7100-7900" | tee -a /var/log/create-ssh.log
 #echo -e "UDP Custom  : 1-65350" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "${blue}            OpenVPN Account            ${nc}" | tee -a /var/log/create-ssh.log
+echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
+echo -e "Username    : $Login" | tee -a /var/log/create-ssh.log
+echo -e "Password    : $Pass" | tee -a /var/log/create-ssh.log
+echo -e "Expired On  : $exp" | tee -a /var/log/create-ssh.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-ssh.log
 echo -e "openvpn tcp  : https://$domain/openvpn/tcp.ovpn" | tee -a /var/log/create-ssh.log
 echo -e "openvpn udp  : https://$domain/openvpn/udp.ovpn" | tee -a /var/log/create-ssh.log
