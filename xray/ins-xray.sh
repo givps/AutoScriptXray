@@ -39,16 +39,15 @@ apt clean all && apt autoremove -y
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
-# Set ownership recursive untuk config dan log
-mkdir -p /var/log/xray
-mkdir -p /usr/local/etc/xray
-mkdir -p /usr/local/bin/xray
-# Create log files
+# create folder
+mkdir -p /var/log/xray /usr/local/etc/xray /usr/local/bin/xray
 touch /var/log/xray/access.log /var/log/xray/error.log
+# create xray user
 sudo useradd -r -s /usr/sbin/nologin xray
-
 # xray official
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
+# Set ownership
+chown -R xray:xray /var/log/xray /usr/local/etc/xray /usr/local/bin/xray
 
 # nginx stop
 systemctl stop nginx
@@ -369,10 +368,6 @@ LimitNOFILE=1000000
 [Install]
 WantedBy=multi-user.target
 EOF
-
-chown -R xray:xray /var/log/xray
-chown -R xray:xray /usr/local/etc/xray
-chown -R xray:xray /usr/local/bin/xray
 
 systemctl daemon-reload
 systemctl enable xray
