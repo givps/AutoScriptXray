@@ -214,25 +214,14 @@ apt install -y sslh
 mkdir -p /var/run/sslh
 
 cat > /etc/default/sslh << 'EOF'
-# Default options for sslh initscript
-# sourced by /etc/init.d/sslh
-
-# Disabled by default, to force yourself to have a configuration
-# file and avoid that your machine is an open relay.
 RUN=yes
-
-# Daemon options
-# DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --ssl 127.0.0.1:4433 --http 127.0.0.1:80 --pidfile /var/run/sslh/sslh.pid -n"
 DAEMON_OPTS="--user sslh \
 --listen 0.0.0.0:443 \
---listen 0.0.0.0:80 \
 --ssh 127.0.0.1:22 \
---ssh 127.0.0.1:110 \
---http 127.0.0.1:1445 \
 --openvpn 127.0.0.1:1196 \
 --ssl 127.0.0.1:4433 \
 --http 127.0.0.1:8080 \
---pidfile /var/run/sslh/sslh.pid -n"
+--pidfile /var/run/sslh/sslh.pid"
 EOF
 
 cat > /etc/systemd/system/sslh.service << 'EOF'
