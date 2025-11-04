@@ -51,7 +51,7 @@ sudo useradd -r -s /usr/sbin/nologin xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
 # Set ownership
 chmod +x /usr/local/bin/xray
-chown -R xray:xray /usr/local/bin/xray
+chown -R root:root /usr/local/bin/xray
 chown -R xray:xray /usr/local/etc/xray
 chown -R xray:xray /var/log/xray
 
@@ -152,7 +152,6 @@ echo "✅ Use Self-signed SSL"
 fi
 
 uuid=$(cat /proc/sys/kernel/random/uuid)
-
 cat > /usr/local/etc/xray/config.json <<EOF
 {
   "log": {
@@ -336,16 +335,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
     "rules": [
       {
         "type": "field",
-        "ip": [
-          "geoip:private"
-        ],
+        "ip": ["geoip:private"],
         "outboundTag": "blocked"
       },
       {
         "type": "field",
-        "protocol": [
-          "bittorrent"
-        ],
+        "protocol": ["bittorrent"],
         "outboundTag": "blocked"
       }
     ]
@@ -380,7 +375,7 @@ systemctl enable xray
 systemctl start xray
 
 #return 301 https://$host$request_uri;
-cat > /etc/nginx/conf.d/xray.conf <<'EOF'
+cat > /etc/nginx/conf.d/xray.conf <<EOF
 server {
     listen 8080;
     listen [::]:8080;
@@ -392,15 +387,12 @@ server {
     listen [::]:4433 ssl http2;
     server_name _;
     
-    # SSL certificates
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
     
-    # SSL settings
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305;
     
-    # WebSocket proxy configurations
     location /vless {
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
@@ -444,8 +436,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
-    # gRPC proxy configurations
+
     location /vless-grpc {
         grpc_pass grpc://127.0.0.1:10005;
         client_max_body_size 0;
@@ -515,4 +506,3 @@ wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/
 
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
-
