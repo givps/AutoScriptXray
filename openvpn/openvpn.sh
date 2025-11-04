@@ -10,6 +10,8 @@ MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
 sudo apt update
 sudo apt install resolvconf -y
 sudo systemctl enable --now resolvconf.service
+grep -q '^nameserver 1.1.1.1$' /etc/resolv.conf || echo 'nameserver 1.1.1.1' >> /etc/resolv.conf
+grep -q '^nameserver 8.8.8.8$' /etc/resolv.conf || echo 'nameserver 8.8.8.8' >> /etc/resolv.conf
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
