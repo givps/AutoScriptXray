@@ -31,11 +31,6 @@ sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 
 case $script_type in
   up)
-    # Simpan resolv.conf asli jika belum ada backup
-    if [ ! -f /etc/resolv.conf.backup ]; then
-        cp /etc/resolv.conf /etc/resolv.conf.backup
-    fi
-
     # Set DNS global (Cloudflare + Google)
     cat <<EOT > /etc/resolv.conf
 nameserver 1.1.1.1
@@ -43,10 +38,7 @@ nameserver 8.8.8.8
 EOT
     ;;
   down)
-    # Restore resolv.conf asli jika backup ada
-    if [ -f /etc/resolv.conf.backup ]; then
-        cp /etc/resolv.conf.backup /etc/resolv.conf
-    fi
+    # jangan restore supaya klien lain tidak terganggu
     ;;
 esac
 EOF
