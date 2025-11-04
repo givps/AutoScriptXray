@@ -158,7 +158,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}          Install XRAY              ${nc}"
 echo -e "${red}=========================================${nc}"
 #Instal Xray
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/tester/xray/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}      Install SSH Websocket           ${nc}"
@@ -272,7 +272,7 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}           Install OpenVPN              ${nc}"
 echo -e "${red}=========================================${nc}"
 # install tor openvpn
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/tester/openvpn/openvpn.sh && chmod +x openvpn.sh && ./openvpn.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/openvpn.sh && chmod +x openvpn.sh && ./openvpn.sh
 
 cat > /root/.profile <<'EOF'
 # ~/.profile: executed by Bourne-compatible login shells.
