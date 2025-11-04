@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Check Shadowsocks Users - IMPROVED VERSION
+# Check Shadowsocks Users - FIXED VERSION
 # ==========================================
 
 # Colors
@@ -16,7 +16,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 
 clear
 
-# Function to get Shadowsocks users using jq
+# Function to get Shadowsocks users using jq - FIXED
 get_ss_users() {
     local config_file="/usr/local/etc/xray/config.json"
     
@@ -27,79 +27,221 @@ get_ss_users() {
     
     # Install jq if not exists
     if ! command -v jq &> /dev/null; then
+        echo -e "${yellow}Installing jq...${nc}" >&2
         apt-get update > /dev/null 2>&1 && apt-get install -y jq > /dev/null 2>&1
     fi
     
-    # Extract Shadowsocks WS users
-    jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[] | .email // empty' "$config_file" 2>/dev/null | grep -v '^$'
+    # Check if config has valid JSON
+    if ! jq empty "$config_file" 2>/dev/null; then
+        echo -e "${red}ERROR: Invalid JSON in config file${nc}" >&2
+        return 1
+    fi
+    
+    local users=()
+    
+    # Extract Shadowsocks WS users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "ss-ws") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local ws_users=$(jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$ws_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$ws_users"
+        fi
+    fi
+    
+    # Extract Shadowsocks gRPC users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "ss-grpc") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local grpc_users=$(jq -r '.inbounds[] | select(.tag == "ss-grpc") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$grpc_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$grpc_users"
+        fi
+    fi
+    
+    # Remove duplicates and return
+    printf '%s\n' "${users[@]}" | sort -u
 }
 
-# Function to get user details using jq
+# Function to get user details using jq - FIXED
 get_user_details() {
     local user="$1"
     local config_file="/usr/local/etc/xray/config.json"
     
-    # Get password and method from config
-    local password=$(jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[] | select(.email == "'"$user"'") | .password' "$config_file" 2>/dev/null)
-    local method=$(jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[] | select(.email == "'"$user"'") | .method' "$config_file" 2>/dev/null)
+    # Get password and method from config - FIXED: handle empty results
+    local password=$(jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[]? | select(.email == "'"$user"'") | .password // empty' "$config_file" 2>/dev/null)
+    local method=$(jq -r '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[]? | select(.email == "'"$user"'") | .method // empty' "$config_file" 2>/dev/null)
     
-    # Get expiry from comments if exists
-    local expiry=$(grep -E "^#! $user " "$config_file" 2>/dev/null | head -1 | awk '{print $3}')
+    # If not found in WS, check gRPC
+    if [[ -z "$password" ]]; then
+        password=$(jq -r '.inbounds[] | select(.tag == "ss-grpc") | .settings.clients[]? | select(.email == "'"$user"'") | .password // empty' "$config_file" 2>/dev/null)
+        method=$(jq -r '.inbounds[] | select(.tag == "ss-grpc") | .settings.clients[]? | select(.email == "'"$user"'") | .method // empty' "$config_file" 2>/dev/null)
+    fi
     
-    if [[ -z "$expiry" ]]; then
-        expiry="Unknown"
+    # Get expiry from database files - IMPROVED
+    local expiry_files=(
+        "/etc/xray/user_expiry.txt"
+        "/root/user_expiry.txt" 
+        "/usr/local/etc/xray/user_expiry.txt"
+        "/var/lib/xray/user_expiry.txt"
+    )
+    
+    local expiry="Not Set"
+    for file in "${expiry_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            local expiry_found=$(grep -E "^$user " "$file" 2>/dev/null | awk '{print $2}')
+            if [[ -n "$expiry_found" ]]; then
+                expiry="$expiry_found"
+                break
+            fi
+        fi
+    done
+    
+    # Fallback to config comments
+    if [[ "$expiry" == "Not Set" ]]; then
+        local expiry_comment=$(grep -E "^#! $user " "$config_file" 2>/dev/null | head -1 | awk '{print $3}')
+        if [[ -n "$expiry_comment" ]]; then
+            expiry="$expiry_comment"
+        fi
     fi
     
     echo "$password|$method|$expiry"
 }
 
-# Function to check active connections for a user
+# Function to get user services (WS/gRPC) - NEW
+get_user_services() {
+    local user="$1"
+    local config_file="/usr/local/etc/xray/config.json"
+    local services=""
+    
+    # Check Shadowsocks WS
+    if jq -e '.inbounds[] | select(.tag == "ss-ws") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
+        services="WS"
+    fi
+    
+    # Check Shadowsocks gRPC
+    if jq -e '.inbounds[] | select(.tag == "ss-grpc") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
+        if [[ -n "$services" ]]; then
+            services="$services+gRPC"
+        else
+            services="gRPC"
+        fi
+    fi
+    
+    echo "${services:-Unknown}"
+}
+
+# Function to check active connections for a user - IMPROVED
 check_user_connections() {
     local user="$1"
     local active_ips=()
     
-    # Check recent connections from access.log (last 10 minutes)
-    if [[ -f "/var/log/xray/access.log" ]]; then
-        local recent_logs=$(find /var/log/xray/ -name "access.log*" -mmin -10 2>/dev/null)
-        
-        for log_file in $recent_logs; do
-            if [[ -f "$log_file" ]]; then
-                # Extract IPs with successful connections for this user
-                local user_ips=$(grep -w "accepted.*email: $user" "$log_file" 2>/dev/null | \
-                               awk '{print $3}' | cut -d: -f1 | sort -u)
-                
-                for ip in $user_ips; do
-                    # Check if IP has active connections in ss/netstat
-                    if ss -tnp 2>/dev/null | grep -q "ESTAB.*xray.*$ip:" || \
-                       netstat -tnp 2>/dev/null | grep -q "ESTABLISHED.*xray.*$ip:"; then
-                        active_ips+=("$ip")
-                    fi
-                done
-            fi
-        done
-    fi
+    # Check Xray access log for recent connections (last 15 minutes)
+    local log_files=(
+        "/var/log/xray/access.log"
+        "/var/log/xray/error.log"
+    )
+    
+    # Find recent log files
+    for log_file in "${log_files[@]}"; do
+        if [[ -f "$log_file" ]]; then
+            # Check for user in logs (last 15 minutes)
+            local recent_logs=$(find "$log_file" -type f -mmin -15 2>/dev/null)
+            
+            for log in $recent_logs; do
+                if [[ -f "$log" ]]; then
+                    # Extract IPs with successful connections for this user
+                    # Match various log formats
+                    local user_ips=$(grep -E "($user|email.*$user)" "$log" 2>/dev/null | \
+                                   grep -E "(accepted|established)" 2>/dev/null | \
+                                   awk '{print $3}' | cut -d: -f1 | sort -u)
+                    
+                    for ip in $user_ips; do
+                        # Validate IP format
+                        if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                            # Check if IP has active connections
+                            if ss -tnp 2>/dev/null | grep -q "ESTAB.*$ip:" || \
+                               netstat -tnp 2>/dev/null | grep -q "ESTABLISHED.*$ip:"; then
+                                active_ips+=("$ip")
+                            elif [[ -n "$ip" ]]; then
+                                # Include recently seen IPs even if not currently connected
+                                active_ips+=("$ip-RECENT")
+                            fi
+                        fi
+                    done
+                fi
+            done
+        fi
+    done
     
     # Remove duplicates and return
     printf '%s\n' "${active_ips[@]}" | sort -u
 }
 
-# Function to count connections per IP
+# Function to count connections per IP - IMPROVED
 count_connections_per_ip() {
     local ip="$1"
-    ss -tnp 2>/dev/null | grep "ESTAB.*xray.*$ip:" | wc -l
+    # Remove -RECENT suffix if present
+    ip="${ip%-RECENT}"
+    
+    # Count connections using ss (more reliable)
+    ss -tnp 2>/dev/null | grep "ESTAB.*$ip:" | wc -l
 }
 
-# Function to get IP location (optional)
+# Function to get IP location - IMPROVED
 get_ip_location() {
     local ip="$1"
-    # Using ipapi.co for location info
-    curl -s "https://ipapi.co/$ip/country/" 2>/dev/null || echo "Unknown"
+    # Remove -RECENT suffix if present
+    ip="${ip%-RECENT}"
+    
+    # Validate IP format
+    if [[ ! $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Invalid IP"
+        return
+    fi
+    
+    # Try multiple location services
+    local location=""
+    
+    # Method 1: ipapi.co
+    location=$(curl -s --connect-timeout 3 "https://ipapi.co/$ip/country_name/" 2>/dev/null)
+    if [[ -n "$location" ]] && [[ "$location" != "Undefined" ]]; then
+        echo "$location"
+        return
+    fi
+    
+    # Method 2: ip-api.com
+    location=$(curl -s --connect-timeout 3 "http://ip-api.com/line/$ip?fields=country" 2>/dev/null)
+    if [[ -n "$location" ]] && [[ "$location" != "fail" ]]; then
+        echo "$location"
+        return
+    fi
+    
+    echo "Unknown"
 }
 
-# Function to calculate date difference
+# Function to calculate date difference - IMPROVED
 date_diff() {
     local date1="$1"
     local date2="$2"
+    
+    # Handle "Not Set" case
+    if [[ "$date1" == "Not Set" ]] || [[ "$date2" == "Not Set" ]]; then
+        echo "0"
+        return
+    fi
+    
+    # Validate date formats
+    if ! date -d "$date1" &>/dev/null; then
+        echo "0"
+        return
+    fi
+    
+    if ! date -d "$date2" &>/dev/null; then
+        echo "0"
+        return
+    fi
+    
     local d1=$(date -d "$date1" +%s 2>/dev/null)
     local d2=$(date -d "$date2" +%s 2>/dev/null)
     
@@ -111,27 +253,47 @@ date_diff() {
     echo $(( (d1 - d2) / 86400 ))
 }
 
-# Main script
-echo -e "${red}=========================================${nc}"
-echo -e "${blue}      SHADOWSOCKS USER MONITOR         ${nc}"
-echo -e "${red}=========================================${nc}"
-echo -e "${yellow}Domain: ${domain}${nc}"
-echo -e "${yellow}Server IP: ${MYIP}${nc}"
-echo -e "${yellow}Time: $(date)${nc}"
-echo ""
+# Function to get user creation date - NEW
+get_user_creation_date() {
+    local user="$1"
+    local log_file="/var/log/create-shadowsocks.log"
+    
+    if [[ -f "$log_file" ]]; then
+        local created=$(grep -E "SHADOWSOCKS ACCOUNT CREATED.*$user" "$log_file" 2>/dev/null | \
+                       head -1 | awk '{print $1, $2}')
+        if [[ -n "$created" ]]; then
+            echo "$created"
+        else
+            echo "Unknown"
+        fi
+    else
+        echo "Unknown"
+    fi
+}
 
-# Get all Shadowsocks users
+# Main script
 echo -e "${yellow}Loading Shadowsocks users...${nc}"
 users=($(get_ss_users))
 
 if [[ ${#users[@]} -eq 0 ]] || [[ -z "${users[0]}" ]]; then
+    echo -e "${red}=========================================${nc}"
+    echo -e "${blue}      SHADOWSOCKS USER MONITOR         ${nc}"
+    echo -e "${red}=========================================${nc}"
     echo -e "${red}No Shadowsocks users found in configuration${nc}"
     echo -e "${yellow}Checking config file structure...${nc}"
     
     # Debug info
     if [[ -f "/usr/local/etc/xray/config.json" ]]; then
         echo -e "${blue}Available inbound tags:${nc}"
-        jq -r '.inbounds[] | .tag' /usr/local/etc/xray/config.json 2>/dev/null || echo "Cannot read config"
+        jq -r '.inbounds[]? | .tag' /usr/local/etc/xray/config.json 2>/dev/null || echo "Cannot read config"
+        
+        echo -e "${blue}Shadowsocks WS clients count:${nc}"
+        jq '[.inbounds[] | select(.tag == "ss-ws") | .settings.clients[]?] | length' /usr/local/etc/xray/config.json 2>/dev/null || echo "0"
+        
+        echo -e "${blue}Shadowsocks gRPC clients count:${nc}"
+        jq '[.inbounds[] | select(.tag == "ss-grpc") | .settings.clients[]?] | length' /usr/local/etc/xray/config.json 2>/dev/null || echo "0"
+    else
+        echo -e "${red}Config file not found${nc}"
     fi
     echo -e "${red}=========================================${nc}"
     read -n 1 -s -r -p "Press any key to back on menu"
@@ -150,33 +312,41 @@ today=$(date +%Y-%m-%d)
 for i in "${!users[@]}"; do
     user="${users[i]}"
     user_details=($(get_user_details "$user" | tr '|' ' '))
+    password="${user_details[0]}"
     method="${user_details[1]}"
     expiry="${user_details[2]}"
+    services=$(get_user_services "$user")
+    created=$(get_user_creation_date "$user")
     
     # Check if expired
-    if [[ "$expiry" != "Unknown" ]]; then
+    if [[ "$expiry" == "Not Set" ]]; then
+        status="${red}NOT SET${nc}"
+        days_text=""
+    else
         days_left=$(date_diff "$expiry" "$today")
         if [[ $days_left -lt 0 ]]; then
             status="${red}EXPIRED${nc}"
+            days_text="($((-$days_left)) days ago)"
         elif [[ $days_left -eq 0 ]]; then
             status="${yellow}TODAY${nc}"
+            days_text="(0 days)"
         elif [[ $days_left -le 7 ]]; then
             status="${yellow}$days_left days${nc}"
+            days_text=""
         else
             status="${green}$days_left days${nc}"
+            days_text=""
         fi
-    else
-        status="${yellow}NO EXPIRY${nc}"
     fi
     
-    printf "  %-3s %-18s %-12s %-10s [%b]\n" "$((i+1))" "$user" "$expiry" "$method" "$status"
+    printf "  %-3s %-18s %-12s %-10s %-8s [%b] %s\n" "$((i+1))" "$user" "$expiry" "$method" "$services" "$status" "$days_text"
 done
 
 echo -e "${red}=========================================${nc}"
 echo ""
 
 # Check active connections
-echo -e "${blue}ACTIVE CONNECTIONS:${nc}"
+echo -e "${blue}ACTIVE & RECENT CONNECTIONS (last 15 minutes):${nc}"
 echo -e "${red}=========================================${nc}"
 
 active_users_count=0
@@ -189,50 +359,69 @@ for user in "${users[@]}"; do
         ((active_users_count++))
         user_details=($(get_user_details "$user" | tr '|' ' '))
         method="${user_details[1]}"
-        expiry="${user_details[2]}"
+        services=$(get_user_services "$user")
         
         echo -e "${green}✓ $user${nc}"
-        echo -e "  └─ Method: ${blue}$method${nc} | Expiry: ${yellow}$expiry${nc}"
+        echo -e "  └─ Method: ${blue}$method${nc} | Services: ${yellow}$services${nc}"
         
         for ip in "${active_ips[@]}"; do
             connection_count=$(count_connections_per_ip "$ip")
             location=$(get_ip_location "$ip")
-            ((total_connections += connection_count))
             
-            echo -e "     ├─ IP: ${blue}$ip${nc}"
-            echo -e "     │  ├─ Connections: ${yellow}$connection_count${nc}"
-            echo -e "     │  └─ Location: ${yellow}$location${nc}"
+            if [[ "$ip" == *"-RECENT" ]]; then
+                # Recent connection (not currently active)
+                ip_clean="${ip%-RECENT}"
+                echo -e "     └─ ${yellow}IP: $ip_clean${nc} (recent)"
+                echo -e "        └─ Location: ${blue}$location${nc}"
+            else
+                # Currently active connection
+                ((total_connections += connection_count))
+                echo -e "     └─ ${blue}IP: $ip${nc}"
+                echo -e "        ├─ Connections: ${green}$connection_count${nc}"
+                echo -e "        └─ Location: ${yellow}$location${nc}"
+            fi
         done
         echo ""
     fi
 done
 
 if [[ $active_users_count -eq 0 ]]; then
-    echo -e "${yellow}No active connections found${nc}"
-    echo -e "${yellow}Note: Checking connections from last 10 minutes${nc}"
+    echo -e "${yellow}No active or recent connections found${nc}"
+    echo -e "${yellow}Note: Checking connections from last 15 minutes${nc}"
 fi
 
-# Show recent connections from logs (last 30 minutes)
-echo -e "${blue}RECENT CONNECTIONS (last 30 minutes):${nc}"
+# Show Xray service logs summary
+echo -e "${blue}XRAY SERVICE STATUS:${nc}"
 echo -e "${red}=========================================${nc}"
 
-recent_connections=$(find /var/log/xray/ -name "access.log*" -mmin -30 2>/dev/null | \
-                    xargs -r grep -h "accepted.*ss-ws" 2>/dev/null | \
-                    tail -20 | head -10)
-
-if [[ -n "$recent_connections" ]]; then
-    echo "$recent_connections" | while read -r line; do
-        timestamp=$(echo "$line" | awk '{print $1, $2}')
-        user=$(echo "$line" | grep -o 'email: [^ ]*' | cut -d' ' -f2)
-        ip=$(echo "$line" | awk '{print $3}' | cut -d: -f1)
-        target=$(echo "$line" | grep -o 'tcp:[^ ]*' | cut -d: -f2-)
-        
-        if [[ -n "$user" ]]; then
-            echo -e "${green}$timestamp${nc} - ${blue}$user${nc} from ${yellow}$ip${nc} to ${cyan}$target${nc}"
-        fi
-    done
+if systemctl is-active --quiet xray; then
+    echo -e "Xray: ${green}RUNNING ✓${nc}"
+    
+    # Show recent errors if any
+    recent_errors=$(journalctl -u xray --since "15 minutes ago" 2>/dev/null | grep -i error | tail -3)
+    if [[ -n "$recent_errors" ]]; then
+        echo -e "${yellow}Recent errors:${nc}"
+        echo "$recent_errors" | while read -r error; do
+            echo -e "  └─ ${red}$error${nc}"
+        done
+    else
+        echo -e "${green}No recent errors${nc}"
+    fi
+    
+    # Show uptime
+    uptime=$(systemctl show xray --property=ActiveEnterTimestamp 2>/dev/null | cut -d= -f2)
+    if [[ -n "$uptime" ]]; then
+        echo -e "Uptime: ${blue}$uptime${nc}"
+    fi
 else
-    echo -e "${yellow}No recent connections found in logs${nc}"
+    echo -e "Xray: ${red}STOPPED ✗${nc}"
+fi
+
+# Nginx status
+if systemctl is-active --quiet nginx; then
+    echo -e "Nginx: ${green}RUNNING ✓${nc}"
+else
+    echo -e "Nginx: ${red}STOPPED ✗${nc}"
 fi
 
 echo -e "${red}=========================================${nc}"
@@ -242,7 +431,7 @@ echo -e "${green}SUMMARY:${nc}"
 echo -e "  Total Users: ${#users[@]}"
 echo -e "  Active Users: $active_users_count"
 echo -e "  Total Connections: $total_connections"
-echo -e "  Monitoring Period: Last 10 minutes"
+echo -e "  Monitoring Period: Last 15 minutes"
 
 # Check expired users
 expired_count=0
@@ -251,7 +440,7 @@ for user in "${users[@]}"; do
     user_details=($(get_user_details "$user" | tr '|' ' '))
     expiry="${user_details[2]}"
     
-    if [[ "$expiry" != "Unknown" ]]; then
+    if [[ "$expiry" != "Not Set" ]]; then
         days_left=$(date_diff "$expiry" "$today")
         if [[ $days_left -lt 0 ]]; then
             ((expired_count++))
@@ -269,18 +458,28 @@ if [[ $expiring_soon_count -gt 0 ]]; then
     echo -e "  ${yellow}Expiring Soon (≤3 days): $expiring_soon_count${nc}"
 fi
 
-# Service status
-echo -e "${blue}SERVICE STATUS:${nc}"
-if systemctl is-active --quiet xray; then
-    echo -e "  Xray: ${green}RUNNING${nc}"
-else
-    echo -e "  Xray: ${red}STOPPED${nc}"
+# Disk usage for logs
+echo -e "${blue}LOG INFORMATION:${nc}"
+log_size=$(du -sh /var/log/xray/ 2>/dev/null | cut -f1)
+echo -e "  Xray Logs Size: ${yellow}${log_size:-Unknown}${nc}"
+
+echo -e "${red}=========================================${nc}"
+
+# Quick health check
+echo -e "${blue}QUICK HEALTH CHECK:${nc}"
+if [[ -f "/usr/local/etc/xray/config.json" ]]; then
+    if /usr/local/bin/xray -test -config /usr/local/etc/xray/config.json &>/dev/null; then
+        echo -e "  Config Test: ${green}PASSED ✓${nc}"
+    else
+        echo -e "  Config Test: ${red}FAILED ✗${nc}"
+    fi
 fi
 
-if systemctl is-active --quiet nginx; then
-    echo -e "  Nginx: ${green}RUNNING${nc}"
+# Check if ports are listening
+if ss -tulpn | grep -q ":443 "; then
+    echo -e "  Port 443: ${green}LISTENING ✓${nc}"
 else
-    echo -e "  Nginx: ${red}STOPPED${nc}"
+    echo -e "  Port 443: ${red}NOT LISTENING ✗${nc}"
 fi
 
 echo -e "${red}=========================================${nc}"
