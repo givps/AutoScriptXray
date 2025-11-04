@@ -388,8 +388,8 @@ server {
 }
 
 server {
-    listen 4343 ssl;
-    listen [::]:4343 ssl;
+    listen 4433 ssl;
+    listen [::]:4433 ssl;
     server_name _;
     
     # SSL certificates
