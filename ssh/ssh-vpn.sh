@@ -196,6 +196,7 @@ EOF
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
+systemctl daemon-reload
 systemctl enable dropbear
 systemctl start dropbear
 
@@ -422,6 +423,7 @@ findtime = 86400
 maxretry = 5
 EOF
 
+systemctl daemon-reload
 systemctl enable fail2ban
 systemctl start fail2ban
 
@@ -524,6 +526,7 @@ cat > /home/re_otm <<EOF
 7
 EOF
 
+systemctl daemon-reload
 systemctl enable cron
 systemctl start cron
 
