@@ -322,8 +322,8 @@ iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -C INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 # Allow HTTP/HTTPS nginx
-iptables -C INPUT -p tcp --dport 4343 -j ACCEPT 2>/dev/null || \
-iptables -I INPUT -p tcp --dport 4343 -j ACCEPT
+iptables -C INPUT -p tcp --dport 4433 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 4433 -j ACCEPT
 iptables -C INPUT -p tcp --dport 8080 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
 # Allow WebSocket ports
