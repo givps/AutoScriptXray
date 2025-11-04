@@ -212,7 +212,6 @@ apt install -y sslh
 
 # Create directory for PID file
 mkdir -p /var/run/sslh
-chown sslh:sslh /var/run/sslh
 
 cat > /etc/default/sslh << 'EOF'
 # Default options for sslh initscript
@@ -252,6 +251,8 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
+
+chown sslh:sslh /var/run/sslh
 
 # Enable and start SSLH service
 systemctl daemon-reload
