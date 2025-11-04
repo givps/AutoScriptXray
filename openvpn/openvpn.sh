@@ -167,20 +167,21 @@ fi
 
 for SUBNET in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
     iptables -t nat -C POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -A POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
+    iptables -t nat -I POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
 done
 
+# OpenVPN TCP 1195 (public)
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p tcp --dport 1195 -j ACCEPT
+iptables -I INPUT -p tcp --dport 1195 -j ACCEPT
 
-iptables -C INPUT -p tcp --dport 1196 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p tcp --dport 1196 -j ACCEPT
+# OpenVPN TCP 1196 (local, via sslh 443)
+iptables -C INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1196 -j DROP
 
-iptables -C INPUT -p udp --dport 51825 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p udp --dport 51825 -j ACCEPT
-
+# OpenVPN UDP 51825
 iptables -C INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT 2>/dev/null || \
-iptables -A INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT
+iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT
 
 netfilter-persistent save
 netfilter-persistent reload
