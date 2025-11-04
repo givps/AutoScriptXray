@@ -219,6 +219,26 @@ cat > /usr/local/etc/xray/config.json <<EOF
       }
     },
     {
+      "tag": "ss-ws",
+      "listen": "127.0.0.1",
+      "port": 10004,
+      "protocol": "shadowsocks",
+      "settings": {
+      "method": "aes-128-gcm",
+        "clients": [
+          {
+            "password": "$uuid"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/ss-ws"
+        }
+      }
+    },
+    {
       "tag": "vless-grpc",
       "listen": "127.0.0.1",
       "port": 10005,
@@ -273,6 +293,26 @@ cat > /usr/local/etc/xray/config.json <<EOF
         "network": "grpc",
         "grpcSettings": {
           "serviceName": "trojan-grpc"
+        }
+      }
+    },
+    {
+      "tag": "ss-grpc",
+      "listen": "127.0.0.1",
+      "port": 10008,
+      "protocol": "shadowsocks",
+      "settings": {
+      "method": "aes-128-gcm",
+        "clients": [
+          {
+            "password": "$uuid"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "ss-grpc"
         }
       }
     }
