@@ -211,6 +211,7 @@ cat > /usr/local/etc/xray/config.json <<EOF
         "clients": [
           {
             "password": "$uuid"
+            "flow": ""
           }
         ]
       },
