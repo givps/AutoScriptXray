@@ -49,7 +49,7 @@ persist-tun
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
-compress stub-v2
+# compress stub-v2
 verb 3
 
 <ca>
@@ -84,7 +84,7 @@ persist-tun
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
-compress stub-v2
+# compress stub-v2
 verb 3
 explicit-exit-notify 1
 
@@ -120,7 +120,7 @@ persist-tun
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
-compress stub-v2
+# compress stub-v2
 verb 3
 
 <ca>
