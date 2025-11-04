@@ -125,7 +125,7 @@ display_menu() {
     echo -e "${white} 6 ${nc}  : Menu TOR"
     echo -e "${white} 7 ${nc}  : Xray Log"
     echo -e "${white} 8 ${nc}  : Status Service"
-    echo -e "${white} 9 ${nc} : Clear RAM Cache"
+    echo -e "${white} 9 ${nc}  : Clear RAM Cache"
     echo -e "${white} 10 ${nc} : Reboot VPS"
     echo -e "${white} x ${nc}  : Exit Script"
     echo -e ""
