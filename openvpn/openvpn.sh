@@ -45,8 +45,11 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
+
 auth-user-pass
-comp-lzo
+auth SHA256
+cipher AES-256-GCM
+compress stub-v2
 verb 3
 
 <ca>
@@ -74,13 +77,16 @@ dev tun
 proto udp
 remote $MYIP 51825
 resolv-retry infinite
-route-method exe
 nobind
 persist-key
 persist-tun
+
 auth-user-pass
-comp-lzo
+auth SHA256
+cipher AES-256-GCM
+compress stub-v2
 verb 3
+explicit-exit-notify 1
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -110,9 +116,12 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
+
 auth-user-pass
-comp-lzo
-verb 
+auth SHA256
+cipher AES-256-GCM
+compress stub-v2
+verb 3
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
