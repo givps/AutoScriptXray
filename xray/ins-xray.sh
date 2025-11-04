@@ -399,6 +399,8 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 
     location /vmess {
@@ -410,6 +412,8 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 
     location /trojan-ws {
@@ -421,6 +425,21 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
+    location /ss-ws {
+        proxy_pass http://127.0.0.1:10004;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 
     location /vless-grpc {
@@ -429,6 +448,8 @@ server {
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
     }
 
     location /vmess-grpc {
@@ -437,6 +458,8 @@ server {
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
     }
 
     location /trojan-grpc {
@@ -445,6 +468,18 @@ server {
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
+    }
+
+    location /ss-grpc {
+        grpc_pass grpc://127.0.0.1:10008;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
     }
 }
 EOF
