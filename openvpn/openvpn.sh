@@ -7,11 +7,15 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
+sudo apt update
+sudo apt install resolvconf -y
+sudo systemctl enable --now resolvconf.service
 rm -rf /etc/openvpn/
-rm -rf /usr/share/nginx/html/openvpn/
+rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
 wget -q -O /usr/share/nginx/html/openvpn/index.html "https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/index"
-nginx -t && systemctl reload nginx
+systemctl daemon-reload
+systemctl reload nginx
 # Install OpenVPN dan Easy-RSA
 apt install openvpn easy-rsa unzip -y
 apt install openssl iptables iptables-persistent -y
@@ -22,12 +26,46 @@ unzip server.zip
 rm -f server.zip
 chown -R root:root /etc/openvpn/
 
+sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
+#!/bin/bash
+
+case $script_type in
+  up)
+    # Simpan resolv.conf asli jika belum ada backup
+    if [ ! -f /etc/resolv.conf.backup ]; then
+        cp /etc/resolv.conf /etc/resolv.conf.backup
+    fi
+
+    # Set DNS global (Cloudflare + Google)
+    cat <<EOT > /etc/resolv.conf
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOT
+    ;;
+  down)
+    # Restore resolv.conf asli jika backup ada
+    if [ -f /etc/resolv.conf.backup ]; then
+        cp /etc/resolv.conf.backup /etc/resolv.conf
+    fi
+    ;;
+esac
+EOF
+
+# Jadikan executable
+sudo chmod +x /etc/openvpn/update-resolv-conf.sh
+
 cd
 mkdir -p /usr/lib/openvpn/
 cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib/openvpn/openvpn-plugin-auth-pam.so
 
 # /etc/default/openvpn
 sed -i 's/#AUTOSTART="all"/AUTOSTART="all"/g' /etc/default/openvpn
+
+# enable openvpn
+systemctl enable --now openvpn-server@server-tcp
+systemctl enable --now openvpn-server@server-udp
+systemctl enable --now openvpn-server@server-ssl
+systemctl enable --now openvpn
 
 # Buat config client TCP 1195
 cat > /etc/openvpn/tcp.ovpn <<EOF
@@ -44,6 +82,10 @@ auth-user-pass
 auth SHA256
 cipher AES-256-GCM
 verb 3
+
+script-security 2
+up /etc/openvpn/update-resolv-conf.sh
+down /etc/openvpn/update-resolv-conf.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -80,6 +122,10 @@ cipher AES-256-GCM
 verb 3
 explicit-exit-notify 1
 
+script-security 2
+up /etc/openvpn/update-resolv-conf.sh
+down /etc/openvpn/update-resolv-conf.sh
+
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
 </ca>
@@ -113,6 +159,10 @@ auth-user-pass
 auth SHA256
 cipher AES-256-GCM
 verb 3
+
+script-security 2
+up /etc/openvpn/update-resolv-conf.sh
+down /etc/openvpn/update-resolv-conf.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -169,8 +219,9 @@ iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 1195 -j ACCEPT
 
 # OpenVPN TCP 1196
-iptables -C INPUT -p tcp --dport 1196 -j ACCEPT 2>/dev/null || \
-iptables -I INPUT -p tcp --dport 1196 -j ACCEPT
+iptables -C INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT
+iptables -A INPUT -p tcp --dport 1196 -j DROP
 
 # OpenVPN UDP 51825
 iptables -C INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 -j ACCEPT 2>/dev/null || \
@@ -178,21 +229,3 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 
 netfilter-persistent save
 netfilter-persistent reload
-
-# enable openvpn
-systemctl daemon-reload
-systemctl start openvpn-server@server-tcp
-systemctl start openvpn-server@server-udp
-systemctl start openvpn-server@server-ssl
-systemctl start openvpn
-
-systemctl enable openvpn-server@server-tcp
-systemctl enable openvpn-server@server-udp
-systemctl enable openvpn-server@server-ssl
-systemctl enable openvpn
-
-systemctl restart openvpn-server@server-tcp
-systemctl restart openvpn-server@server-udp
-systemctl restart openvpn-server@server-ssl
-systemctl restart openvpn
-
