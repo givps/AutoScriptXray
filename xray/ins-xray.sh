@@ -42,11 +42,10 @@ echo -e "[ INFO ] Creating directories and setting permissions..."
 # Set ownership recursive untuk config dan log
 mkdir -p /var/log/xray
 mkdir -p /usr/local/etc/xray
+mkdir -p /usr/local/bin/xray
 # Create log files
 touch /var/log/xray/access.log /var/log/xray/error.log
-
 sudo useradd -r -s /usr/sbin/nologin xray
-sudo chown -R xray:xray /usr/local/etc/xray /usr/local/bin/xray
 
 # xray official
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
