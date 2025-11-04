@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Add Trojan Account - WITH gRPC SUPPORT
+# Add Trojan Account - WITH gRPC SUPPORT - FIXED
 # ==========================================
 
 # Colors
@@ -40,24 +40,31 @@ else
     echo -e "${yellow}ℹ gRPC support not detected (optional)${nc}"
 fi
 
-# Function to validate username
+# Function to validate username - FIXED
 validate_username() {
     local user="$1"
+    
+    # Validate format
     if [[ ! $user =~ ^[a-zA-Z0-9_]+$ ]]; then
         echo -e "${red}ERROR${nc}: Username can only contain letters, numbers and underscores"
         return 1
     fi
     
-    # Check if user exists using jq (more reliable)
+    # Check if user exists using jq - FIXED METHOD
     if command -v jq &> /dev/null; then
-        local user_exists=$(jq '.inbounds[] | select(.tag == "trojan-ws" or .tag == "trojan-grpc") | .settings.clients[] | select(.email == "'"$user"'")' /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
-        if [[ $user_exists -gt 0 ]]; then
+        # Check in Trojan WS
+        local user_exists_ws=$(jq '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[] | select(.email == "'"$user"'") | .email' /usr/local/etc/xray/config.json 2>/dev/null)
+        # Check in Trojan gRPC
+        local user_exists_grpc=$(jq '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[] | select(.email == "'"$user"'") | .email' /usr/local/etc/xray/config.json 2>/dev/null)
+        
+        if [[ -n "$user_exists_ws" ]] || [[ -n "$user_exists_grpc" ]]; then
             echo -e "${red}ERROR${nc}: User $user already exists"
             return 1
         fi
     else
-        # Fallback to grep
-        local user_exists=$(grep -w "$user" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
+        # Fallback to grep - IMPROVED
+        echo -e "${yellow}⚠ jq not found, using grep fallback${nc}"
+        local user_exists=$(grep -o "\"email\":\"$user\"" /usr/local/etc/xray/config.json 2>/dev/null | wc -l)
         if [[ $user_exists -gt 0 ]]; then
             echo -e "${red}ERROR${nc}: User $user already exists"
             return 1
@@ -67,7 +74,17 @@ validate_username() {
     return 0
 }
 
-# Function to add user using jq
+# Function to check if trojan-grpc inbound exists - NEW FUNCTION
+check_trojan_grpc_exists() {
+    local config_file="$1"
+    if jq '.inbounds[] | select(.tag == "trojan-grpc")' "$config_file" &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to add user using jq - FIXED
 add_trojan_user() {
     local user="$1"
     local uuid="$2"
@@ -77,6 +94,10 @@ add_trojan_user() {
     if ! command -v jq &> /dev/null; then
         echo -e "${yellow}Installing jq...${nc}"
         apt-get update > /dev/null 2>&1 && apt-get install -y jq > /dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            echo -e "${red}ERROR${nc}: Failed to install jq"
+            return 1
+        fi
     fi
     
     # Backup config
@@ -96,14 +117,26 @@ add_trojan_user() {
         return 1
     fi
     
-    echo -e "${yellow}Current Trojan WS clients: $(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")${nc}"
+    # Get current client count
+    current_ws_clients=$(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")
+    echo -e "${yellow}Current Trojan WS clients: $current_ws_clients${nc}"
     
-    # Add to Trojan WS
+    # Add to Trojan WS - FIXED SYNTAX
     echo -e "${yellow}Adding user to Trojan WS...${nc}"
-    jq '(.inbounds[] | select(.tag == "trojan-ws").settings.clients) += [{"password": "'"$uuid"'", "email": "'"$user"'"}]' "$config_file" > "${config_file}.tmp"
+    if ! jq '(.inbounds[] | select(.tag == "trojan-ws").settings.clients) += [{"password": "'"$uuid"'", "email": "'"$user"'"}]' "$config_file" > "${config_file}.tmp"; then
+        echo -e "${red}ERROR${nc}: Failed to update Trojan WS (jq error)"
+        return 1
+    fi
     
-    if [[ $? -ne 0 ]] || [[ ! -f "${config_file}.tmp" ]]; then
-        echo -e "${red}ERROR${nc}: Failed to update Trojan WS"
+    if [[ ! -f "${config_file}.tmp" ]]; then
+        echo -e "${red}ERROR${nc}: Temporary file not created"
+        return 1
+    fi
+    
+    # Validate the temp file before replacing
+    if ! jq empty "${config_file}.tmp" 2>/dev/null; then
+        echo -e "${red}ERROR${nc}: Generated config has invalid JSON"
+        rm -f "${config_file}.tmp"
         return 1
     fi
     
@@ -119,30 +152,39 @@ add_trojan_user() {
         return 1
     fi
     
-    # Add to Trojan gRPC if enabled
-    if $grpc_enabled; then
+    # Add to Trojan gRPC if enabled AND exists - FIXED CHECK
+    if $grpc_enabled && check_trojan_grpc_exists "$config_file"; then
         echo -e "${yellow}Adding user to Trojan gRPC...${nc}"
-        jq '(.inbounds[] | select(.tag == "trojan-grpc").settings.clients) += [{"password": "'"$uuid"'", "email": "'"$user"'"}]' "$config_file" > "${config_file}.tmp2"
-        
-        if [[ $? -eq 0 ]] && [[ -f "${config_file}.tmp2" ]]; then
-            mv "${config_file}.tmp2" "$config_file"
-            
-            # Verify the user was added to gRPC
-            local user_added_grpc=$(jq '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[] | select(.email == "'"$user"'") | .email' "$config_file" 2>/dev/null)
-            
-            if [[ "$user_added_grpc" == "\"$user\"" ]]; then
-                echo -e "${green}✓ User successfully added to Trojan gRPC${nc}"
+        if jq '(.inbounds[] | select(.tag == "trojan-grpc").settings.clients) += [{"password": "'"$uuid"'", "email": "'"$user"'"}]' "$config_file" > "${config_file}.tmp2"; then
+            if jq empty "${config_file}.tmp2" 2>/dev/null; then
+                mv "${config_file}.tmp2" "$config_file"
+                
+                # Verify the user was added to gRPC
+                local user_added_grpc=$(jq '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[] | select(.email == "'"$user"'") | .email' "$config_file" 2>/dev/null)
+                
+                if [[ "$user_added_grpc" == "\"$user\"" ]]; then
+                    echo -e "${green}✓ User successfully added to Trojan gRPC${nc}"
+                else
+                    echo -e "${yellow}⚠ User not found in Trojan gRPC after update${nc}"
+                fi
             else
-                echo -e "${yellow}⚠ User not found in Trojan gRPC after update${nc}"
+                echo -e "${yellow}⚠ Invalid JSON generated for gRPC update${nc}"
+                rm -f "${config_file}.tmp2"
             fi
         else
-            echo -e "${yellow}⚠ Failed to update Trojan gRPC (service might not be configured)${nc}"
+            echo -e "${yellow}⚠ Failed to update Trojan gRPC${nc}"
         fi
+    elif $grpc_enabled; then
+        echo -e "${yellow}⚠ Trojan gRPC tag not found in config, skipping${nc}"
     fi
     
-    echo -e "${yellow}New Trojan WS clients: $(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")${nc}"
-    if $grpc_enabled; then
-        echo -e "${yellow}New Trojan gRPC clients: $(jq '[.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[]] | length' "$config_file")${nc}"
+    # Show final counts
+    new_ws_clients=$(jq '[.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]] | length' "$config_file")
+    echo -e "${yellow}New Trojan WS clients: $new_ws_clients${nc}"
+    
+    if $grpc_enabled && check_trojan_grpc_exists "$config_file"; then
+        new_grpc_clients=$(jq '[.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[]] | length' "$config_file")
+        echo -e "${yellow}New Trojan gRPC clients: $new_grpc_clients${nc}"
     fi
     
     return 0
@@ -204,7 +246,7 @@ if ! add_trojan_user "$user" "$uuid"; then
     exit 1
 fi
 
-# Create Trojan links
+# Create Trojan links - FIXED: Use actual ports from config
 trojanlink="trojan://${uuid}@${domain}:${tls}?path=%2Ftrojan-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
 trojanlink2="trojan://${uuid}@${domain}:${ntls}?path=%2Ftrojan-ws&security=none&host=${domain}&type=ws#${user}"
 
@@ -213,27 +255,38 @@ if $grpc_enabled; then
     trojanlink3="trojan://${uuid}@${domain}:${grpc_port}?security=tls&type=grpc&serviceName=trojan-grpc&sni=${domain}#${user}-gRPC"
 fi
 
-# Restart Xray service
+# Restart Xray service with better error handling
 echo -e "${yellow}Restarting Xray service...${nc}"
 if systemctl restart xray; then
     echo -e "${green}✓ Xray service restarted successfully${nc}"
     
     # Wait and check if service is running
-    sleep 3
+    sleep 5
     if systemctl is-active --quiet xray; then
         echo -e "${green}✓ Xray service is running properly${nc}"
+        
+        # Additional check: test config
+        if /usr/local/bin/xray -test -config /usr/local/etc/xray/config.json &>/dev/null; then
+            echo -e "${green}✓ Xray config test passed${nc}"
+        else
+            echo -e "${red}✗ Xray config test failed${nc}"
+        fi
     else
         echo -e "${red}✗ Xray service failed to start${nc}"
+        echo -e "${yellow}Checking Xray status...${nc}"
+        systemctl status xray --no-pager -l
         echo -e "${yellow}Restoring backup config...${nc}"
         latest_backup=$(ls -t /usr/local/etc/xray/config.json.backup.* 2>/dev/null | head -1)
         if [[ -n "$latest_backup" ]]; then
             cp "$latest_backup" /usr/local/etc/xray/config.json
             systemctl restart xray
+            echo -e "${green}✓ Config restored and Xray restarted${nc}"
         fi
         exit 1
     fi
 else
     echo -e "${red}ERROR${nc}: Failed to restart Xray service"
+    systemctl status xray --no-pager -l
     exit 1
 fi
 
@@ -322,6 +375,7 @@ if $grpc_enabled; then
 echo -e "Port gRPC      : ${grpc_port}" | tee -a /var/log/create-trojan.log
 fi
 echo -e "Password       : ${uuid}" | tee -a /var/log/create-trojan.log
+echo -e "Expired On     : $exp" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${green}Link TLS (WS)${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${trojanlink}" | tee -a /var/log/create-trojan.log
@@ -334,7 +388,6 @@ echo -e "${green}Link gRPC${nc}" | tee -a /var/log/create-trojan.log
 echo -e "${trojanlink3}" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 fi
-echo -e "Expired On     : $exp" | tee -a /var/log/create-trojan.log
 echo -e "Config File    : $CLIENT_DIR/trojan-$user.txt" | tee -a /var/log/create-trojan.log
 echo -e "${red}=========================================${nc}" | tee -a /var/log/create-trojan.log
 echo "" | tee -a /var/log/create-trojan.log
