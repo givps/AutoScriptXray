@@ -168,15 +168,13 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "settings": {
         "clients": [
           {
-            "id": "$uuid",
-            "flow": ""
+            "id": "$uuid"
           }
         ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
         "wsSettings": {
           "path": "/vless"
         }
@@ -196,7 +194,6 @@ cat > /usr/local/etc/xray/config.json <<EOF
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
         "wsSettings": {
           "path": "/vmess"
         }
@@ -211,32 +208,13 @@ cat > /usr/local/etc/xray/config.json <<EOF
         "clients": [
           {
             "password": "$uuid"
-            "flow": ""
           }
         ]
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
         "wsSettings": {
           "path": "/trojan-ws"
-        }
-      }
-    },
-    {
-      "tag": "ss-ws",
-      "listen": "127.0.0.1",
-      "port": 10004,
-      "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
-      "streamSettings": {
-        "network": "ws",
-        "security": "none",
-        "wsSettings": {
-          "path": "/ss-ws"
         }
       }
     },
@@ -248,15 +226,13 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "settings": {
         "clients": [
           {
-            "id": "$uuid",
-            "flow": ""
+            "id": "$uuid"
           }
         ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
         "grpcSettings": {
           "serviceName": "vless-grpc"
         }
@@ -276,7 +252,6 @@ cat > /usr/local/etc/xray/config.json <<EOF
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
         "grpcSettings": {
           "serviceName": "vmess-grpc"
         }
@@ -296,26 +271,8 @@ cat > /usr/local/etc/xray/config.json <<EOF
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
         "grpcSettings": {
           "serviceName": "trojan-grpc"
-        }
-      }
-    },
-    {
-      "tag": "ss-grpc",
-      "listen": "127.0.0.1",
-      "port": 10008,
-      "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
-      "streamSettings": {
-        "network": "grpc",
-        "security": "none",
-        "grpcSettings": {
-          "serviceName": "ss-grpc"
         }
       }
     }
@@ -323,12 +280,10 @@ cat > /usr/local/etc/xray/config.json <<EOF
   "outbounds": [
     {
       "protocol": "freedom",
-      "settings": {},
       "tag": "direct"
     },
     {
       "protocol": "blackhole",
-      "settings": {},
       "tag": "blocked"
     }
   ],
@@ -388,13 +343,13 @@ server {
     listen 4433 ssl http2;
     listen [::]:4433 ssl http2;
     server_name _;
-    
+
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
-    
+
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305;
-    
+
     location /vless {
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
@@ -405,7 +360,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /vmess {
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
@@ -416,20 +371,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /trojan-ws {
         proxy_pass http://127.0.0.1:10003;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /ss-ws {
-        proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -446,7 +390,7 @@ server {
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         grpc_set_header Host $host;
     }
-    
+
     location /vmess-grpc {
         grpc_pass grpc://127.0.0.1:10006;
         client_max_body_size 0;
@@ -454,17 +398,9 @@ server {
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         grpc_set_header Host $host;
     }
-    
+
     location /trojan-grpc {
         grpc_pass grpc://127.0.0.1:10007;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /ss-grpc {
-        grpc_pass grpc://127.0.0.1:10008;
         client_max_body_size 0;
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
