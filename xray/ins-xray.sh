@@ -371,8 +371,8 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable xray
-systemctl start xray
+systemctl enable xray.service
+systemctl start xray.service
 
 # nginx
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
