@@ -40,13 +40,14 @@ echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
 # create folder
-mkdir -p /var/log/xray /usr/local/etc/xray /usr/local/bin/xray
+mkdir -p /var/log/xray /usr/local/etc/xray /usr/local/bin
 touch /var/log/xray/access.log /var/log/xray/error.log
 # create xray user
 sudo useradd -r -s /usr/sbin/nologin xray
 # xray official
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
 # Set ownership
+chmod +x /usr/local/bin/xray
 chown -R xray:xray /var/log/xray /usr/local/etc/xray /usr/local/bin/xray
 
 # nginx stop
