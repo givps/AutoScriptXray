@@ -453,11 +453,11 @@ wget -O del-tr "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xr
 wget -O cek-tr "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-tr.sh" && chmod +x cek-tr
 
 # shadowsocks
-wget -O add-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/add-ssws.sh" && chmod +x add-ssws
-wget -O trial-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/trial-ssws.sh" && chmod +x trial-ssws
-wget -O renew-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/renew-ssws.sh" && chmod +x renew-ssws
-wget -O del-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/del-ssws.sh" && chmod +x del-ssws
-wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-ssws.sh" && chmod +x cek-ssws
+#wget -O add-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/add-ssws.sh" && chmod +x add-ssws
+#wget -O trial-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/trial-ssws.sh" && chmod +x trial-ssws
+#wget -O renew-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/renew-ssws.sh" && chmod +x renew-ssws
+#wget -O del-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/del-ssws.sh" && chmod +x del-ssws
+#wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-ssws.sh" && chmod +x cek-ssws
 
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
