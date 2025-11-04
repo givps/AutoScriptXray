@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Delete VMess Account
+# Delete VMess Account - FIXED VERSION
 # ==========================================
 
 # Colors
@@ -16,242 +16,494 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 
 clear
 
-# Function to count VMess users
-count_vmess_users() {
-    if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
-        echo "0"
+# Function to get VMess users using jq - FIXED
+get_vmess_users() {
+    local config_file="/usr/local/etc/xray/config.json"
+    
+    if [[ ! -f "$config_file" ]]; then
+        echo -e "${red}ERROR: Config file not found${nc}" >&2
         return 1
     fi
-    grep -c -E "^### " "/usr/local/etc/xray/config.json" 2>/dev/null || echo "0"
+    
+    # Install jq if not exists
+    if ! command -v jq &> /dev/null; then
+        echo -e "${yellow}Installing jq...${nc}" >&2
+        apt-get update > /dev/null 2>&1 && apt-get install -y jq > /dev/null 2>&1
+    fi
+    
+    # Check if config has valid JSON
+    if ! jq empty "$config_file" 2>/dev/null; then
+        echo -e "${red}ERROR: Invalid JSON in config file${nc}" >&2
+        return 1
+    fi
+    
+    local users=()
+    
+    # Extract VMess WS users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "vmess-ws") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local ws_users=$(jq -r '.inbounds[] | select(.tag == "vmess-ws") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$ws_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$ws_users"
+        fi
+    fi
+    
+    # Extract VMess gRPC users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "vmess-grpc") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local grpc_users=$(jq -r '.inbounds[] | select(.tag == "vmess-grpc") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$grpc_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$grpc_users"
+        fi
+    fi
+    
+    # Remove duplicates and return
+    printf '%s\n' "${users[@]}" | sort -u
+}
+
+# Function to count VMess users - FIXED
+count_vmess_users() {
+    local users=($(get_vmess_users))
+    echo ${#users[@]}
 }
 
 # Function to backup config
 backup_config() {
-    if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
-        echo "error"
+    local config_file="/usr/local/etc/xray/config.json"
+    local backup_file="/usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
+    
+    if [[ ! -f "$config_file" ]]; then
+        echo -e "${red}ERROR: Config file not found for backup${nc}" >&2
         return 1
     fi
-    local backup_file="/usr/local/etc/xray/config.json.backup.$(date +%Y%m%d%H%M%S)"
-    if cp /usr/local/etc/xray/config.json "$backup_file" 2>/dev/null; then
+    
+    if cp "$config_file" "$backup_file" 2>/dev/null; then
         echo "$backup_file"
+        return 0
     else
-        echo "error"
+        echo -e "${red}ERROR: Failed to create backup${nc}" >&2
+        return 1
     fi
 }
 
-# Function to restore config
+# Function to restore config on error
 restore_config() {
     local backup_file="$1"
-    if [[ -f "$backup_file" && -f "/usr/local/etc/xray/config.json" ]]; then
-        cp "$backup_file" /usr/local/etc/xray/config.json
-        rm -f "$backup_file"
-        return 0
+    local config_file="/usr/local/etc/xray/config.json"
+    
+    if [[ -f "$backup_file" ]]; then
+        if cp "$backup_file" "$config_file"; then
+            echo -e "${green}✓ Config restored from backup${nc}"
+            rm -f "$backup_file" 2>/dev/null
+            return 0
+        else
+            echo -e "${red}✗ Failed to restore config from backup${nc}"
+            return 1
+        fi
+    else
+        echo -e "${red}✗ Backup file not found: $backup_file${nc}"
+        return 1
     fi
-    return 1
 }
 
-# Function to delete user from config
-delete_user_from_config() {
+# Function to get user expiry - IMPROVED
+get_user_expiry() {
     local user="$1"
-    local exp="$2"
+    
+    # Check multiple possible expiry storage locations
+    local expiry_files=(
+        "/etc/xray/user_expiry.txt"
+        "/root/user_expiry.txt" 
+        "/usr/local/etc/xray/user_expiry.txt"
+        "/var/lib/xray/user_expiry.txt"
+    )
+    
+    for file in "${expiry_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            local expiry=$(grep -E "^$user " "$file" 2>/dev/null | awk '{print $2}')
+            if [[ -n "$expiry" ]]; then
+                echo "$expiry"
+                return 0
+            fi
+        fi
+    done
+    
+    # Check in config comments (fallback)
+    local config_file="/usr/local/etc/xray/config.json"
+    if [[ -f "$config_file" ]]; then
+        local expiry=$(grep -E "#! $user " "$config_file" 2>/dev/null | awk '{print $3}')
+        if [[ -n "$expiry" ]]; then
+            echo "$expiry"
+            return 0
+        fi
+    fi
+    
+    echo "Not Set"
+}
+
+# Function to get user UUID - NEW
+get_user_uuid() {
+    local user="$1"
+    local config_file="/usr/local/etc/xray/config.json"
+    
+    # Get UUID from VMess WS
+    local uuid=$(jq -r '.inbounds[] | select(.tag == "vmess-ws") | .settings.clients[]? | select(.email == "'"$user"'") | .id // empty' "$config_file" 2>/dev/null)
+    
+    # If not found in WS, check gRPC
+    if [[ -z "$uuid" ]]; then
+        uuid=$(jq -r '.inbounds[] | select(.tag == "vmess-grpc") | .settings.clients[]? | select(.email == "'"$user"'") | .id // empty' "$config_file" 2>/dev/null)
+    fi
+    
+    echo "$uuid"
+}
+
+# Function to get user services (WS/gRPC) - NEW
+get_user_services() {
+    local user="$1"
+    local config_file="/usr/local/etc/xray/config.json"
+    local services=""
+    
+    # Check VMess WS
+    if jq -e '.inbounds[] | select(.tag == "vmess-ws") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
+        services="WS"
+    fi
+    
+    # Check VMess gRPC
+    if jq -e '.inbounds[] | select(.tag == "vmess-grpc") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
+        if [[ -n "$services" ]]; then
+            services="$services+gRPC"
+        else
+            services="gRPC"
+        fi
+    fi
+    
+    echo "${services:-Unknown}"
+}
+
+# Function to delete user using jq - FIXED
+delete_vmess_user() {
+    local user="$1"
     local config_file="/usr/local/etc/xray/config.json"
     
     if [[ ! -f "$config_file" ]]; then
+        echo -e "${red}ERROR: Config file not found${nc}" >&2
         return 1
     fi
     
-    # Create temporary file
-    local temp_file=$(mktemp)
-    
-    # Use awk untuk menghapus user section yang lebih reliable
-    awk -v user="$user" -v exp="$exp" '
-    BEGIN { skip = 0; in_user_section = 0 }
-    /^### '${user}' '${exp}'$/ { 
-        skip = 1
-        in_user_section = 1
-        next
-    }
-    skip && /^},{/ { 
-        skip = 0
-        in_user_section = 0
-        next
-    }
-    skip && in_user_section && /\"email\": \"'${user}'\"/ {
-        skip = 1
-        next
-    }
-    !skip { print }
-    ' "$config_file" > "$temp_file"
-    
-    # Verify the deletion worked by checking if user still exists
-    if grep -q "^### $user $exp" "$temp_file" || \
-       grep -q "\"email\": \"$user\"" "$temp_file"; then
-        rm -f "$temp_file"
+    # Backup config
+    local backup_file=$(backup_config)
+    if [[ -z "$backup_file" ]]; then
+        echo -e "${red}ERROR: Failed to create backup${nc}" >&2
         return 1
     fi
     
-    # Verify JSON validity
-    if python3 -m json.tool "$temp_file" > /dev/null 2>&1; then
-        mv "$temp_file" "$config_file"
-        chmod 644 "$config_file"
+    echo -e "${yellow}Backup created: $backup_file${nc}"
+    
+    # Delete user from VMess WS - FIXED: better error handling
+    echo -e "${yellow}Removing user from VMess WS...${nc}"
+    if ! jq '(.inbounds[] | select(.tag == "vmess-ws").settings.clients) |= map(select(.email != "'"$user"'"))' "$config_file" > "${config_file}.tmp" 2>/dev/null; then
+        echo -e "${red}ERROR: Failed to update VMess WS config (jq error)${nc}" >&2
+        restore_config "$backup_file"
+        return 1
+    fi
+    
+    if [[ ! -f "${config_file}.tmp" ]]; then
+        echo -e "${red}ERROR: Temporary file not created${nc}" >&2
+        restore_config "$backup_file"
+        return 1
+    fi
+    
+    # Validate the temp file before replacing
+    if ! jq empty "${config_file}.tmp" 2>/dev/null; then
+        echo -e "${red}ERROR: Generated config has invalid JSON${nc}" >&2
+        rm -f "${config_file}.tmp"
+        restore_config "$backup_file"
+        return 1
+    fi
+    
+    mv "${config_file}.tmp" "$config_file"
+    echo -e "${green}✓ User removed from VMess WS${nc}"
+    
+    # Delete user from VMess gRPC if exists
+    if jq -e '.inbounds[] | select(.tag == "vmess-grpc")' "$config_file" > /dev/null 2>&1; then
+        echo -e "${yellow}Removing user from VMess gRPC...${nc}"
+        if jq '(.inbounds[] | select(.tag == "vmess-grpc").settings.clients) |= map(select(.email != "'"$user"'"))' "$config_file" > "${config_file}.tmp2" 2>/dev/null; then
+            if jq empty "${config_file}.tmp2" 2>/dev/null; then
+                mv "${config_file}.tmp2" "$config_file"
+                echo -e "${green}✓ User removed from VMess gRPC${nc}"
+            else
+                echo -e "${yellow}⚠ Invalid JSON generated for gRPC update, skipping${nc}"
+                rm -f "${config_file}.tmp2"
+            fi
+        else
+            echo -e "${yellow}⚠ Failed to update VMess gRPC${nc}"
+        fi
+    fi
+    
+    # Verify user was removed - FIXED: check both WS and gRPC
+    local user_still_exists=false
+    
+    # Check VMess WS
+    if jq -e '.inbounds[] | select(.tag == "vmess-ws") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" > /dev/null 2>&1; then
+        user_still_exists=true
+    fi
+    
+    # Check VMess gRPC
+    if jq -e '.inbounds[] | select(.tag == "vmess-grpc") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" > /dev/null 2>&1; then
+        user_still_exists=true
+    fi
+    
+    if [[ "$user_still_exists" == "false" ]]; then
+        echo -e "${green}✓ User successfully removed from all configs${nc}"
+        
+        # Clean up expiry entries
+        cleanup_user_expiry "$user"
+        
+        # Clean up backup file on success
+        rm -f "$backup_file" 2>/dev/null
         return 0
     else
-        rm -f "$temp_file"
+        echo -e "${red}ERROR: User still exists in config after deletion${nc}" >&2
+        restore_config "$backup_file"
         return 1
     fi
 }
 
+# Function to cleanup user expiry entries - NEW
+cleanup_user_expiry() {
+    local user="$1"
+    local files_cleaned=0
+    
+    # Remove from expiry files
+    local expiry_files=(
+        "/etc/xray/user_expiry.txt"
+        "/root/user_expiry.txt"
+        "/usr/local/etc/xray/user_expiry.txt"
+    )
+    
+    for file in "${expiry_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            sed -i "/^$user /d" "$file" 2>/dev/null
+            ((files_cleaned++))
+        fi
+    done
+    
+    # Remove from config comments
+    local config_file="/usr/local/etc/xray/config.json"
+    if [[ -f "$config_file" ]]; then
+        sed -i "/^#! $user /d" "$config_file" 2>/dev/null
+        ((files_cleaned++))
+    fi
+    
+    if [[ $files_cleaned -gt 0 ]]; then
+        echo -e "${green}✓ Expiry entries cleaned up${nc}"
+    fi
+}
+
+# Function to cleanup user files - NEW
+cleanup_user_files() {
+    local user="$1"
+    local files_removed=0
+    
+    # Client config files
+    local client_files=(
+        "/home/vps/public_html/vmess-$user.txt"
+        "/home/vps/public_html/vmess-$user.json"
+        "/home/vps/public_html/vmess-$user.conf"
+    )
+    
+    for file in "${client_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            rm -f "$file"
+            echo -e "     ✓ Removed: $(basename "$file")"
+            ((files_removed++))
+        fi
+    done
+    
+    # Remove from log files
+    local log_files=(
+        "/var/log/create-vmess.log"
+        "/var/log/xray/user.log"
+    )
+    
+    for log_file in "${log_files[@]}"; do
+        if [[ -f "$log_file" ]]; then
+            sed -i "/$user/d" "$log_file" 2>/dev/null
+        fi
+    done
+    
+    return $files_removed
+}
+
 # Main script
-echo -e "${red}=========================================${nc}"
-echo -e "${blue}        Delete VMess Account          ${nc}"
-echo -e "${red}=========================================${nc}"
-
-# Check if config file exists
-if [[ ! -f "/usr/local/etc/xray/config.json" ]]; then
-    echo -e "${red}Error: Xray config file not found!${nc}"
-    echo ""
-    read -n 1 -s -r -p "Press any key to back on menu"
-    m-vmess 2>/dev/null || exit 1
-fi
-
+echo -e "${yellow}Loading VMess users...${nc}"
 NUMBER_OF_CLIENTS=$(count_vmess_users)
+users=($(get_vmess_users))
 
-if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
-    echo ""
-    echo -e "${yellow}You don't have any existing VMess clients!${nc}"
-    echo ""
+if [[ ${NUMBER_OF_CLIENTS} -eq 0 ]]; then
+    clear
     echo -e "${red}=========================================${nc}"
-    read -n 1 -s -r -p "Press any key to back on menu"
+    echo -e "${blue}        DELETE VMESS ACCOUNT          ${nc}"
+    echo -e "${red}=========================================${nc}"
+    echo ""
+    echo -e "${yellow}  • No VMess users found${nc}"
+    echo -e "${yellow}  • Check if Xray config exists${nc}"
+    echo ""
+    
+    # Debug info
+    if [[ -f "/usr/local/etc/xray/config.json" ]]; then
+        echo -e "${blue}Config file exists but no users found${nc}"
+        echo -e "${yellow}Available inbound tags:${nc}"
+        jq -r '.inbounds[]? | .tag' /usr/local/etc/xray/config.json 2>/dev/null || echo "Cannot read config"
+    else
+        echo -e "${red}Config file not found${nc}"
+    fi
+    
+    echo -e "${red}=========================================${nc}"
+    echo ""
+    read -n 1 -s -r -p "   Press any key to back on menu"
     m-vmess 2>/dev/null || exit 0
 fi
 
 # Display current users
 clear
 echo -e "${red}=========================================${nc}"
-echo -e "${blue}        Delete VMess Account          ${nc}"
+echo -e "${blue}        DELETE VMESS ACCOUNT          ${nc}"
 echo -e "${red}=========================================${nc}"
-echo -e "${green}  Username           Expired Date${nc}"
+echo -e "${green}  No.  Username           Expired     Services${nc}"
 echo -e "${red}=========================================${nc}"
 
-# Display users with better formatting
-grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | sort -k2 | while read user exp; do
-    printf "  %-18s %s\n" "$user" "$exp"
+# Display users with numbers
+for i in "${!users[@]}"; do
+    user="${users[i]}"
+    expiry=$(get_user_expiry "$user")
+    services=$(get_user_services "$user")
+    printf "  %-3s %-18s %-12s %-8s\n" "$((i+1))" "$user" "$expiry" "$services"
 done
 
 echo -e "${red}=========================================${nc}"
-echo -e "${yellow}Total Users: $NUMBER_OF_CLIENTS${nc}"
-echo ""
-echo -e "${blue}Enter username to delete${nc}"
-echo -e "${yellow}• [NOTE] Press Enter without username to cancel${nc}"
+echo -e "${yellow}  • Total Users: $NUMBER_OF_CLIENTS${nc}"
+echo -e "${yellow}  • Services: WS=WebSocket, gRPC=gRPC${nc}"
+echo -e "${yellow}  • [NOTE] Press Enter without input to cancel${nc}"
 echo -e "${red}=========================================${nc}"
+echo ""
 
-read -rp "Input Username : " user
+read -rp "   Input Username : " user
 
 # Check if user input is empty
 if [[ -z "$user" ]]; then
-    echo -e "${yellow}Operation cancelled${nc}"
-    read -n 1 -s -r -p "Press any key to back on menu"
+    echo -e "${yellow}  • Operation cancelled${nc}"
+    echo ""
+    read -n 1 -s -r -p "   Press any key to back on menu"
     m-vmess 2>/dev/null || exit 0
 fi
 
 # Validate user exists
-if ! grep -q "^### $user " "/usr/local/etc/xray/config.json"; then
+if ! printf '%s\n' "${users[@]}" | grep -q "^$user$"; then
     echo -e "${red}=========================================${nc}"
-    echo -e "${blue}        Delete VMess Account          ${nc}"
+    echo -e "${blue}        DELETE VMESS ACCOUNT          ${nc}"
     echo -e "${red}=========================================${nc}"
-    echo -e "${red}Error: User '$user' not found!${nc}"
+    echo -e "${red}  • Error: User '$user' not found!${nc}"
     echo ""
-    echo -e "${yellow}Available users:${nc}"
-    grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sort | uniq
+    echo -e "${yellow}  • Available users:${nc}"
+    for i in "${!users[@]}"; do
+        expiry=$(get_user_expiry "${users[i]}")
+        services=$(get_user_services "${users[i]}")
+        echo -e "     $((i+1)). ${users[i]} - $expiry ($services)"
+    done
     echo -e "${red}=========================================${nc}"
-    read -n 1 -s -r -p "Press any key to back on menu"
+    read -n 1 -s -r -p "   Press any key to back on menu"
     m-vmess 2>/dev/null || exit 1
 fi
 
-# Get user expiry date
-exp=$(grep -wE "^### $user" "/usr/local/etc/xray/config.json" | head -1 | cut -d ' ' -f 3)
-
-# Get UUID for logging
-uuid=$(grep -A2 -B2 "\"email\": \"$user\"" "/usr/local/etc/xray/config.json" | grep '"id":' | head -1 | cut -d'"' -f4)
+# Get user expiry date and services
+exp=$(get_user_expiry "$user")
+services=$(get_user_services "$user")
+uuid=$(get_user_uuid "$user")
 
 # Confirm deletion
 echo ""
-echo -e "${yellow}Are you sure you want to delete user: $user?${nc}"
-echo -e "${yellow}Expiry date: $exp${nc}"
+echo -e "${yellow}  • Confirm deletion:${nc}"
+echo -e "     Username: $user"
+echo -e "     Services: $services"
+echo -e "     Expiry: $exp"
 if [[ -n "$uuid" ]]; then
-    echo -e "${yellow}UUID: ${uuid:0:8}...${nc}"
+    echo -e "     UUID: ${uuid:0:8}..."
 fi
-echo -e "${red}This action cannot be undone!${nc}"
+echo -e "     This action cannot be undone!"
 echo ""
-read -rp "Confirm deletion (y/N): " confirm
+read -rp "   Type 'DELETE' to confirm: " confirmation
 
-if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-    echo -e "${yellow}Deletion cancelled${nc}"
-    read -n 1 -s -r -p "Press any key to back on menu"
+if [[ "$confirmation" != "DELETE" ]]; then
+    echo -e "${yellow}  • Deletion cancelled${nc}"
+    echo ""
+    read -n 1 -s -r -p "   Press any key to back on menu"
     m-vmess 2>/dev/null || exit 0
 fi
 
-# Backup config before modification
-echo -e "${yellow}Creating backup...${nc}"
-backup_file=$(backup_config)
-
-if [[ "$backup_file" == "error" ]]; then
-    echo -e "${red}Error: Failed to create backup!${nc}"
-    read -n 1 -s -r -p "Press any key to back on menu"
-    m-vmess 2>/dev/null || exit 1
-fi
-
 # Delete user from config
-echo -e "${yellow}Deleting user from config...${nc}"
-if delete_user_from_config "$user" "$exp"; then
+echo ""
+echo -e "${yellow}Deleting user $user...${nc}"
+if delete_vmess_user "$user"; then
     # Restart Xray service
     echo -e "${yellow}Restarting Xray service...${nc}"
-    if systemctl restart xray > /dev/null 2>&1; then
-        # Remove client config file if exists
-        rm -f "/home/vps/public_html/vmess-$user.txt" 2>/dev/null
-        rm -f "/home/vps/public_html/vmess-$user.json" 2>/dev/null
+    if systemctl restart xray; then
+        echo -e "${green}✓ Xray service restarted successfully${nc}"
         
-        # Remove from log file if exists
-        [[ -f "/var/log/create-vmess.log" ]] && sed -i "/$user/d" "/var/log/create-vmess.log" 2>/dev/null
+        # Wait a moment for service to stabilize
+        sleep 2
         
-        # Display success message
-        clear
-        echo -e "${red}=========================================${nc}"
-        echo -e "${blue}        Delete VMess Account          ${nc}"
-        echo -e "${red}=========================================${nc}"
-        echo -e "${green}✓ Account Deleted Successfully${nc}"
-        echo ""
-        echo -e "${blue}Details:${nc}"
-        echo -e "  • Client Name : $user"
-        echo -e "  • Expired On  : $exp"
-        if [[ -n "$uuid" ]]; then
-            echo -e "  • UUID        : ${uuid:0:8}..."
+        # Check if Xray is running
+        if systemctl is-active --quiet xray; then
+            echo -e "${green}✓ Xray service is running properly${nc}"
+            
+            # Cleanup user files
+            echo -e "${yellow}Cleaning up user files...${nc}"
+            cleanup_user_files "$user"
+            
+            # Display success message
+            clear
+            echo -e "${red}=========================================${nc}"
+            echo -e "${blue}        DELETE VMESS ACCOUNT          ${nc}"
+            echo -e "${red}=========================================${nc}"
+            echo -e "${green}  • ACCOUNT DELETED SUCCESSFULLY${nc}"
+            echo ""
+            echo -e "${blue}  • Details:${nc}"
+            echo -e "     Username    : $user"
+            echo -e "     Services    : $services"
+            echo -e "     Expired On  : $exp"
+            if [[ -n "$uuid" ]]; then
+                echo -e "     UUID        : ${uuid:0:8}..."
+            fi
+            echo -e "     Remaining   : $((NUMBER_OF_CLIENTS - 1)) users"
+            echo ""
+            echo -e "${green}  • Cleanup completed:${nc}"
+            echo -e "     ✓ Removed from Xray config"
+            echo -e "     ✓ Service restarted and verified"
+            echo -e "     ✓ Expiry entries cleaned"
+            echo -e "     ✓ Client config files removed"
+            echo -e "${red}=========================================${nc}"
+            
+            # Log the deletion
+            echo "$(date): Deleted VMess account '$user' (UUID: ${uuid:0:8}..., services: $services, was exp: $exp)" >> /var/log/delete-vmess.log 2>/dev/null
+        else
+            echo -e "${red}  • Error: Xray service failed to start after deletion${nc}"
+            echo -e "${yellow}  • Please check system logs: journalctl -u xray${nc}"
+            echo -e "${red}=========================================${nc}"
         fi
-        echo -e "  • Remaining Users: $(count_vmess_users)"
-        echo ""
-        echo -e "${green}Service restarted successfully${nc}"
-        echo -e "${red}=========================================${nc}"
-        
-        # Clean up backup file
-        rm -f "$backup_file" 2>/dev/null
-        
-        # Log the deletion
-        echo "$(date): Deleted VMess account $user (UUID: ${uuid:0:8}..., was exp: $exp)" >> /var/log/delete-vmess.log 2>/dev/null
-        
     else
-        echo -e "${red}Error: Failed to restart Xray service${nc}"
-        echo -e "${yellow}Restoring backup config...${nc}"
-        restore_config "$backup_file"
-        systemctl restart xray > /dev/null 2>&1
-        echo -e "${red}Changes have been reverted${nc}"
+        echo -e "${red}  • Error: Failed to restart Xray service${nc}"
+        echo -e "${yellow}  • Please check system logs${nc}"
+        echo -e "${red}=========================================${nc}"
     fi
 else
-    echo -e "${red}Error: Failed to delete user from config${nc}"
-    echo -e "${yellow}Restoring backup config...${nc}"
-    restore_config "$backup_file"
-    echo -e "${red}No changes were made${nc}"
+    echo -e "${red}  • Error: Failed to delete user from config${nc}"
+    echo -e "${yellow}  • Config restored from backup${nc}"
+    echo -e "${red}=========================================${nc}"
 fi
 
 echo ""
-read -n 1 -s -r -p "Press any key to back on menu"
+read -n 1 -s -r -p "   Press any key to back on menu"
 m-vmess 2>/dev/null || exit 0
