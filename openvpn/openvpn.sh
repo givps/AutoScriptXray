@@ -179,16 +179,20 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 netfilter-persistent save
 netfilter-persistent reload
 
-# enable openvpnsystemctl daemon-reload
+# enable openvpn
+systemctl daemon-reload
 systemctl start openvpn-server@server-tcp
 systemctl start openvpn-server@server-udp
 systemctl start openvpn-server@server-ssl
 systemctl start openvpn
+
 systemctl enable openvpn-server@server-tcp
 systemctl enable openvpn-server@server-udp
 systemctl enable openvpn-server@server-ssl
 systemctl enable openvpn
+
 systemctl restart openvpn-server@server-tcp
 systemctl restart openvpn-server@server-udp
 systemctl restart openvpn-server@server-ssl
 systemctl restart openvpn
+
