@@ -82,7 +82,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 [[ -z "$domain" ]] && echo -e "${red}[ERROR] Domain file not found!${nc}" && exit 1
 
 # ---------- Cloudflare Token ----------
-DEFAULT_CF_TOKEN="XCu7wHsxlkbcU3GSPOEvl1BopubJxA9kDcr-Tkt8"
+DEFAULT_CF_TOKEN="sDdPJUeUePiCJmcwCRSimf_-BjmuPq-PFtUPUYf4"
 read -rp "Enter Cloudflare API Token (ENTER for default): " CF_Token
 export CF_Token="${CF_Token:-$DEFAULT_CF_TOKEN}"
 
