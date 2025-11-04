@@ -46,7 +46,7 @@ mkdir -p /var/log/xray
 touch /var/log/xray/access.log
 touch /var/log/xray/error.log
 # create xray user
-sudo useradd -r -s /usr/sbin/nologin xray
+id xray &>/dev/null || sudo useradd -r -s /usr/sbin/nologin xray
 # xray official
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
 # Set ownership
