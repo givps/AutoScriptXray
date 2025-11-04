@@ -18,7 +18,7 @@ systemctl daemon-reload
 systemctl reload nginx
 # Install OpenVPN dan Easy-RSA
 apt install openvpn easy-rsa unzip -y
-apt install openssl iptables iptables-persistent -y
+apt install openssl iptables iptables-persistent netfilter-persistent -y
 mkdir -p /etc/openvpn/
 cd /etc/openvpn/
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/server.zip
