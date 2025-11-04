@@ -146,6 +146,7 @@ The script provider does not store or track any of your activity.
 <p align="left">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="#"><img src="https://img.shields.io/badge/Auto_Script_VPS-blue" alt="Auto Script VPS"></a>
+  <a><img src="https://komarev.com/ghpvc/?username=givps&color=blue" style="max-width:200%;">
 </p>
 
 -----------------------------------------------------------------------------------------
