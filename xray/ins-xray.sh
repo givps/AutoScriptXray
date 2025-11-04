@@ -161,9 +161,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
   },
   "inbounds": [
     {
-      "tag": "vless-ws",
+      "tag": "main-tls",
       "listen": "127.0.0.1",
-      "port": 10001,
+      "port": 4443,
       "protocol": "vless",
       "settings": {
         "clients": [
@@ -171,13 +171,44 @@ cat > /usr/local/etc/xray/config.json <<EOF
             "id": "$uuid"
           }
         ],
+        "decryption": "none",
+        "fallbacks": [
+          { "path": "/vless", "dest": 10001 },
+          { "path": "/vmess", "dest": 10002 },
+          { "path": "/trojan-ws", "dest": 10003 },
+          { "path": "/ss-ws", "dest": 10004 },
+          { "alpn": "vless-grpc", "dest": 10005 },
+          { "alpn": "vmess-grpc", "dest": 10006 },
+          { "alpn": "trojan-grpc", "dest": 10007 },
+          { "alpn": "ss-grpc", "dest": 10008 }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/usr/local/etc/xray/xray.crt",
+              "keyFile": "/usr/local/etc/xray/xray.key"
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "tag": "vless-ws",
+      "listen": "127.0.0.1",
+      "port": 10001,
+      "protocol": "vless",
+      "settings": {
+        "clients": [{ "id": "$uuid" }],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "ws",
-        "wsSettings": {
-          "path": "/vless"
-        }
+        "wsSettings": { "path": "/vless" }
       }
     },
     {
@@ -186,17 +217,11 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10002,
       "protocol": "vmess",
       "settings": {
-        "clients": [
-          {
-            "id": "$uuid"
-          }
-        ]
+        "clients": [{ "id": "$uuid" }]
       },
       "streamSettings": {
         "network": "ws",
-        "wsSettings": {
-          "path": "/vmess"
-        }
+        "wsSettings": { "path": "/vmess" }
       }
     },
     {
@@ -205,17 +230,11 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10003,
       "protocol": "trojan",
       "settings": {
-        "clients": [
-          {
-            "password": "$uuid"
-          }
-        ]
+        "clients": [{ "password": "$uuid" }]
       },
       "streamSettings": {
         "network": "ws",
-        "wsSettings": {
-          "path": "/trojan-ws"
-        }
+        "wsSettings": { "path": "/trojan-ws" }
       }
     },
     {
@@ -224,18 +243,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10004,
       "protocol": "shadowsocks",
       "settings": {
-      "method": "aes-128-gcm",
-        "clients": [
-          {
-            "password": "$uuid"
-          }
-        ]
+        "method": "aes-128-gcm",
+        "clients": [{ "password": "$uuid" }]
       },
       "streamSettings": {
         "network": "ws",
-        "wsSettings": {
-          "path": "/ss-ws"
-        }
+        "wsSettings": { "path": "/ss-ws" }
       }
     },
     {
@@ -244,18 +257,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10005,
       "protocol": "vless",
       "settings": {
-        "clients": [
-          {
-            "id": "$uuid"
-          }
-        ],
+        "clients": [{ "id": "$uuid" }],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "grpc",
-        "grpcSettings": {
-          "serviceName": "vless-grpc"
-        }
+        "grpcSettings": { "serviceName": "vless-grpc" }
       }
     },
     {
@@ -264,17 +271,11 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10006,
       "protocol": "vmess",
       "settings": {
-        "clients": [
-          {
-            "id": "$uuid"
-          }
-        ]
+        "clients": [{ "id": "$uuid" }]
       },
       "streamSettings": {
         "network": "grpc",
-        "grpcSettings": {
-          "serviceName": "vmess-grpc"
-        }
+        "grpcSettings": { "serviceName": "vmess-grpc" }
       }
     },
     {
@@ -283,17 +284,11 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10007,
       "protocol": "trojan",
       "settings": {
-        "clients": [
-          {
-            "password": "$uuid"
-          }
-        ]
+        "clients": [{ "password": "$uuid" }]
       },
       "streamSettings": {
         "network": "grpc",
-        "grpcSettings": {
-          "serviceName": "trojan-grpc"
-        }
+        "grpcSettings": { "serviceName": "trojan-grpc" }
       }
     },
     {
@@ -302,43 +297,25 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10008,
       "protocol": "shadowsocks",
       "settings": {
-      "method": "aes-128-gcm",
-        "clients": [
-          {
-            "password": "$uuid"
-          }
-        ]
+        "method": "aes-128-gcm",
+        "clients": [{ "password": "$uuid" }]
       },
       "streamSettings": {
         "network": "grpc",
-        "grpcSettings": {
-          "serviceName": "ss-grpc"
-        }
+        "grpcSettings": { "serviceName": "ss-grpc" }
       }
     }
   ],
+
   "outbounds": [
-    {
-      "protocol": "freedom",
-      "tag": "direct"
-    },
-    {
-      "protocol": "blackhole",
-      "tag": "blocked"
-    }
+    { "protocol": "freedom", "tag": "direct" },
+    { "protocol": "blackhole", "tag": "blocked" }
   ],
+
   "routing": {
     "rules": [
-      {
-        "type": "field",
-        "ip": ["geoip:private"],
-        "outboundTag": "blocked"
-      },
-      {
-        "type": "field",
-        "protocol": ["bittorrent"],
-        "outboundTag": "blocked"
-      }
+      { "type": "field", "ip": ["geoip:private"], "outboundTag": "blocked" },
+      { "type": "field", "protocol": ["bittorrent"], "outboundTag": "blocked" }
     ]
   }
 }
