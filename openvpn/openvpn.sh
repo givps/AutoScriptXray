@@ -29,12 +29,6 @@ cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib
 # /etc/default/openvpn
 sed -i 's/#AUTOSTART="all"/AUTOSTART="all"/g' /etc/default/openvpn
 
-# enable openvpn
-systemctl enable --now openvpn-server@server-tcp
-systemctl enable --now openvpn-server@server-udp
-systemctl enable --now openvpn-server@server-ssl
-systemctl enable --now openvpn
-
 # Buat config client TCP 1195
 cat > /etc/openvpn/tcp.ovpn <<EOF
 client
@@ -184,3 +178,17 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 
 netfilter-persistent save
 netfilter-persistent reload
+
+# enable openvpnsystemctl daemon-reload
+systemctl start openvpn-server@server-tcp
+systemctl start openvpn-server@server-udp
+systemctl start openvpn-server@server-ssl
+systemctl start openvpn
+systemctl enable openvpn-server@server-tcp
+systemctl enable openvpn-server@server-udp
+systemctl enable openvpn-server@server-ssl
+systemctl enable openvpn
+systemctl restart openvpn-server@server-tcp
+systemctl restart openvpn-server@server-udp
+systemctl restart openvpn-server@server-ssl
+systemctl restart openvpn
