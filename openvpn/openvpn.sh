@@ -7,13 +7,17 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
+sudo rm /etc/resolv.conf
+sudo ln -s /run/resolvconf/resolv.conf /etc/resolv.conf
 sudo apt update
 sudo apt install resolvconf -y
+sudo systemctl enable --now resolvconf.service
+
 cat > /etc/resolv.conf <<'EOF'
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOF
-sudo systemctl enable --now resolvconf.service
+
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
@@ -77,7 +81,11 @@ persist-tun
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
+remote-cert-tls server
+tls-version-min 1.2
 verb 3
+
+redirect-gateway def1
 
 script-security 2
 up /etc/openvpn/update-resolv-conf.sh
@@ -118,6 +126,8 @@ cipher AES-256-GCM
 verb 3
 explicit-exit-notify 1
 
+redirect-gateway def1
+
 script-security 2
 up /etc/openvpn/update-resolv-conf.sh
 down /etc/openvpn/update-resolv-conf.sh
@@ -154,7 +164,11 @@ persist-tun
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
+remote-cert-tls server
+tls-version-min 1.2
 verb 3
+
+redirect-gateway def1
 
 script-security 2
 up /etc/openvpn/update-resolv-conf.sh
@@ -209,6 +223,11 @@ for SUBNET in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
     iptables -t nat -C POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE 2>/dev/null || \
     iptables -t nat -I POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
 done
+
+iptables -C FORWARD -i tun0 -o $IFACE -j ACCEPT 2>/dev/null || \
+iptables -I FORWARD -i tun0 -o $IFACE -j ACCEPT
+iptables -C FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
+iptables -I FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # OpenVPN TCP 1195
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
