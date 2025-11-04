@@ -7,15 +7,16 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
+sudo rm /etc/resolv.conf
+sudo ln -s /run/resolvconf/resolv.conf /etc/resolv.conf
 sudo apt update
 sudo apt install resolvconf -y
+sudo systemctl enable --now resolvconf.service
 
 cat > /etc/resolv.conf <<'EOF'
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOF
-
-sudo systemctl enable --now resolvconf.service
 
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
