@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Renew Trojan Account - WITH gRPC SUPPORT
+# Renew Trojan Account - FIXED VERSION
 # ==========================================
 
 # Colors
@@ -16,7 +16,7 @@ domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/n
 
 clear
 
-# Function to get Trojan users using jq (both WS and gRPC)
+# Function to get Trojan users using jq - FIXED
 get_trojan_users() {
     local config_file="/usr/local/etc/xray/config.json"
     
@@ -27,96 +27,111 @@ get_trojan_users() {
     
     # Install jq if not exists
     if ! command -v jq &> /dev/null; then
+        echo -e "${yellow}Installing jq...${nc}" >&2
         apt-get update > /dev/null 2>&1 && apt-get install -y jq > /dev/null 2>&1
     fi
     
-    # Extract Trojan WS users
-    jq -r '.inbounds[] | select(.tag == "trojan-ws" or .tag == "trojan-grpc") | .settings.clients[] | .email // empty' "$config_file" 2>/dev/null | grep -v '^$' | sort | uniq
+    # Check if config has valid JSON
+    if ! jq empty "$config_file" 2>/dev/null; then
+        echo -e "${red}ERROR: Invalid JSON in config file${nc}" >&2
+        return 1
+    fi
+    
+    local users=()
+    
+    # Extract Trojan WS users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local ws_users=$(jq -r '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$ws_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$ws_users"
+        fi
+    fi
+    
+    # Extract Trojan gRPC users - FIXED: handle empty clients array
+    if jq -e '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients' "$config_file" > /dev/null 2>&1; then
+        local grpc_users=$(jq -r '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[]? | .email // empty' "$config_file" 2>/dev/null)
+        if [[ -n "$grpc_users" ]]; then
+            while IFS= read -r user; do
+                [[ -n "$user" ]] && users+=("$user")
+            done <<< "$grpc_users"
+        fi
+    fi
+    
+    # Remove duplicates and return
+    printf '%s\n' "${users[@]}" | sort -u
 }
 
-# Function to count Trojan users
+# Function to count Trojan users - FIXED
 count_trojan_users() {
-    get_trojan_users | wc -l
+    local users=($(get_trojan_users))
+    echo ${#users[@]}
 }
 
-# Function to get user expiry (from comments if exists)
+# Function to get user expiry - IMPROVED
 get_user_expiry() {
     local user="$1"
+    
+    # Check multiple possible expiry storage locations
+    local expiry_files=(
+        "/etc/xray/user_expiry.txt"
+        "/root/user_expiry.txt" 
+        "/usr/local/etc/xray/user_expiry.txt"
+        "/var/lib/xray/user_expiry.txt"
+    )
+    
+    for file in "${expiry_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            local expiry=$(grep -E "^$user " "$file" 2>/dev/null | awk '{print $2}')
+            if [[ -n "$expiry" ]]; then
+                echo "$expiry"
+                return 0
+            fi
+        fi
+    done
+    
+    # Check in config comments (fallback)
     local config_file="/usr/local/etc/xray/config.json"
-    
-    # Try to find expiry from comment format #! user expiry
-    local expiry=$(grep -E "^#! $user " "$config_file" 2>/dev/null | head -1 | awk '{print $3}')
-    
-    if [[ -n "$expiry" ]]; then
-        echo "$expiry"
-    else
-        # If no comment found, check if user exists and set default
-        if printf '%s\n' "$(get_trojan_users)" | grep -q "^$user$"; then
-            echo "Unknown"
-        else
-            echo "Not Found"
+    if [[ -f "$config_file" ]]; then
+        local expiry=$(grep -E "#! $user " "$config_file" 2>/dev/null | awk '{print $3}')
+        if [[ -n "$expiry" ]]; then
+            echo "$expiry"
+            return 0
         fi
     fi
+    
+    echo "Not Set"
 }
 
-# Function to update user expiry in comments
+# Function to update user expiry - IMPROVED
 update_user_expiry() {
     local user="$1"
-    local old_exp="$2"
-    local new_exp="$3"
-    local config_file="/usr/local/etc/xray/config.json"
+    local new_exp="$2"
+    local expiry_files=(
+        "/etc/xray/user_expiry.txt"
+        "/root/user_expiry.txt"
+        "/usr/local/etc/xray/user_expiry.txt"
+    )
     
-    # Backup config
-    local backup_file=$(backup_config)
-    if [[ -z "$backup_file" ]]; then
-        echo -e "${red}ERROR: Failed to create backup${nc}" >&2
-        return 1
-    fi
-    
-    echo -e "${yellow}Backup created: $backup_file${nc}"
-    
-    # Check if old expiry comment exists
-    if grep -q "^#! $user $old_exp" "$config_file" 2>/dev/null; then
-        # Update existing expiry comment
-        if sed -i "s/^#! $user $old_exp/#! $user $new_exp/g" "$config_file" 2>/dev/null; then
-            echo -e "${green}✓ Expiry updated in config comments${nc}"
-        else
-            echo -e "${red}ERROR: Failed to update expiry comment${nc}" >&2
-            restore_config "$backup_file"
-            return 1
+    # Try to update existing expiry file
+    for file in "${expiry_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            # Remove existing entry
+            sed -i "/^$user /d" "$file" 2>/dev/null
+            # Add new entry
+            echo "$user $new_exp" >> "$file"
+            echo -e "${green}✓ Expiry updated in: $(basename "$file")${nc}"
+            return 0
         fi
-    else
-        # Add new expiry comment
-        # Find a good place to insert the comment (after clients array in trojan-ws)
-        local insert_line=$(grep -n '"clients": \[' "$config_file" | head -1 | cut -d: -f1)
-        if [[ -n "$insert_line" ]]; then
-            if sed -i "${insert_line}a #! $user $new_exp" "$config_file" 2>/dev/null; then
-                echo -e "${green}✓ Expiry comment added to config${nc}"
-            else
-                echo -e "${red}ERROR: Failed to add expiry comment${nc}" >&2
-                restore_config "$backup_file"
-                return 1
-            fi
-        else
-            # Fallback: add to end of file
-            echo "#! $user $new_exp" >> "$config_file"
-            echo -e "${green}✓ Expiry comment appended to config${nc}"
-        fi
-    fi
+    done
     
-    # Verify the update
-    local current_exp=$(get_user_expiry "$user")
-    if [[ "$current_exp" == "$new_exp" ]]; then
-        echo -e "${green}✓ Expiry verification successful${nc}"
-        # Clean up backup on success
-        rm -f "$backup_file" 2>/dev/null
-        return 0
-    else
-        echo -e "${red}ERROR: Expiry update verification failed${nc}" >&2
-        echo -e "${yellow}Expected: $new_exp, Got: $current_exp${nc}" >&2
-        restore_config "$backup_file"
-        return 1
-    fi
+    # If no expiry file exists, create one
+    local expiry_file="/etc/xray/user_expiry.txt"
+    mkdir -p "$(dirname "$expiry_file")"
+    echo "$user $new_exp" >> "$expiry_file"
+    echo -e "${green}✓ Created new expiry file: $(basename "$expiry_file")${nc}"
+    return 0
 }
 
 # Function to backup config
@@ -126,7 +141,6 @@ backup_config() {
     
     if [[ ! -f "$config_file" ]]; then
         echo -e "${red}ERROR: Config file not found for backup${nc}" >&2
-        echo ""
         return 1
     fi
     
@@ -135,7 +149,6 @@ backup_config() {
         return 0
     else
         echo -e "${red}ERROR: Failed to create backup${nc}" >&2
-        echo ""
         return 1
     fi
 }
@@ -146,27 +159,38 @@ restore_config() {
     local config_file="/usr/local/etc/xray/config.json"
     
     if [[ -f "$backup_file" ]]; then
-        if cp "$backup_file" "$config_file" 2>/dev/null; then
-            rm -f "$backup_file"
+        if cp "$backup_file" "$config_file"; then
             echo -e "${green}✓ Config restored from backup${nc}"
+            rm -f "$backup_file" 2>/dev/null
             return 0
         else
-            echo -e "${red}✗ Failed to restore from backup${nc}"
+            echo -e "${red}✗ Failed to restore config from backup${nc}"
             return 1
         fi
     else
-        echo -e "${red}✗ Backup file not found${nc}"
+        echo -e "${red}✗ Backup file not found: $backup_file${nc}"
         return 1
     fi
 }
 
-# Function to calculate date difference
+# Function to calculate date difference - IMPROVED
 date_diff() {
     local date1="$1"
     local date2="$2"
     
+    # Handle "Not Set" case
+    if [[ "$date1" == "Not Set" ]] || [[ "$date2" == "Not Set" ]]; then
+        echo "0"
+        return
+    fi
+    
     # Validate date formats
-    if ! date -d "$date1" &>/dev/null || ! date -d "$date2" &>/dev/null; then
+    if ! date -d "$date1" &>/dev/null; then
+        echo "0"
+        return
+    fi
+    
+    if ! date -d "$date2" &>/dev/null; then
         echo "0"
         return
     fi
@@ -192,17 +216,24 @@ validate_date() {
     fi
 }
 
-# Function to get user services (WS/gRPC)
+# Function to get user services (WS/gRPC) - FIXED
 get_user_services() {
     local user="$1"
     local config_file="/usr/local/etc/xray/config.json"
     local services=""
     
-    if jq -e ".inbounds[] | select(.tag == \"trojan-ws\") | .settings.clients[] | select(.email == \"$user\")" "$config_file" &>/dev/null; then
+    if [[ ! -f "$config_file" ]]; then
+        echo "Unknown"
+        return
+    fi
+    
+    # Check Trojan WS
+    if jq -e '.inbounds[] | select(.tag == "trojan-ws") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
         services="WS"
     fi
     
-    if jq -e ".inbounds[] | select(.tag == \"trojan-grpc\") | .settings.clients[] | select(.email == \"$user\")" "$config_file" &>/dev/null; then
+    # Check Trojan gRPC
+    if jq -e '.inbounds[] | select(.tag == "trojan-grpc") | .settings.clients[]? | select(.email == "'"$user"'")' "$config_file" &>/dev/null; then
         if [[ -n "$services" ]]; then
             services="$services+gRPC"
         else
@@ -213,9 +244,57 @@ get_user_services() {
     echo "${services:-Unknown}"
 }
 
+# Function to update client config file - NEW
+update_client_config() {
+    local user="$1"
+    local old_exp="$2"
+    local new_exp="$3"
+    local CLIENT_DIR="/home/vps/public_html"
+    local client_file="$CLIENT_DIR/trojan-$user.txt"
+    
+    if [[ ! -f "$client_file" ]]; then
+        echo -e "${yellow}⚠ Client config file not found: $(basename "$client_file")${nc}"
+        return 1
+    fi
+    
+    # Backup client file
+    cp "$client_file" "$client_file.backup.$(date +%Y%m%d%H%M%S)" 2>/dev/null
+    
+    # Update expiry in client file
+    local updated=0
+    
+    # Try different patterns
+    if sed -i "s/Expired On  : $old_exp/Expired On  : $new_exp/g" "$client_file" 2>/dev/null; then
+        ((updated++))
+    fi
+    
+    if sed -i "s/Expiry: $old_exp/Expiry: $new_exp/g" "$client_file" 2>/dev/null; then
+        ((updated++))
+    fi
+    
+    if sed -i "s/Expired.*: $old_exp/Expired On  : $new_exp/g" "$client_file" 2>/dev/null; then
+        ((updated++))
+    fi
+    
+    # Generic replacement for any expiry line
+    if grep -q "Expired On  :" "$client_file"; then
+        sed -i "/Expired On  :/c\Expired On  : $new_exp" "$client_file" 2>/dev/null
+        ((updated++))
+    fi
+    
+    if [[ $updated -gt 0 ]]; then
+        echo -e "${green}✓ Client config file updated${nc}"
+        return 0
+    else
+        echo -e "${yellow}⚠ Could not update client config file${nc}"
+        return 1
+    fi
+}
+
 # Main script
 echo -e "${yellow}Loading Trojan users...${nc}"
 NUMBER_OF_CLIENTS=$(count_trojan_users)
+users=($(get_trojan_users))
 
 if [[ ${NUMBER_OF_CLIENTS} -eq 0 ]]; then
     clear
@@ -226,6 +305,16 @@ if [[ ${NUMBER_OF_CLIENTS} -eq 0 ]]; then
     echo -e "${yellow}  • No Trojan users found${nc}"
     echo -e "${yellow}  • Check if Xray config exists${nc}"
     echo ""
+    
+    # Debug info
+    if [[ -f "/usr/local/etc/xray/config.json" ]]; then
+        echo -e "${blue}Config file exists but no users found${nc}"
+        echo -e "${yellow}Available inbound tags:${nc}"
+        jq -r '.inbounds[]? | .tag' /usr/local/etc/xray/config.json 2>/dev/null || echo "Cannot read config"
+    else
+        echo -e "${red}Config file not found${nc}"
+    fi
+    
     echo -e "${red}=========================================${nc}"
     echo ""
     read -n 1 -s -r -p "   Press any key to back on menu"
@@ -242,7 +331,6 @@ echo -e "${green}  No.  Username           Expired     Services${nc}"
 echo -e "${red}=========================================${nc}"
 
 # Display users with numbers and status
-users=($(get_trojan_users))
 today=$(date +%Y-%m-%d)
 
 for i in "${!users[@]}"; do
@@ -251,8 +339,8 @@ for i in "${!users[@]}"; do
     services=$(get_user_services "$user")
     
     # Check if expired
-    if [[ "$expiry" == "Unknown" ]] || [[ "$expiry" == "Not Found" ]]; then
-        status="${red}UNKNOWN${nc}"
+    if [[ "$expiry" == "Not Set" ]]; then
+        status="${red}NOT SET${nc}"
         days_text=""
     else
         days_left=$(date_diff "$expiry" "$today")
@@ -277,7 +365,7 @@ done
 echo -e "${red}=========================================${nc}"
 echo -e "${yellow}  • Total Users: $NUMBER_OF_CLIENTS${nc}"
 echo -e "${yellow}  • Services: WS=WebSocket, gRPC=gRPC${nc}"
-echo -e "${yellow}  • [NOTE] Press Enter to cancel${nc}"
+echo -e "${yellow}  • [NOTE] Press Enter without input to cancel${nc}"
 echo -e "${red}=========================================${nc}"
 echo ""
 
@@ -322,9 +410,9 @@ echo -e "     Username    : $user"
 echo -e "     Services    : $services"
 echo -e "     Expiry Date : $current_exp"
 
-if [[ "$current_exp" == "Unknown" ]] || [[ "$current_exp" == "Not Found" ]]; then
-    echo -e "     Status      : ${red}UNKNOWN EXPIRY${nc}"
-    echo -e "     Renewal     : Will set new expiry from today"
+if [[ "$current_exp" == "Not Set" ]]; then
+    echo -e "     Status      : ${red}EXPIRY NOT SET${nc}"
+    echo -e "     Renewal     : Will set expiry from today"
     # Set default current expiry as today for calculation
     current_exp="$today"
     days_left=0
@@ -357,8 +445,8 @@ while true; do
 done
 
 # Calculate new expiry date
-if [[ "$current_exp" == "Unknown" ]] || [[ "$current_exp" == "Not Found" ]] || [[ $days_left -lt 0 ]]; then
-    # Account expired or unknown expiry - renew from today
+if [[ "$current_exp" == "Not Set" ]] || [[ $days_left -lt 0 ]]; then
+    # Account expired or no expiry set - renew from today
     new_exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
     echo -e "${yellow}  • Note: Setting new expiry from today.${nc}"
 else
@@ -371,7 +459,7 @@ echo ""
 echo -e "${yellow}  • Renewal Summary:${nc}"
 echo -e "     Username    : $user"
 echo -e "     Services    : $services"
-if [[ "$current_exp" != "Unknown" ]] && [[ "$current_exp" != "Not Found" ]]; then
+if [[ "$current_exp" != "Not Set" ]]; then
     echo -e "     Old Expiry  : $current_exp"
 fi
 echo -e "     New Expiry  : $new_exp"
@@ -390,7 +478,7 @@ fi
 # Update expiry date
 echo ""
 echo -e "${yellow}Updating expiry date for $user...${nc}"
-if update_user_expiry "$user" "$current_exp" "$new_exp"; then
+if update_user_expiry "$user" "$new_exp"; then
     # Restart Xray service
     echo -e "${yellow}Restarting Xray service...${nc}"
     if systemctl restart xray; then
@@ -398,16 +486,9 @@ if update_user_expiry "$user" "$current_exp" "$new_exp"; then
         if systemctl is-active --quiet xray; then
             echo -e "${green}✓ Xray service restarted successfully${nc}"
             
-            # Update client config file if exists
-            CLIENT_DIR="/home/vps/public_html"
-            if [[ -f "$CLIENT_DIR/trojan-$user.txt" ]]; then
-                if sed -i "s/Expired On  : $current_exp/Expired On  : $new_exp/g" "$CLIENT_DIR/trojan-$user.txt" 2>/dev/null; then
-                    echo -e "${green}✓ Client config file updated${nc}"
-                fi
-                if sed -i "s/Expiry: $current_exp/Expiry: $new_exp/g" "$CLIENT_DIR/trojan-$user.txt" 2>/dev/null; then
-                    echo -e "${green}✓ Client file expiry updated${nc}"
-                fi
-            fi
+            # Update client config file
+            echo -e "${yellow}Updating client configuration...${nc}"
+            update_client_config "$user" "$current_exp" "$new_exp"
             
             # Display success message
             clear
@@ -418,22 +499,22 @@ if update_user_expiry "$user" "$current_exp" "$new_exp"; then
             echo -e "${blue}  • Account Details:${nc}"
             echo -e "     Username    : $user"
             echo -e "     Services    : $services"
-            if [[ "$current_exp" != "Unknown" ]] && [[ "$current_exp" != "Not Found" ]]; then
+            if [[ "$current_exp" != "Not Set" ]]; then
                 echo -e "     Old Expiry  : $current_exp"
             fi
             echo -e "     New Expiry  : $new_exp"
             echo -e "     Days Added  : $masaaktif"
             
-            if [[ "$current_exp" != "Unknown" ]] && [[ "$current_exp" != "Not Found" ]] && [[ $days_left -ge 0 ]]; then
+            if [[ "$current_exp" != "Not Set" ]] && [[ $days_left -ge 0 ]]; then
                 new_days_left=$((days_left + masaaktif))
                 echo -e "     Total Days  : $new_days_left days remaining"
             fi
             
             echo ""
             echo -e "${green}  • Services Updated:${nc}"
-            echo -e "     ✓ Xray configuration"
-            echo -e "     ✓ Client config files"
-            echo -e "     ✓ Service restarted"
+            echo -e "     ✓ Expiry database updated"
+            echo -e "     ✓ Xray service restarted"
+            echo -e "     ✓ Client config files updated"
             echo -e "${red}=========================================${nc}"
             
             # Log the renewal
@@ -450,7 +531,6 @@ if update_user_expiry "$user" "$current_exp" "$new_exp"; then
     fi
 else
     echo -e "${red}  • Error: Failed to update expiry date${nc}"
-    echo -e "${yellow}  • Config restored from backup${nc}"
     echo -e "${red}=========================================${nc}"
 fi
 
