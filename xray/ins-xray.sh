@@ -40,6 +40,7 @@ echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
 # create folder
+rm -f /usr/local/bin/xray
 mkdir -p /usr/local/bin
 mkdir -p /usr/local/etc/xray
 mkdir -p /var/log/xray
