@@ -230,7 +230,7 @@ DAEMON_OPTS="--user sslh \
 --ssh 127.0.0.1:110 \
 --http 127.0.0.1:1445 \
 --openvpn 127.0.0.1:1196 \
---ssl 127.0.0.1:4343 \
+--ssl 127.0.0.1:4433 \
 --http 127.0.0.1:8080 \
 --pidfile /var/run/sslh/sslh.pid -n"
 EOF
