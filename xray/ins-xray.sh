@@ -348,8 +348,8 @@ systemctl start xray
 # nginx
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 8080;
-    listen [::]:8080;
+    listen 127.0.0.1:8080;
+    listen [::1]:8080;
     server_name _;
     
     location /vless {
