@@ -27,7 +27,7 @@
 
 -----------------------------------------------------------------------------------------
 
-# Cloudflare setting for those who have their own Domain, you can check at folder [image](https://github.com/givps/AutoScriptXray/tree/master/image) to display other setting or use your API Token auto record with own your Domain [API](https://github.com/givps/AutoScriptXray/blob/master/cloudflare/api-token/README.md)
+# Cloudflare setting for those who have their own Domain, you can check at folder [image](https://github.com/givps/AutoScriptXray/blob/master/image/README.md) to display other setting or use your API Token auto record with own your Domain [API](https://github.com/givps/AutoScriptXray/blob/master/cloudflare/api-token/README.md)
 <br>
 - SSL/TLS : FULL<br>
 - SSL/TLS Recommender : OFF<br>
