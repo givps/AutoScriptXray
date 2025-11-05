@@ -509,6 +509,7 @@ server {
     }
 }
 EOF
+
 # Reload systemd and start Xray
 systemctl daemon-reload
 systemctl enable nginx
