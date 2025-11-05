@@ -217,23 +217,82 @@ mv ovpn.zip /usr/share/nginx/html/openvpn/
 rm -rf /tmp/ovpn
 cd
 
-IFACE=$(ip -o -4 route show to default | awk '{print $5}')
+sudo tee /usr/local/bin/install-fix-iptables.sh >/dev/null <<'EOF'
+#!/bin/bash
+set -e
 
-if [ "$(cat /proc/sys/net/ipv4/ip_forward)" -ne 1 ]; then
+echo "[INFO] Creating fix-iptables.sh..."
+
+sudo tee /usr/local/bin/fix-iptables.sh >/dev/null <<'EOC'
+#!/bin/bash
+GREEN="\e[32m"
+RESET="\e[0m"
+
+# Detect default network interface
+IFACE=\$(ip -o -4 route show to default | awk '{print \$5}')
+
+# Enable IP forwarding
+if [ "\$(cat /proc/sys/net/ipv4/ip_forward)" -ne 1 ]; then
     echo 1 > /proc/sys/net/ipv4/ip_forward
+    echo -e "\${GREEN}[OK]\${RESET} IP forwarding enabled"
 fi
 
+# Apply NAT for OpenVPN subnets
 for SUBNET in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
-    iptables -t nat -C POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -I POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
+    iptables -t nat -C POSTROUTING -s \$SUBNET -o \$IFACE -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -I POSTROUTING -s \$SUBNET -o \$IFACE -j MASQUERADE
+    echo -e "\${GREEN}[OK]\${RESET} NAT applied for subnet \$SUBNET via \$IFACE"
 done
 
-iptables -C FORWARD -i tun0 -o $IFACE -j ACCEPT 2>/dev/null || \
-iptables -I FORWARD -i tun0 -o $IFACE -j ACCEPT
-iptables -C FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
-iptables -I FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+# Forward traffic between tun and default interface
+for DEV in \$(ip -o link show | awk -F': ' '{print \$2}' | grep '^tun'); do
+    iptables -C FORWARD -i \$DEV -o \$IFACE -j ACCEPT 2>/dev/null || \
+    iptables -I FORWARD -i \$DEV -o \$IFACE -j ACCEPT
+    iptables -C FORWARD -i \$IFACE -o \$DEV -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
+    iptables -I FORWARD -i \$IFACE -o \$DEV -m state --state ESTABLISHED,RELATED -j ACCEPT
+    echo -e "\${GREEN}[OK]\${RESET} Forwarding rule applied for \$DEV ↔ \$IFACE"
+done
+
+# Ensure established connections are forwarded
 iptables -C FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
 iptables -I FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+echo -e "\${GREEN}[OK]\${RESET} Related/Established forwarding rule ensured"
+EOC
+
+chmod +x /usr/local/bin/fix-iptables.sh
+
+echo "[INFO] Creating systemd service fix-iptables.service..."
+
+sudo tee /etc/systemd/system/fix-iptables.service >/dev/null <<'EOC'
+[Unit]
+Description=Fix OpenVPN iptables and NAT rules
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fix-iptables.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOC
+
+echo "[INFO] Reloading systemd daemon..."
+systemctl daemon-reload
+
+echo "[INFO] Enabling and starting service..."
+systemctl enable fix-iptables
+systemctl start fix-iptables
+
+echo -e "\n✅ Installation complete! You can check status with:"
+echo "   systemctl status fix-iptables"
+echo "   journalctl -u fix-iptables -e"
+EOF
+
+# Run the installer
+sudo chmod +x /usr/local/bin/install-fix-iptables.sh
+sudo bash /usr/local/bin/install-fix-iptables.sh
 
 # OpenVPN TCP 1195
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
