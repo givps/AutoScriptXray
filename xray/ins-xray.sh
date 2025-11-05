@@ -39,22 +39,37 @@ apt clean all && apt autoremove -y
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
-# create folder
+# Craete folder
 rm -f /usr/local/bin/xray
-mkdir -p /usr/local/bin
-mkdir -p /usr/local/etc/xray
-mkdir -p /var/log/xray
-touch /var/log/xray/access.log
-touch /var/log/xray/error.log
-# create xray user
-id xray &>/dev/null || sudo useradd -r -s /usr/sbin/nologin xray
-# xray official
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
-# Set ownership
-chmod +x /usr/local/bin/xray
+mkdir -p /usr/local/bin /usr/local/etc/xray /var/log/xray
+touch /var/log/xray/{access,error}.log
+id xray &>/dev/null || useradd -r -s /usr/sbin/nologin xray
+###########################################################
+# Xray official manual install v1.8.24 (auto-arch)
+VER=v1.8.24
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) F=Xray-linux-64.zip ;;
+  i*86) F=Xray-linux-32.zip ;;
+  aarch64) F=Xray-linux-arm64-v8a.zip ;;
+  armv7l) F=Xray-linux-arm32-v7a.zip ;;
+  *) echo "❌ Unsupported arch: $ARCH"; exit 1 ;;
+esac
+
+curl -L -o x.zip https://github.com/XTLS/Xray-core/releases/download/$VER/$F
+unzip -qo x.zip xray && install -m 755 xray /usr/local/bin/xray
 chown -R root:root /usr/local/bin/xray
-chown -R xray:xray /usr/local/etc/xray
-chown -R xray:xray /var/log/xray
+chown -R xray:xray /usr/local/etc/xray /var/log/xray
+rm -rf x.zip xray && xray version
+###########################################################
+# xray official
+# bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
+# xray version
+# Set ownership
+#chmod +x /usr/local/bin/xray
+#chown -R root:root /usr/local/bin/xray
+#chown -R xray:xray /usr/local/etc/xray
+#chown -R xray:xray /var/log/xray
 
 # nginx stop
 systemctl stop nginx
@@ -153,159 +168,154 @@ echo "✅ Use Self-signed SSL"
 fi
 
 uuid=$(cat /proc/sys/kernel/random/uuid)
+
 cat > /usr/local/etc/xray/config.json <<EOF
 {
-	"log":{
-		"access":"/var/log/xray/access.log",
-		"error":"/var/log/xray/error.log",
-		"loglevel":"info"
-	},
-	"inbounds":[
-		{
-			"tag":"vless-ws",
-			"listen":"127.0.0.1",
-			"port":10001,
-			"protocol":"vless",
-			"settings":{
-				"clients":[
-					{
-						"id":"$uuid"
-					}
-				],
-				"decryption":"none"
-			},
-			"streamSettings":{
-				"network":"ws",
-				"wsSettings":{
-					"path":"/vless"
-				}
-			}
-		},
-		{
-			"tag":"vmess-ws",
-			"listen":"127.0.0.1",
-			"port":10002,
-			"protocol":"vmess",
-			"settings":{
-				"clients":[
-					{
-						"id":"$uuid"
-					}
-				]
-			},
-			"streamSettings":{
-				"network":"ws",
-				"wsSettings":{
-					"path":"/vmess"
-				}
-			}
-		},
-		{
-			"tag":"trojan-ws",
-			"listen":"127.0.0.1",
-			"port":10003,
-			"protocol":"trojan",
-			"settings":{
-				"clients":[
-					{
-						"password":"$uuid"
-					}
-				]
-			},
-			"streamSettings":{
-				"network":"ws",
-				"wsSettings":{
-					"path":"/trojan-ws"
-				}
-			}
-		},
-		{
-			"tag":"vless-grpc",
-			"listen":"127.0.0.1",
-			"port":10005,
-			"protocol":"vless",
-			"settings":{
-				"clients":[
-					{
-						"id":"$uuid"
-					}
-				],
-				"decryption":"none"
-			},
-			"streamSettings":{
-				"network":"grpc",
-				"grpcSettings":{
-					"serviceName":"vless-grpc"
-				}
-			}
-		},
-		{
-			"tag":"vmess-grpc",
-			"listen":"127.0.0.1",
-			"port":10006,
-			"protocol":"vmess",
-			"settings":{
-				"clients":[
-					{
-						"id":"$uuid"
-					}
-				]
-			},
-			"streamSettings":{
-				"network":"grpc",
-				"grpcSettings":{
-					"serviceName":"vmess-grpc"
-				}
-			}
-		},
-		{
-			"tag":"trojan-grpc",
-			"listen":"127.0.0.1",
-			"port":10007,
-			"protocol":"trojan",
-			"settings":{
-				"clients":[
-					{
-						"password":"$uuid"
-					}
-				]
-			},
-			"streamSettings":{
-				"network":"grpc",
-				"grpcSettings":{
-					"serviceName":"trojan-grpc"
-				}
-			}
-		}
-	],
-	"outbounds":[
-		{
-			"protocol":"freedom",
-			"tag":"direct"
-		},
-		{
-			"protocol":"blackhole",
-			"tag":"blocked"
-		}
-	],
-	"routing":{
-		"rules":[
-			{
-				"type":"field",
-				"ip":[
-					"geoip:private"
-				],
-				"outboundTag":"blocked"
-			},
-			{
-				"type":"field",
-				"protocol":[
-					"bittorrent"
-				],
-				"outboundTag":"blocked"
-			}
-		]
-	}
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "info"
+  },
+  "inbounds": [
+    {
+      "tag": "vless-ws",
+      "listen": "127.0.0.1",
+      "port": 10001,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          { "id": "$uuid" }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/vless" }
+      }
+    },
+    {
+      "tag": "vmess-ws",
+      "listen": "127.0.0.1",
+      "port": 10002,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          { "id": "$uuid" }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/vmess" }
+      }
+    },
+    {
+      "tag": "trojan-ws",
+      "listen": "127.0.0.1",
+      "port": 10003,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          { "password": "$uuid" }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/trojan-ws" }
+      }
+    },
+    {
+      "tag": "ss-ws",
+      "listen": "127.0.0.1",
+      "port": 10004,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "aes-128-gcm",
+        "password": "$uuid"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/ss-ws" }
+      }
+    },
+    {
+      "tag": "vless-grpc",
+      "listen": "127.0.0.1",
+      "port": 10005,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          { "id": "$uuid" }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": { "serviceName": "vless-grpc" }
+      }
+    },
+    {
+      "tag": "vmess-grpc",
+      "listen": "127.0.0.1",
+      "port": 10006,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          { "id": "$uuid" }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": { "serviceName": "vmess-grpc" }
+      }
+    },
+    {
+      "tag": "trojan-grpc",
+      "listen": "127.0.0.1",
+      "port": 10007,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          { "password": "$uuid" }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": { "serviceName": "trojan-grpc" }
+      }
+    },
+    {
+      "tag": "ss-grpc",
+      "listen": "127.0.0.1",
+      "port": 10008,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "aes-128-gcm",
+        "password": "$uuid"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": { "serviceName": "ss-grpc" }
+      }
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom", "tag": "direct" },
+    { "protocol": "blackhole", "tag": "blocked" }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "blocked"
+      },
+      {
+        "type": "field",
+        "protocol": ["bittorrent"],
+        "outboundTag": "blocked"
+      }
+    ]
+  }
 }
 EOF
 
@@ -394,6 +404,19 @@ server {
         proxy_send_timeout 86400;
     }
 
+    location /ss-ws {
+        proxy_pass http://127.0.0.1:10004;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
     location /vless-grpc {
         grpc_pass grpc://127.0.0.1:10005;
         client_max_body_size 0;
@@ -416,6 +439,16 @@ server {
 
     location /trojan-grpc {
         grpc_pass grpc://127.0.0.1:10007;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
+    }
+
+    location /ss-grpc {
+        grpc_pass grpc://127.0.0.1:10008;
         client_max_body_size 0;
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -453,11 +486,11 @@ wget -O del-tr "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xr
 wget -O cek-tr "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-tr.sh" && chmod +x cek-tr
 
 # shadowsocks
-#wget -O add-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/add-ssws.sh" && chmod +x add-ssws
-#wget -O trial-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/trial-ssws.sh" && chmod +x trial-ssws
-#wget -O renew-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/renew-ssws.sh" && chmod +x renew-ssws
-#wget -O del-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/del-ssws.sh" && chmod +x del-ssws
-#wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-ssws.sh" && chmod +x cek-ssws
+wget -O add-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/add-ssws.sh" && chmod +x add-ssws
+wget -O trial-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/trial-ssws.sh" && chmod +x trial-ssws
+wget -O renew-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/renew-ssws.sh" && chmod +x renew-ssws
+wget -O del-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/del-ssws.sh" && chmod +x del-ssws
+wget -O cek-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/cek-ssws.sh" && chmod +x cek-ssws
 
 # xray acces & error log
 wget -O xray-log "https://raw.githubusercontent.com/givps/AutoScriptXray/master/xray/xray-log.sh" && chmod +x xray-log
