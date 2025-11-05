@@ -358,6 +358,7 @@ systemctl stop tor
 
 # install fail2ban
 apt -y install fail2ban
+
 cat > /etc/fail2ban/jail.local << 'EOF'
 [DEFAULT]
 bantime = 3600
