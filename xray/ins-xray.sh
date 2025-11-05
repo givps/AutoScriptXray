@@ -39,30 +39,37 @@ apt clean all && apt autoremove -y
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
-# create folder
+# Craete folder
 rm -f /usr/local/bin/xray
-mkdir -p /usr/local/bin
-mkdir -p /usr/local/etc/xray
-mkdir -p /var/log/xray
-touch /var/log/xray/access.log
-touch /var/log/xray/error.log
-# create xray user
-id xray &>/dev/null || sudo useradd -r -s /usr/sbin/nologin xray
+mkdir -p /usr/local/bin /usr/local/etc/xray /var/log/xray
+touch /var/log/xray/{access,error}.log
+id xray &>/dev/null || useradd -r -s /usr/sbin/nologin xray
+###########################################################
+# Xray official manual install v1.8.24 (auto-arch)
+VER=v1.8.24
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) F=Xray-linux-64.zip ;;
+  i*86) F=Xray-linux-32.zip ;;
+  aarch64) F=Xray-linux-arm64-v8a.zip ;;
+  armv7l) F=Xray-linux-arm32-v7a.zip ;;
+  *) echo "❌ Unsupported arch: $ARCH"; exit 1 ;;
+esac
+
+curl -L -o x.zip https://github.com/XTLS/Xray-core/releases/download/$VER/$F
+unzip -qo x.zip xray && install -m 755 xray /usr/local/bin/xray
+chown -R root:root /usr/local/bin/xray
+chown -R xray:xray /usr/local/etc/xray /var/log/xray
+rm -rf x.zip xray && xray version
+###########################################################
 # xray official
 # bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
-# Unduh versi spesifik (v1.8.24)
-cd /tmp
-wget -O Xray-linux-64.zip https://github.com/XTLS/Xray-core/releases/download/v1.8.24/Xray-linux-64.zip
-# Ekstrak dan pindahkan binary
-unzip -o Xray-linux-64.zip
-install -m 755 xray /usr/local/bin/xray
+# xray version
 # Set ownership
-chmod +x /usr/local/bin/xray
-chown -R root:root /usr/local/bin/xray
-chown -R xray:xray /usr/local/etc/xray
-chown -R xray:xray /var/log/xray
-# Bersihkan file sementara
-rm -f /tmp/Xray-linux-64.zip /tmp/xray
+#chmod +x /usr/local/bin/xray
+#chown -R root:root /usr/local/bin/xray
+#chown -R xray:xray /usr/local/etc/xray
+#chown -R xray:xray /var/log/xray
 
 # nginx stop
 systemctl stop nginx
