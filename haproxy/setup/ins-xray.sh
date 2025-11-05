@@ -143,19 +143,13 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "vless",
       "settings": {
         "clients": [
-          {
-            "id": "$uuid",
-            "flow": ""
-          }
+          { "id": "$uuid" }
         ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
-        "wsSettings": {
-          "path": "/vless"
-        }
+        "wsSettings": { "path": "/vless" }
       }
     },
     {
@@ -165,17 +159,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "vmess",
       "settings": {
         "clients": [
-          {
-            "id": "$uuid"
-          }
+          { "id": "$uuid" }
         ]
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
-        "wsSettings": {
-          "path": "/vmess"
-        }
+        "wsSettings": { "path": "/vmess" }
       }
     },
     {
@@ -185,17 +174,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "trojan",
       "settings": {
         "clients": [
-          {
-            "password": "$uuid"
-          }
+          { "password": "$uuid" }
         ]
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
-        "wsSettings": {
-          "path": "/trojan-ws"
-        }
+        "wsSettings": { "path": "/trojan-ws" }
       }
     },
     {
@@ -209,10 +193,7 @@ cat > /usr/local/etc/xray/config.json <<EOF
       },
       "streamSettings": {
         "network": "ws",
-        "security": "none",
-        "wsSettings": {
-          "path": "/ss-ws"
-        }
+        "wsSettings": { "path": "/ss-ws" }
       }
     },
     {
@@ -222,19 +203,13 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "vless",
       "settings": {
         "clients": [
-          {
-            "id": "$uuid",
-            "flow": ""
-          }
+          { "id": "$uuid" }
         ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
-        "grpcSettings": {
-          "serviceName": "vless-grpc"
-        }
+        "grpcSettings": { "serviceName": "vless-grpc" }
       }
     },
     {
@@ -244,17 +219,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "vmess",
       "settings": {
         "clients": [
-          {
-            "id": "$uuid"
-          }
+          { "id": "$uuid" }
         ]
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
-        "grpcSettings": {
-          "serviceName": "vmess-grpc"
-        }
+        "grpcSettings": { "serviceName": "vmess-grpc" }
       }
     },
     {
@@ -264,17 +234,12 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "protocol": "trojan",
       "settings": {
         "clients": [
-          {
-            "password": "$uuid"
-          }
+          { "password": "$uuid" }
         ]
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
-        "grpcSettings": {
-          "serviceName": "trojan-grpc"
-        }
+        "grpcSettings": { "serviceName": "trojan-grpc" }
       }
     },
     {
@@ -288,39 +253,24 @@ cat > /usr/local/etc/xray/config.json <<EOF
       },
       "streamSettings": {
         "network": "grpc",
-        "security": "none",
-        "grpcSettings": {
-          "serviceName": "ss-grpc"
-        }
+        "grpcSettings": { "serviceName": "ss-grpc" }
       }
     }
   ],
   "outbounds": [
-    {
-      "protocol": "freedom",
-      "settings": {},
-      "tag": "direct"
-    },
-    {
-      "protocol": "blackhole",
-      "settings": {},
-      "tag": "blocked"
-    }
+    { "protocol": "freedom", "tag": "direct" },
+    { "protocol": "blackhole", "tag": "blocked" }
   ],
   "routing": {
     "rules": [
       {
         "type": "field",
-        "ip": [
-          "geoip:private"
-        ],
+        "ip": ["geoip:private"],
         "outboundTag": "blocked"
       },
       {
         "type": "field",
-        "protocol": [
-          "bittorrent"
-        ],
+        "protocol": ["bittorrent"],
         "outboundTag": "blocked"
       }
     ]
