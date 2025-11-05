@@ -296,11 +296,11 @@ sudo bash /usr/local/bin/install-fix-iptables.sh
 # /etc/systemd/system/fix-iptables.timer
 cat <<'EOF' | sudo tee /etc/systemd/system/fix-iptables.timer
 [Unit]
-Description=Run fix-iptables every 5 minutes
+Description=Run fix-iptables every 15 minutes
 
 [Timer]
 OnBootSec=1min
-OnUnitActiveSec=5min
+OnUnitActiveSec=15min
 Unit=fix-iptables.service
 
 [Install]
