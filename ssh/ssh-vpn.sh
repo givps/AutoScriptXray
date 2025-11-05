@@ -223,6 +223,7 @@ cat > /etc/default/sslh << 'EOF'
 RUN=yes
 DAEMON_OPTS="--user sslh \
 --listen 0.0.0.0:443 \
+--listen 0.0.0.0:80 \
 --ssh 127.0.0.1:22 \
 --openvpn 127.0.0.1:1196 \
 --ssl 127.0.0.1:4433 \
