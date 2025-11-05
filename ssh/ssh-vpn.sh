@@ -206,54 +206,52 @@ dropbearkey -t ecdsa -f /etc/dropbear/dropbear_ecdsa_host_key
 dropbearkey -t ed25519 -f /etc/dropbear/dropbear_ed25519_host_key
 systemctl restart dropbear
 
-# SSLH Multi-port Installer Script
-# Update system
+# ==============================================
+# SSLH Multi-port Installer (non-root, safe ports)
+# ==============================================
+# Update system & install dependencies
 apt update -y
+apt install -y sslh wget build-essential libconfig-dev iproute2
 
-# Install dependencies
-apt install -y wget build-essential libconfig-dev
+# Buat user/group sslh jika belum ada
+getent group sslh >/dev/null || groupadd -r sslh
+id -u sslh >/dev/null 2>&1 || useradd -r -g sslh -s /usr/sbin/nologin -d /nonexistent sslh
 
-# Install SSLH
-apt install -y sslh
+# Set capability untuk bind port 80/443
+getcap /usr/sbin/sslh | grep -q cap_net_bind_service || setcap 'cap_net_bind_service=+ep' /usr/sbin/sslh
 
-# Create directory for PID file
-mkdir -p /var/run/sslh
+# Buat folder run sslh
+mkdir -p /run/sslh && chown sslh:sslh /run/sslh
 
-cat > /etc/default/sslh << 'EOF'
-RUN=yes
-DAEMON_OPTS="--user sslh \
---listen 0.0.0.0:443 \
---listen 0.0.0.0:80 \
---ssh 127.0.0.1:22 \
---openvpn 127.0.0.1:1196 \
---ssl 127.0.0.1:4433 \
---http 127.0.0.1:8080 \
---pidfile /var/run/sslh/sslh.pid"
-EOF
-
-cat > /etc/systemd/system/sslh.service << 'EOF'
+# Buat systemd service (anti-duplikat, forking, non-root)
+cat > /etc/systemd/system/sslh.service <<'EOF'
 [Unit]
 Description=SSL/SSH/OpenVPN/XMPP/tinc port multiplexer
-Documentation=man:sslh(8)
 After=network.target
 
 [Service]
-EnvironmentFile=-/etc/default/sslh
-ExecStart=/usr/sbin/sslh $DAEMON_OPTS
-Type=forking
-PIDFile=/var/run/sslh/sslh.pid
+ExecStart=/usr/sbin/sslh \
+  --listen 0.0.0.0:443 \
+  --listen 0.0.0.0:80 \
+  --ssh 127.0.0.1:22 \
+  --openvpn 127.0.0.1:1196 \
+  --tls 127.0.0.1:4433 \
+  --http 127.0.0.1:8080 \
+  --pidfile /run/sslh/sslh.pid \
+  --foreground
+User=sslh
+Group=sslh
 Restart=on-failure
+Type=simple
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-chown sslh:sslh /var/run/sslh
-
-# Enable and start SSLH service
+# Reload systemd dan start service
 systemctl daemon-reload
 systemctl enable sslh
-systemctl start sslh
+systemctl restart sslh
 
 # install stunnel
 apt install -y stunnel4
