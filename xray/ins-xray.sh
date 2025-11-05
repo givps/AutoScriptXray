@@ -222,8 +222,8 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10004,
       "protocol": "shadowsocks",
       "settings": {
-        "method": "aes-128-gcm",
-        "clients": [{ "password": "$uuid" }]
+      "method": "chacha20-ietf-poly1305",
+      "password": "$uuid"
       },
       "streamSettings": {
         "network": "ws",
@@ -276,8 +276,8 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10008,
       "protocol": "shadowsocks",
       "settings": {
-        "method": "aes-128-gcm",
-        "clients": [{ "password": "$uuid" }]
+      "method": "chacha20-ietf-poly1305",
+      "password": "$uuid"
       },
       "streamSettings": {
         "network": "grpc",
