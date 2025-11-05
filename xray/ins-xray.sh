@@ -361,23 +361,15 @@ server {
 
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
+
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
 
-    # ======== WebSocket Routes ========
-    location ~ ^/(vless|vmess|trojan-ws|ss-ws)$ {
+    location /vless {
         proxy_pass http://127.0.0.1:10001;
-        if ($uri = "/vmess")     { proxy_pass http://127.0.0.1:10002; }
-        if ($uri = "/trojan-ws") { proxy_pass http://127.0.0.1:10003; }
-        if ($uri = "/ss-ws")     { proxy_pass http://127.0.0.1:10004; }
-
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Sec-WebSocket-Extensions none;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -386,13 +378,77 @@ server {
         proxy_send_timeout 86400;
     }
 
-    # ======== gRPC Routes ========
-    location ~ ^/(vless|vmess|trojan|ss)-grpc$ {
-        grpc_pass grpc://127.0.0.1:10005;
-        if ($uri = "/vmess-grpc")  { grpc_pass grpc://127.0.0.1:10006; }
-        if ($uri = "/trojan-grpc") { grpc_pass grpc://127.0.0.1:10007; }
-        if ($uri = "/ss-grpc")     { grpc_pass grpc://127.0.0.1:10008; }
+    location /vmess {
+        proxy_pass http://127.0.0.1:10002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
 
+    location /trojan-ws {
+        proxy_pass http://127.0.0.1:10003;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
+    location /ss-ws {
+        proxy_pass http://127.0.0.1:10004;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
+    location /vless-grpc {
+        grpc_pass grpc://127.0.0.1:10005;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
+    }
+
+    location /vmess-grpc {
+        grpc_pass grpc://127.0.0.1:10006;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
+    }
+
+    location /trojan-grpc {
+        grpc_pass grpc://127.0.0.1:10007;
+        client_max_body_size 0;
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header Host $host;
+        grpc_read_timeout 86400s;
+        grpc_send_timeout 86400s;
+    }
+
+    location /ss-grpc {
+        grpc_pass grpc://127.0.0.1:10008;
         client_max_body_size 0;
         grpc_set_header X-Real-IP $remote_addr;
         grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
