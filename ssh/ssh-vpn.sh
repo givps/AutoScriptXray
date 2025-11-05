@@ -223,7 +223,7 @@ getcap /usr/sbin/sslh | grep -q cap_net_bind_service || setcap 'cap_net_bind_ser
 # Buat folder run sslh
 mkdir -p /run/sslh && chown sslh:sslh /run/sslh
 
-# Buat systemd service (anti-duplikat, forking, non-root)
+# Buat systemd service type = simple/forking
 cat > /etc/systemd/system/sslh.service <<'EOF'
 [Unit]
 Description=SSL/SSH/OpenVPN/XMPP/tinc port multiplexer
