@@ -228,6 +228,8 @@ iptables -C FORWARD -i tun0 -o $IFACE -j ACCEPT 2>/dev/null || \
 iptables -I FORWARD -i tun0 -o $IFACE -j ACCEPT
 iptables -C FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
 iptables -I FORWARD -i $IFACE -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -C FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
+iptables -I FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 # OpenVPN TCP 1195
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
