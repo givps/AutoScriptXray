@@ -77,6 +77,8 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
+tcp-nodelay
+explicit-exit-notify 1
 
 auth-user-pass
 auth SHA256
@@ -84,7 +86,7 @@ cipher AES-256-GCM
 remote-cert-tls server
 tls-version-min 1.2
 verb 3
-
+keepalive 10 120
 redirect-gateway def1
 
 script-security 2
@@ -125,7 +127,7 @@ auth SHA256
 cipher AES-256-GCM
 verb 3
 explicit-exit-notify 1
-
+keepalive 10 120
 redirect-gateway def1
 
 script-security 2
@@ -160,6 +162,8 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
+tcp-nodelay
+explicit-exit-notify 1
 
 auth-user-pass
 auth SHA256
@@ -167,7 +171,7 @@ cipher AES-256-GCM
 remote-cert-tls server
 tls-version-min 1.2
 verb 3
-
+keepalive 10 120
 redirect-gateway def1
 
 script-security 2
