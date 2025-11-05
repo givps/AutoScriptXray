@@ -49,12 +49,20 @@ touch /var/log/xray/error.log
 # create xray user
 id xray &>/dev/null || sudo useradd -r -s /usr/sbin/nologin xray
 # xray official
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
+# bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
+# Unduh versi spesifik (v1.8.24)
+cd /tmp
+wget -O Xray-linux-64.zip https://github.com/XTLS/Xray-core/releases/download/v1.8.24/Xray-linux-64.zip
+# Ekstrak dan pindahkan binary
+unzip -o Xray-linux-64.zip
+install -m 755 xray /usr/local/bin/xray
 # Set ownership
 chmod +x /usr/local/bin/xray
 chown -R root:root /usr/local/bin/xray
 chown -R xray:xray /usr/local/etc/xray
 chown -R xray:xray /var/log/xray
+# Bersihkan file sementara
+rm -f /tmp/Xray-linux-64.zip /tmp/xray
 
 # nginx stop
 systemctl stop nginx
