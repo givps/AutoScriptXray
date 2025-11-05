@@ -6,7 +6,7 @@ set -euo pipefail
 # =========================================
 
 # === CONFIGURATION ===
-readonly WG_PORT=8888
+readonly WG_PORT=51820
 readonly WG_NETWORK="10.88.88.1/22"
 readonly SCRIPTS_BASE_URL="https://raw.githubusercontent.com/givps/AutoScriptXray/master/wireguard"
 
