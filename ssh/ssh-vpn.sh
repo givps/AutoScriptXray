@@ -431,7 +431,7 @@ wget -O m-vmess "https://raw.githubusercontent.com/givps/AutoScriptXray/master/m
 wget -O m-vless "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-vless.sh"
 wget -O running "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/running.sh"
 wget -O clearcache "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/clearcache.sh"
-#wget -O m-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-ssws.sh"
+wget -O m-ssws "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-ssws.sh"
 wget -O m-trojan "https://raw.githubusercontent.com/givps/AutoScriptXray/master/menu/m-trojan.sh"
 
 # menu ssh ovpn
@@ -467,7 +467,7 @@ chmod +x m-vmess
 chmod +x m-vless
 chmod +x running
 chmod +x clearcache
-#chmod +x m-ssws
+chmod +x m-ssws
 chmod +x m-trojan
 
 chmod +x m-sshovpn
