@@ -18,6 +18,7 @@ nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOF
 
+resolvconf -u
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
@@ -44,9 +45,16 @@ case $script_type in
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOT
+
+resolvconf -u
     ;;
   down)
-    # jangan restore supaya klien lain tidak terganggu
+    cat <<EOT > /etc/resolv.conf
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOT
+
+resolvconf -u
     ;;
 esac
 EOF
