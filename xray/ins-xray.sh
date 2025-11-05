@@ -168,6 +168,7 @@ echo "✅ Use Self-signed SSL"
 fi
 
 uuid=$(cat /proc/sys/kernel/random/uuid)
+
 cat > /usr/local/etc/xray/config.json <<EOF
 {
   "log": {
@@ -182,7 +183,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10001,
       "protocol": "vless",
       "settings": {
-        "clients": [{ "id": "$uuid" }],
+        "clients": [
+          { "id": "$uuid" }
+        ],
         "decryption": "none"
       },
       "streamSettings": {
@@ -196,7 +199,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10002,
       "protocol": "vmess",
       "settings": {
-        "clients": [{ "id": "$uuid" }]
+        "clients": [
+          { "id": "$uuid" }
+        ]
       },
       "streamSettings": {
         "network": "ws",
@@ -209,7 +214,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10003,
       "protocol": "trojan",
       "settings": {
-        "clients": [{ "password": "$uuid" }]
+        "clients": [
+          { "password": "$uuid" }
+        ]
       },
       "streamSettings": {
         "network": "ws",
@@ -222,8 +229,8 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10004,
       "protocol": "shadowsocks",
       "settings": {
-      "method": "chacha20-ietf-poly1305",
-      "password": "$uuid"
+        "method": "aes-128-gcm",
+        "password": "$uuid"
       },
       "streamSettings": {
         "network": "ws",
@@ -236,7 +243,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10005,
       "protocol": "vless",
       "settings": {
-        "clients": [{ "id": "$uuid" }],
+        "clients": [
+          { "id": "$uuid" }
+        ],
         "decryption": "none"
       },
       "streamSettings": {
@@ -250,7 +259,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10006,
       "protocol": "vmess",
       "settings": {
-        "clients": [{ "id": "$uuid" }]
+        "clients": [
+          { "id": "$uuid" }
+        ]
       },
       "streamSettings": {
         "network": "grpc",
@@ -263,7 +274,9 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10007,
       "protocol": "trojan",
       "settings": {
-        "clients": [{ "password": "$uuid" }]
+        "clients": [
+          { "password": "$uuid" }
+        ]
       },
       "streamSettings": {
         "network": "grpc",
@@ -276,8 +289,8 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "port": 10008,
       "protocol": "shadowsocks",
       "settings": {
-      "method": "chacha20-ietf-poly1305",
-      "password": "$uuid"
+        "method": "aes-128-gcm",
+        "password": "$uuid"
       },
       "streamSettings": {
         "network": "grpc",
