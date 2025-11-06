@@ -7,18 +7,14 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
-sudo rm /etc/resolv.conf
-sudo ln -s /run/resolvconf/resolv.conf /etc/resolv.conf
+sudo rm -f /etc/resolv.conf
+sudo bash -c 'echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8" > /etc/resolv.conf'
 sudo apt update
 sudo apt install resolvconf -y
-sudo systemctl enable --now resolvconf.service
+sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+sudo systemctl enable --now resolvconf
+sudo resolvconf -u
 
-cat > /etc/resolv.conf <<'EOF'
-nameserver 1.1.1.1
-nameserver 8.8.8.8
-EOF
-
-resolvconf -u
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
@@ -38,23 +34,21 @@ chown -R root:root /etc/openvpn/
 sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
 
-case $script_type in
-  up)
-    # Set DNS global (Cloudflare + Google)
-    cat <<EOT > /etc/resolv.conf
-nameserver 1.1.1.1
-nameserver 8.8.8.8
-EOT
+DNS=("1.1.1.1" "8.8.8.8")
 
-resolvconf -u
+case "$script_type" in
+  up)
+    if command -v resolvectl >/dev/null 2>&1; then
+        resolvectl dns "$dev" "${DNS[@]}"
+        resolvectl domain "$dev" "~."
+    elif command -v resolvconf >/dev/null 2>&1; then
+        printf "nameserver %s\n" "${DNS[@]}" | resolvconf -a "$dev"
+        resolvconf -u
+    fi
     ;;
   down)
-    cat <<EOT > /etc/resolv.conf
-nameserver 1.1.1.1
-nameserver 8.8.8.8
-EOT
-
-resolvconf -u
+    command -v resolvectl >/dev/null 2>&1 && resolvectl revert "$dev"
+    command -v resolvconf >/dev/null 2>&1 && { resolvconf -d "$dev"; resolvconf -u; }
     ;;
 esac
 EOF
