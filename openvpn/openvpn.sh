@@ -26,19 +26,23 @@ chown -R root:root /etc/openvpn/server/
 chmod 600 /etc/openvpn/server/*.key
 chmod 644 /etc/openvpn/server/*.crt
 
-sudo apt install resolvconf -y
-sudo systemctl enable --now resolvconf
+apt install resolvconf -y
+systemctl enable --now resolvconf
 tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
 [ -z "$dev" ] && exit 0
-DNS="1.1.1.1 8.8.8.8"
+
+DNS=("1.1.1.1" "8.8.8.8")
 
 if command -v resolvconf >/dev/null 2>&1; then
+    # Hapus DNS lama untuk interface VPN
     resolvconf -d "$dev" 2>/dev/null || true
-    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) | resolvconf -a "$dev" && resolvconf -u
+    # Tambahkan DNS baru
+    printf "%s\n" "${DNS[@]/#/nameserver }" | resolvconf -a "$dev" && resolvconf -u
 else
+    # Fallback sederhana
     mkdir -p /etc/openvpn
-    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) > /etc/openvpn/resolv.conf
+    printf "%s\n" "${DNS[@]/#/nameserver }" > /etc/openvpn/resolv.conf
 fi
 EOF
 chmod +x /etc/openvpn/update-resolv-conf.sh
@@ -277,4 +281,10 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 
 netfilter-persistent save
 netfilter-persistent reload
+
+systemctl daemon-reload
+systemctl restart openvpn-server@server-tcp
+systemctl restart openvpn-server@server-udp
+systemctl restart openvpn-server@server-ssl
+systemctl restart openvpn
 
