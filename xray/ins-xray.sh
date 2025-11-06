@@ -349,6 +349,7 @@ server {
     server_name _;
     
     location /vless {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -362,6 +363,7 @@ server {
     }
 
     location /vmess {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -375,6 +377,7 @@ server {
     }
 
     location /trojan-ws {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -388,6 +391,7 @@ server {
     }
 
     location /ss-ws {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -403,16 +407,29 @@ server {
 
 server {
     listen 4433 ssl http2;
-    # listen [::]:4433 ssl http2;
     server_name _;
 
     ssl_certificate /usr/local/etc/xray/xray.crt;
     ssl_certificate_key /usr/local/etc/xray/xray.key;
 
     ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305;
-
+    ssl_ciphers ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers on;
+    ssl_conf_command Ciphersuites TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1h;
+    ssl_session_tickets off;
+    ssl_stapling off;
+    ssl_stapling_verify off;
+    resolver 1.1.1.1 8.8.8.8 valid=300s;
+    resolver_timeout 5s;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    
     location /vless {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -426,6 +443,7 @@ server {
     }
 
     location /vmess {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -439,6 +457,7 @@ server {
     }
 
     location /trojan-ws {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -452,6 +471,7 @@ server {
     }
 
     location /ss-ws {
+        proxy_buffering off;
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
