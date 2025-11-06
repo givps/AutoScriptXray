@@ -150,13 +150,13 @@ echo -e "${red}=========================================${nc}"
 echo -e "${blue}              Install XRAY              ${nc}"
 echo -e "${red}=========================================${nc}"
 #Instal Xray
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/1/setup/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/1/haproxy/setup/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
 
 echo -e "${red}=========================================${nc}"
 echo -e "${blue}     Install SSH HAProxy Websocket      ${nc}"
 echo -e "${red}=========================================${nc}"
 # install haproxy ws
-wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/1/setup/install-haproxy.sh && chmod +x install-haproxy.sh && ./install-haproxy.sh
+wget https://raw.githubusercontent.com/givps/AutoScriptXray/1/haproxy/setup/install-haproxy.sh && chmod +x install-haproxy.sh && ./install-haproxy.sh
 
 #echo -e "${red}=========================================${nc}"
 #echo -e "${blue}             Install SlowDNS            ${nc}"
