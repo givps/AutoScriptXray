@@ -201,6 +201,9 @@ iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -C INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+# nginx
+iptables -C INPUT -p tcp --dport 4343 -j ACCEPT 2>/dev/null || \
+iptables -I INPUT -p tcp --dport 4343 -j ACCEPT
 # HAProxy ports
 iptables -C INPUT -p tcp --dport 1443 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp --dport 1443 -j ACCEPT
