@@ -26,6 +26,8 @@ chown -R root:root /etc/openvpn/server/
 chmod 600 /etc/openvpn/server/*.key
 chmod 644 /etc/openvpn/server/*.crt
 
+sudo apt install resolvconf -y
+sudo systemctl enable --now resolvconf
 tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
 [ -z "$dev" ] && exit 0
