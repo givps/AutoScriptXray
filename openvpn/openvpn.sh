@@ -26,6 +26,21 @@ chown -R root:root /etc/openvpn/server/
 chmod 600 /etc/openvpn/server/*.key
 chmod 644 /etc/openvpn/server/*.crt
 
+tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
+#!/bin/bash
+[ -z "$dev" ] && exit 0
+DNS="1.1.1.1 8.8.8.8"
+
+if command -v resolvconf >/dev/null 2>&1; then
+    resolvconf -d "$dev" 2>/dev/null || true
+    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) | resolvconf -a "$dev" && resolvconf -u
+else
+    mkdir -p /etc/openvpn
+    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) > /etc/openvpn/resolv.conf
+fi
+EOF
+chmod +x /etc/openvpn/update-resolv-conf.sh
+
 mkdir -p /usr/lib/openvpn/
 cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib/openvpn/openvpn-plugin-auth-pam.so
 
@@ -99,9 +114,14 @@ verb 3
 keepalive 5 60
 redirect-gateway def1
 tun-mtu 1400
-mssfix 1400
+mssfix 1360
 sndbuf 524288
 rcvbuf 524288
+dhcp-option DNS 1.1.1.1
+dhcp-option DNS 8.8.8.8
+script-security 2
+up /etc/openvpn/update-resolv-conf.sh
+down /etc/openvpn/update-resolv-conf.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
