@@ -207,21 +207,14 @@ dropbearkey -t ed25519 -f /etc/dropbear/dropbear_ed25519_host_key
 systemctl restart dropbear
 
 # ==============================================
-# SSLH Multi-port Installer (non-root, safe ports)
+# SSLH Multi-port Installer
 # ==============================================
 # Update system & install dependencies
 apt update -y
 apt install -y sslh wget build-essential libconfig-dev iproute2
 
-# Buat user/group sslh jika belum ada
-getent group sslh >/dev/null || groupadd -r sslh
-id -u sslh >/dev/null 2>&1 || useradd -r -g sslh -s /usr/sbin/nologin -d /nonexistent sslh
-
-# Set capability untuk bind port 80/443
-getcap /usr/sbin/sslh | grep -q cap_net_bind_service || setcap 'cap_net_bind_service=+ep' /usr/sbin/sslh
-
 # Buat folder run sslh
-mkdir -p /run/sslh && chown sslh:sslh /run/sslh
+mkdir -p /run/sslh
 
 # Buat systemd service type = simple/forking
 cat > /etc/systemd/system/sslh.service <<'EOF'
@@ -239,8 +232,6 @@ ExecStart=/usr/sbin/sslh \
   --http 127.0.0.1:8080 \
   --pidfile /run/sslh/sslh.pid \
   --foreground
-User=sslh
-Group=sslh
 Restart=on-failure
 Type=simple
 
