@@ -7,13 +7,7 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
-sudo bash -c 'for ns in 1.1.1.1 8.8.8.8; do grep -q "^nameserver $ns" /etc/resolv.conf || echo "nameserver $ns" >> /etc/resolv.conf; done'
-sudo apt update
-sudo apt install resolvconf -y
-sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
-sudo systemctl enable --now resolvconf
-sudo resolvconf -u
-
+bash -c 'echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8" > /etc/resolv.conf'
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
@@ -28,9 +22,18 @@ cd /etc/openvpn/
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/server.zip
 unzip server.zip
 rm -f server.zip
-chown -R root:root /etc/openvpn/
+cd
+chown -R root:root /etc/openvpn/server/
+chmod 600 /etc/openvpn/server/*.key
+chmod 644 /etc/openvpn/server/*.crt
 
-sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
+apt update
+apt install resolvconf -y
+ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+systemctl enable --now resolvconf
+resolvconf -u
+
+cat > /etc/openvpn/server/update-dns.sh <<'EOF'
 #!/bin/bash
 DNS=("1.1.1.1" "8.8.8.8")
 [ -z "$dev" ] && exit 0
@@ -46,7 +49,7 @@ fi
 EOF
 
 # Jadikan executable
-sudo chmod +x /etc/openvpn/update-resolv-conf.sh
+chmod +x /etc/openvpn/server/update-dns.sh
 
 cd
 mkdir -p /usr/lib/openvpn/
@@ -56,6 +59,7 @@ cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib
 sed -i 's/#AUTOSTART="all"/AUTOSTART="all"/g' /etc/default/openvpn
 
 # enable openvpn
+systemctl daemon-reload
 systemctl enable --now openvpn-server@server-tcp
 systemctl enable --now openvpn-server@server-udp
 systemctl enable --now openvpn-server@server-ssl
@@ -84,8 +88,8 @@ keepalive 10 120
 redirect-gateway def1
 
 script-security 2
-up /etc/openvpn/update-resolv-conf.sh
-down /etc/openvpn/update-resolv-conf.sh
+up /etc/openvpn/server/update-dns.sh
+down /etc/openvpn/server/update-dns.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -125,8 +129,8 @@ keepalive 10 120
 redirect-gateway def1
 
 script-security 2
-up /etc/openvpn/update-resolv-conf.sh
-down /etc/openvpn/update-resolv-conf.sh
+up /etc/openvpn/server/update-dns.sh
+down /etc/openvpn/server/update-dns.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -169,8 +173,8 @@ keepalive 10 120
 redirect-gateway def1
 
 script-security 2
-up /etc/openvpn/update-resolv-conf.sh
-down /etc/openvpn/update-resolv-conf.sh
+up /etc/openvpn/server/update-dns.sh
+down /etc/openvpn/server/update-dns.sh
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -211,12 +215,12 @@ mv ovpn.zip /usr/share/nginx/html/openvpn/
 rm -rf /tmp/ovpn
 cd
 
-sudo tee /usr/local/bin/install-fix-iptables.sh > /dev/null <<'EOF'
+tee /usr/local/bin/install-fix-iptables.sh > /dev/null <<'EOF'
 #!/bin/bash
 set -e
 echo "[INFO] Creating fix-iptables.sh..."
 
-sudo tee /usr/local/bin/fix-iptables.sh > /dev/null <<'EOSH'
+tee /usr/local/bin/fix-iptables.sh > /dev/null <<'EOSH'
 #!/bin/bash
 GREEN="\e[32m"
 RESET="\e[0m"
@@ -255,7 +259,7 @@ EOSH
 chmod +x /usr/local/bin/fix-iptables.sh
 
 echo "[INFO] Creating systemd service fix-iptables.service..."
-sudo tee /etc/systemd/system/fix-iptables.service > /dev/null <<'EOSERVICE'
+tee /etc/systemd/system/fix-iptables.service > /dev/null <<'EOSERVICE'
 [Unit]
 Description=Fix OpenVPN iptables and NAT rules
 After=network-online.target
@@ -284,11 +288,11 @@ echo "   journalctl -u fix-iptables -e"
 EOF
 
 # Run the installer
-sudo chmod +x /usr/local/bin/install-fix-iptables.sh
-sudo bash /usr/local/bin/install-fix-iptables.sh
+chmod +x /usr/local/bin/install-fix-iptables.sh
+bash /usr/local/bin/install-fix-iptables.sh
 
 # /etc/systemd/system/fix-iptables.timer
-cat <<'EOF' | sudo tee /etc/systemd/system/fix-iptables.timer
+cat <<'EOF' | tee /etc/systemd/system/fix-iptables.timer
 [Unit]
 Description=Run fix-iptables every 15 minutes
 
@@ -301,8 +305,8 @@ Unit=fix-iptables.service
 WantedBy=timers.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable --now fix-iptables.timer
+systemctl daemon-reload
+systemctl enable --now fix-iptables.timer
 
 # OpenVPN TCP 1195
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
@@ -319,3 +323,4 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 
 netfilter-persistent save
 netfilter-persistent reload
+
