@@ -273,6 +273,7 @@ iptables -I INPUT -p tcp --dport 1195 -j ACCEPT
 # OpenVPN TCP 1196
 iptables -C INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT 2>/dev/null || \
 iptables -I INPUT -p tcp -s 127.0.0.1 --dport 1196 -j ACCEPT
+iptables -C INPUT -p tcp --dport 1196 -j DROP 2>/dev/null || \
 iptables -A INPUT -p tcp --dport 1196 -j DROP
 
 # OpenVPN UDP 51825
