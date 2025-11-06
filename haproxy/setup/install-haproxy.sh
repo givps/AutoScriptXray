@@ -82,23 +82,130 @@ fi
 Pass=`</dev/urandom tr -dc a-zA-Z0-9 | head -c10`
 # =========================================
 cat > /etc/haproxy/haproxy.cfg << EOF
+# ==========================================
+# HAProxy 443 TLS + 80 HTTP - WS & gRPC
+# ==========================================
+
 global
-    daemon
+    log stdout format raw local0
     maxconn 4096
     tune.ssl.default-dh-param 2048
-    log /dev/log local0
-    log /dev/log local1 notice
+    ssl-default-bind-options no-sslv3
+    ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384
 
 defaults
-    mode tcp
-    timeout connect 5000ms
-    timeout client 50000ms
-    timeout server 50000ms
     log global
-    option tcplog
+    mode tcp
     option dontlognull
-    retries 3
+    timeout connect 5s
+    timeout client 50s
+    timeout server 50s
 
+# ==============================
+# Frontend TLS 443
+# ==============================
+frontend tls-in
+    bind *:443 ssl crt /etc/haproxy/certs/xray.pem
+    mode tcp
+    option tcplog
+
+    # gRPC passthrough (Layer 4)
+    use_backend vless_grpc_backend   if { dst_port 10005 }
+    use_backend vmess_grpc_backend   if { dst_port 10006 }
+    use_backend trojan_grpc_backend  if { dst_port 10007 }
+    use_backend ss_grpc_backend      if { dst_port 10008 }
+
+    # WS TLS (Layer 7) → terminate TLS
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req.ssl_hello_type 1 }
+
+    acl is_vless_ws  req.ssl_sni -i vless
+    acl is_vmess_ws  req.ssl_sni -i vmess
+    acl is_trojan_ws req.ssl_sni -i trojan-ws
+    acl is_ss_ws     req.ssl_sni -i ss-ws
+
+    use_backend vless_ws_backend if is_vless_ws
+    use_backend vmess_ws_backend if is_vmess_ws
+    use_backend trojan_ws_backend if is_trojan_ws
+    use_backend ss_ws_backend if is_ss_ws
+
+# ==============================
+# Frontend HTTP 80
+# ==============================
+frontend http-in
+    bind *:80
+    mode http
+    option httplog
+
+    acl is_vless_ws  path_beg /vless
+    acl is_vmess_ws  path_beg /vmess
+    acl is_trojan_ws path_beg /trojan-ws
+    acl is_ss_ws     path_beg /ss-ws
+
+    use_backend vless_ws_backend_http if is_vless_ws
+    use_backend vmess_ws_backend_http if is_vmess_ws
+    use_backend trojan_ws_backend_http if is_trojan_ws
+    use_backend ss_ws_backend_http if is_ss_ws
+
+# ==============================
+# Backends WS TLS (terminate TLS)
+# ==============================
+backend vless_ws_backend
+    mode http
+    server xray_vless_ws 127.0.0.1:10001 check
+
+backend vmess_ws_backend
+    mode http
+    server xray_vmess_ws 127.0.0.1:10002 check
+
+backend trojan_ws_backend
+    mode http
+    server xray_trojan_ws 127.0.0.1:10003 check
+
+backend ss_ws_backend
+    mode http
+    server xray_ss_ws 127.0.0.1:10004 check
+
+# ==============================
+# Backends gRPC (passthrough TCP)
+# ==============================
+backend vless_grpc_backend
+    mode tcp
+    server xray_vless_grpc 127.0.0.1:10005 check
+
+backend vmess_grpc_backend
+    mode tcp
+    server xray_vmess_grpc 127.0.0.1:10006 check
+
+backend trojan_grpc_backend
+    mode tcp
+    server xray_trojan_grpc 127.0.0.1:10007 check
+
+backend ss_grpc_backend
+    mode tcp
+    server xray_ss_grpc 127.0.0.1:10008 check
+
+# ==============================
+# Backends WS HTTP (port 80)
+# ==============================
+backend vless_ws_backend_http
+    mode http
+    server xray_vless_ws_http 127.0.0.1:10001 check
+
+backend vmess_ws_backend_http
+    mode http
+    server xray_vmess_ws_http 127.0.0.1:10002 check
+
+backend trojan_ws_backend_http
+    mode http
+    server xray_trojan_ws_http 127.0.0.1:10003 check
+
+backend ss_ws_backend_http
+    mode http
+    server xray_ss_ws_http 127.0.0.1:10004 check
+
+# =============================================
+# =============================================
 # Frontend untuk WebSocket SSL pada port 1443
 frontend ws_ssl_frontend
     bind *:1443 ssl crt /etc/haproxy/ssl/cert.pem
