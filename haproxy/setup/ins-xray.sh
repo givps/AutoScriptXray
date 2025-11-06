@@ -39,18 +39,19 @@ apt clean all && apt autoremove -y
 echo -e "[ ${green}INFO${nc} ] Downloading & Installing xray core"
 # Create directory if doesn't exist and set permissions
 echo -e "[ INFO ] Creating directories and setting permissions..."
-# Set ownership recursive untuk config dan log
-mkdir -p /var/log/xray
-mkdir -p /usr/local/etc/xray
-chmod 755 /var/log/xray
-chmod 755 /usr/local/etc/xray
-# Create log files
-touch /var/log/xray/access.log /var/log/xray/error.log
-chmod 644 /var/log/xray/access.log /var/log/xray/error.log
-echo -e "[ INFO ] Directory setup completed"
-
+# Craete folder
+rm -f /usr/local/bin/xray
+mkdir -p /usr/local/bin /usr/local/etc/xray /var/log/xray
+touch /var/log/xray/{access,error}.log
+id xray &>/dev/null || useradd -r -s /usr/sbin/nologin xray
 # xray official
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u xray
+xray version
+# Set ownership
+chmod +x /usr/local/bin/xray
+chown -R root:root /usr/local/bin/xray
+chown -R xray:xray /usr/local/etc/xray
+chown -R xray:xray /var/log/xray
 
 # nginx stop
 systemctl stop nginx
@@ -262,15 +263,11 @@ cat > /usr/local/etc/xray/config.json <<EOF
     { "protocol": "blackhole", "tag": "blocked" }
   ],
   "routing": {
+    "domainStrategy": "AsIs",
     "rules": [
       {
         "type": "field",
         "ip": ["geoip:private"],
-        "outboundTag": "blocked"
-      },
-      {
-        "type": "field",
-        "protocol": ["bittorrent"],
         "outboundTag": "blocked"
       }
     ]
@@ -285,7 +282,7 @@ Documentation=https://github.com/xtls
 After=network.target nss-lookup.target
 
 [Service]
-User=www-data
+User=xray
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
@@ -300,9 +297,6 @@ LimitNOFILE=1000000
 WantedBy=multi-user.target
 EOF
 
-chown -R www-data:www-data /var/log/xray
-chown -R www-data:www-data /usr/local/etc/xray
-
 systemctl daemon-reload
 systemctl enable xray
 systemctl start xray
@@ -310,14 +304,8 @@ systemctl start xray
 #return 301 https://$host$request_uri;
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 80;
-    listen [::]:80;
-    server_name _;
-}
-
-server {
     listen 443 ssl;
-    listen [::]:443 ssl;
+    # listen [::]:443 ssl;
     server_name _;
     
     # SSL certificates
@@ -333,84 +321,6 @@ server {
     add_header X-Frame-Options DENY always;
     add_header X-Content-Type-Options nosniff always;
     add_header X-XSS-Protection "1; mode=block" always;
-    
-    # WebSocket proxy configurations
-    location /vless {
-        proxy_pass http://127.0.0.1:10001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /vmess {
-        proxy_pass http://127.0.0.1:10002;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /trojan-ws {
-        proxy_pass http://127.0.0.1:10003;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /ss-ws {
-        proxy_pass http://127.0.0.1:10004;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    # gRPC proxy configurations
-    location /vless-grpc {
-        grpc_pass grpc://127.0.0.1:10005;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /vmess-grpc {
-        grpc_pass grpc://127.0.0.1:10006;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /trojan-grpc {
-        grpc_pass grpc://127.0.0.1:10007;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /ss-grpc {
-        grpc_pass grpc://127.0.0.1:10008;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
 }
 EOF
 
