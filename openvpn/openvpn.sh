@@ -32,26 +32,17 @@ chown -R root:root /etc/openvpn/
 
 sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
-# Update DNS untuk OpenVPN client (tidak ganggu host)
+DNS=("1.1.1.1" "8.8.8.8")
+[ -z "$dev" ] && exit 0
 
-DNS1="1.1.1.1"
-DNS2="8.8.8.8"
-
-case "$script_type" in
-  up|down)
-    if [ -n "$dev" ]; then
-        # gunakan resolvconf jika ada
-        if command -v resolvconf >/dev/null 2>&1; then
-            printf "nameserver %s\nnameserver %s\n" "$DNS1" "$DNS2" | resolvconf -a "$dev"
-            resolvconf -u
-        else
-            # fallback: tulis ke /etc/openvpn/resolv.conf (khusus client)
-            mkdir -p /etc/openvpn
-            echo -e "nameserver $DNS1\nnameserver $DNS2" > /etc/openvpn/resolv.conf
-        fi
-    fi
-    ;;
-esac
+if command -v resolvconf >/dev/null 2>&1; then
+  EXIST=$(resolvconf -l | grep -A2 "^$dev" | grep nameserver | awk '{print $2}')
+  for ns in "${DNS[@]}"; do echo "$EXIST" | grep -qxF "$ns" || printf "nameserver %s\n" "$ns" | resolvconf -a "$dev"; done
+  resolvconf -u
+else
+  FILE="/etc/openvpn/resolv.conf"; mkdir -p /etc/openvpn; touch "$FILE"
+  for ns in "${DNS[@]}"; do grep -qxF "nameserver $ns" "$FILE" || echo "nameserver $ns" >> "$FILE"; done
+fi
 EOF
 
 # Jadikan executable
