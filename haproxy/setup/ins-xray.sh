@@ -304,7 +304,7 @@ systemctl start xray
 #return 301 https://$host$request_uri;
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 443 ssl;
+    listen 4343 ssl;
     # listen [::]:443 ssl;
     server_name _;
     
