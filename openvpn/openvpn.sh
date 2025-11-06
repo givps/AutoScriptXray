@@ -51,7 +51,6 @@ persist-key
 persist-tun
 tcp-nodelay
 explicit-exit-notify 1
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
@@ -60,6 +59,10 @@ tls-version-min 1.2
 verb 3
 keepalive 10 120
 redirect-gateway def1
+tun-mtu 1500
+mssfix 1400
+sndbuf 524288
+rcvbuf 524288
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -89,14 +92,16 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
 verb 3
-explicit-exit-notify 1
-keepalive 10 120
+keepalive 5 60
 redirect-gateway def1
+tun-mtu 1400
+mssfix 1400
+sndbuf 524288
+rcvbuf 524288
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -128,7 +133,6 @@ persist-key
 persist-tun
 tcp-nodelay
 explicit-exit-notify 1
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
@@ -137,6 +141,10 @@ tls-version-min 1.2
 verb 3
 keepalive 10 120
 redirect-gateway def1
+tun-mtu 1500
+mssfix 1400
+sndbuf 524288
+rcvbuf 524288
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
