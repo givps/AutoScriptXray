@@ -7,13 +7,6 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
-sudo bash -c 'for ns in 1.1.1.1 8.8.8.8; do grep -q "^nameserver $ns" /etc/resolv.conf || echo "nameserver $ns" >> /etc/resolv.conf; done'
-sudo apt update
-sudo apt install resolvconf -y
-sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
-sudo systemctl enable --now resolvconf
-sudo resolvconf -u
-
 rm -rf /etc/openvpn/
 rm -f /usr/share/nginx/html/openvpn/*.ovpn
 mkdir -p /usr/share/nginx/html/openvpn/
@@ -28,27 +21,26 @@ cd /etc/openvpn/
 wget https://raw.githubusercontent.com/givps/AutoScriptXray/master/openvpn/server.zip
 unzip server.zip
 rm -f server.zip
-chown -R root:root /etc/openvpn/
+cd
+chown -R root:root /etc/openvpn/server/
+chmod 600 /etc/openvpn/server/*.key
+chmod 644 /etc/openvpn/server/*.crt
 
-sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
+tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
-DNS=("1.1.1.1" "8.8.8.8")
 [ -z "$dev" ] && exit 0
+DNS="1.1.1.1 8.8.8.8"
 
 if command -v resolvconf >/dev/null 2>&1; then
-  EXIST=$(resolvconf -l | grep -A2 "^$dev" | grep nameserver | awk '{print $2}')
-  for ns in "${DNS[@]}"; do echo "$EXIST" | grep -qxF "$ns" || printf "nameserver %s\n" "$ns" | resolvconf -a "$dev"; done
-  resolvconf -u
+    resolvconf -d "$dev" 2>/dev/null || true
+    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) | resolvconf -a "$dev" && resolvconf -u
 else
-  FILE="/etc/openvpn/resolv.conf"; mkdir -p /etc/openvpn; touch "$FILE"
-  for ns in "${DNS[@]}"; do grep -qxF "nameserver $ns" "$FILE" || echo "nameserver $ns" >> "$FILE"; done
+    mkdir -p /etc/openvpn
+    printf "%s\n" $(for ns in $DNS; do echo "nameserver $ns"; done) > /etc/openvpn/resolv.conf
 fi
 EOF
+chmod +x /etc/openvpn/update-resolv-conf.sh
 
-# Jadikan executable
-sudo chmod +x /etc/openvpn/update-resolv-conf.sh
-
-cd
 mkdir -p /usr/lib/openvpn/
 cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib/openvpn/openvpn-plugin-auth-pam.so
 
@@ -56,6 +48,7 @@ cp /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so /usr/lib
 sed -i 's/#AUTOSTART="all"/AUTOSTART="all"/g' /etc/default/openvpn
 
 # enable openvpn
+systemctl daemon-reload
 systemctl enable --now openvpn-server@server-tcp
 systemctl enable --now openvpn-server@server-udp
 systemctl enable --now openvpn-server@server-ssl
@@ -73,7 +66,6 @@ persist-key
 persist-tun
 tcp-nodelay
 explicit-exit-notify 1
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
@@ -82,10 +74,10 @@ tls-version-min 1.2
 verb 3
 keepalive 10 120
 redirect-gateway def1
-
-script-security 2
-up /etc/openvpn/update-resolv-conf.sh
-down /etc/openvpn/update-resolv-conf.sh
+tun-mtu 1500
+mssfix 1400
+sndbuf 524288
+rcvbuf 524288
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -115,15 +107,18 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
 verb 3
-explicit-exit-notify 1
-keepalive 10 120
+keepalive 5 60
 redirect-gateway def1
-
+tun-mtu 1400
+mssfix 1360
+sndbuf 524288
+rcvbuf 524288
+dhcp-option DNS 1.1.1.1
+dhcp-option DNS 8.8.8.8
 script-security 2
 up /etc/openvpn/update-resolv-conf.sh
 down /etc/openvpn/update-resolv-conf.sh
@@ -158,7 +153,6 @@ persist-key
 persist-tun
 tcp-nodelay
 explicit-exit-notify 1
-
 auth-user-pass
 auth SHA256
 cipher AES-256-GCM
@@ -167,10 +161,10 @@ tls-version-min 1.2
 verb 3
 keepalive 10 120
 redirect-gateway def1
-
-script-security 2
-up /etc/openvpn/update-resolv-conf.sh
-down /etc/openvpn/update-resolv-conf.sh
+tun-mtu 1500
+mssfix 1400
+sndbuf 524288
+rcvbuf 524288
 
 <ca>
 $(cat /etc/openvpn/server/ca.crt)
@@ -211,53 +205,29 @@ mv ovpn.zip /usr/share/nginx/html/openvpn/
 rm -rf /tmp/ovpn
 cd
 
-sudo tee /usr/local/bin/install-fix-iptables.sh > /dev/null <<'EOF'
+tee /usr/local/bin/fix-iptables.sh > /dev/null <<'EOF'
 #!/bin/bash
 set -e
-echo "[INFO] Creating fix-iptables.sh..."
-
-sudo tee /usr/local/bin/fix-iptables.sh > /dev/null <<'EOSH'
-#!/bin/bash
-GREEN="\e[32m"
-RESET="\e[0m"
-
-# Detect default network interface
 IFACE=$(ip -o -4 route show to default | awk '{print $5}')
-
-# Enable IP forwarding
-if [ "$(cat /proc/sys/net/ipv4/ip_forward)" -ne 1 ]; then
-    echo 1 > /proc/sys/net/ipv4/ip_forward
-    echo -e "${GREEN}[OK]${RESET} IP forwarding enabled"
-fi
-
-# Apply NAT for OpenVPN subnets
-for SUBNET in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
-    iptables -t nat -C POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -I POSTROUTING -s $SUBNET -o $IFACE -j MASQUERADE
-    echo -e "${GREEN}[OK]${RESET} NAT applied for subnet $SUBNET via $IFACE"
+echo 1 > /proc/sys/net/ipv4/ip_forward
+for S in 10.6.0.0/24 10.7.0.0/24 10.8.0.0/24; do
+  iptables -t nat -C POSTROUTING -s $S -o $IFACE -j MASQUERADE 2>/dev/null || \
+  iptables -t nat -A POSTROUTING -s $S -o $IFACE -j MASQUERADE
 done
-
-# Forward traffic between tun interfaces and default interface
-for DEV in $(ip -o link show | awk -F': ' '{print $2}' | grep '^tun'); do
-    iptables -C FORWARD -i $DEV -o $IFACE -j ACCEPT 2>/dev/null || \
-    iptables -I FORWARD -i $DEV -o $IFACE -j ACCEPT
-    iptables -C FORWARD -i $IFACE -o $DEV -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
-    iptables -I FORWARD -i $IFACE -o $DEV -m state --state ESTABLISHED,RELATED -j ACCEPT
-    echo -e "${GREEN}[OK]${RESET} Forwarding rule applied for $DEV ↔ $IFACE"
-done
-
-# Ensure established connections are forwarded
 iptables -C FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
-iptables -I FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-echo -e "${GREEN}[OK]${RESET} Related/Established forwarding rule ensured"
-EOSH
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -C FORWARD -i tun+ -o $IFACE -j ACCEPT 2>/dev/null || \
+iptables -A FORWARD -i tun+ -o $IFACE -j ACCEPT
+iptables -C FORWARD -i $IFACE -o tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
+iptables -A FORWARD -i $IFACE -o tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT
+EOF
 
 chmod +x /usr/local/bin/fix-iptables.sh
 
-echo "[INFO] Creating systemd service fix-iptables.service..."
-sudo tee /etc/systemd/system/fix-iptables.service > /dev/null <<'EOSERVICE'
+# Buat systemd service sekali jalan
+tee /etc/systemd/system/fix-iptables.service > /dev/null <<'EOF'
 [Unit]
-Description=Fix OpenVPN iptables and NAT rules
+Description=Fix OpenVPN iptables NAT
 After=network-online.target
 Wants=network-online.target
 
@@ -268,27 +238,13 @@ RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
-EOSERVICE
-
-echo "[INFO] Reloading systemd daemon..."
-systemctl daemon-reload
-
-echo "[INFO] Enabling and starting service..."
-systemctl enable fix-iptables.service
-systemctl start fix-iptables.service || true
-
-echo
-echo "✅ Installation complete! You can check status with:"
-echo "   systemctl status fix-iptables"
-echo "   journalctl -u fix-iptables -e"
 EOF
 
-# Run the installer
-sudo chmod +x /usr/local/bin/install-fix-iptables.sh
-sudo bash /usr/local/bin/install-fix-iptables.sh
+systemctl daemon-reload
+systemctl enable --now fix-iptables.service
 
 # /etc/systemd/system/fix-iptables.timer
-cat <<'EOF' | sudo tee /etc/systemd/system/fix-iptables.timer
+cat <<'EOF' | tee /etc/systemd/system/fix-iptables.timer
 [Unit]
 Description=Run fix-iptables every 15 minutes
 
@@ -301,8 +257,8 @@ Unit=fix-iptables.service
 WantedBy=timers.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable --now fix-iptables.timer
+systemctl daemon-reload
+systemctl enable --now fix-iptables.timer
 
 # OpenVPN TCP 1195
 iptables -C INPUT -p tcp --dport 1195 -j ACCEPT 2>/dev/null || \
@@ -319,3 +275,4 @@ iptables -I INPUT -p udp --dport 51825 -m limit --limit 30/sec --limit-burst 50 
 
 netfilter-persistent save
 netfilter-persistent reload
+
