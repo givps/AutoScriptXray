@@ -7,7 +7,6 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
-sudo rm -f /etc/resolv.conf
 sudo bash -c 'echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8" > /etc/resolv.conf'
 sudo apt update
 sudo apt install resolvconf -y
@@ -33,22 +32,24 @@ chown -R root:root /etc/openvpn/
 
 sudo tee /etc/openvpn/update-resolv-conf.sh > /dev/null <<'EOF'
 #!/bin/bash
+# Update DNS untuk OpenVPN client (tidak ganggu host)
 
-DNS=("1.1.1.1" "8.8.8.8")
+DNS1="1.1.1.1"
+DNS2="8.8.8.8"
 
 case "$script_type" in
-  up)
-    if command -v resolvectl >/dev/null 2>&1; then
-        resolvectl dns "$dev" "${DNS[@]}"
-        resolvectl domain "$dev" "~."
-    elif command -v resolvconf >/dev/null 2>&1; then
-        printf "nameserver %s\n" "${DNS[@]}" | resolvconf -a "$dev"
-        resolvconf -u
+  up|down)
+    if [ -n "$dev" ]; then
+        # gunakan resolvconf jika ada
+        if command -v resolvconf >/dev/null 2>&1; then
+            printf "nameserver %s\nnameserver %s\n" "$DNS1" "$DNS2" | resolvconf -a "$dev"
+            resolvconf -u
+        else
+            # fallback: tulis ke /etc/openvpn/resolv.conf (khusus client)
+            mkdir -p /etc/openvpn
+            echo -e "nameserver $DNS1\nnameserver $DNS2" > /etc/openvpn/resolv.conf
+        fi
     fi
-    ;;
-  down)
-    command -v resolvectl >/dev/null 2>&1 && resolvectl revert "$dev"
-    command -v resolvconf >/dev/null 2>&1 && { resolvconf -d "$dev"; resolvconf -u; }
     ;;
 esac
 EOF
