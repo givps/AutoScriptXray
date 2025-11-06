@@ -7,7 +7,7 @@
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com || curl -s ifconfig.me);
-sudo bash -c 'echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8" > /etc/resolv.conf'
+sudo bash -c 'for ns in 1.1.1.1 8.8.8.8; do grep -q "^nameserver $ns" /etc/resolv.conf || echo "nameserver $ns" >> /etc/resolv.conf; done'
 sudo apt update
 sudo apt install resolvconf -y
 sudo ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
