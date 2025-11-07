@@ -56,30 +56,21 @@ systemctl restart vnstat
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
 chmod +x /etc/pam.d/common-password
 
-# /etc/rc.local
 cat > /etc/rc.local <<'EOF'
 #!/bin/sh -e
-# rc.local file created by setup script
-
-# Reload netfilter rules
 netfilter-persistent reload
-
 exit 0
 EOF
-
 chmod +x /etc/rc.local
 
 cat > /etc/systemd/system/rc-local.service <<'EOF'
 [Unit]
 Description=/etc/rc.local compatibility
 ConditionPathExists=/etc/rc.local
-
 [Service]
 Type=forking
 ExecStart=/etc/rc.local start
-TimeoutSec=0
 RemainAfterExit=yes
-
 [Install]
 WantedBy=multi-user.target
 EOF
