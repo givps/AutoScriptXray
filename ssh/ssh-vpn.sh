@@ -212,7 +212,6 @@ systemctl restart dropbear
 # Update system & install dependencies
 apt update -y
 apt install -y sslh wget build-essential libconfig-dev iproute2
-id -u sslh >/dev/null 2>&1 || useradd -r -s /bin/false sslh
 # Buat systemd service type = simple/forking
 cat > /etc/systemd/system/sslh.service <<'EOF'
 [Unit]
@@ -221,11 +220,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=sslh
-Group=sslh
-AmbientCapabilities=CAP_NET_BIND_SERVICE
 ExecStartPre=/bin/mkdir -p /run/sslh
-ExecStartPre=/bin/chown sslh:sslh /run/sslh
+ExecStartPre=/bin/chown root:root /run/sslh
 ExecStart=/usr/sbin/sslh \
   --listen 0.0.0.0:443 \
   --listen 0.0.0.0:80 \
