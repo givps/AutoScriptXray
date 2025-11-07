@@ -244,7 +244,7 @@ EOF
 # Reload systemd dan start service
 systemctl daemon-reload
 systemctl enable sslh
-systemctl restart sslh
+systemctl start sslh
 
 # install stunnel
 apt install -y stunnel4
