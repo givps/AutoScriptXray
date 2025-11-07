@@ -64,9 +64,6 @@ cat > /etc/rc.local <<'EOF'
 # Reload netfilter rules
 netfilter-persistent reload
 
-# Disable IPv6
-echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-
 exit 0
 EOF
 
