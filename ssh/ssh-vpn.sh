@@ -56,6 +56,7 @@ systemctl restart vnstat
 wget -q -O /etc/pam.d/common-password "https://raw.githubusercontent.com/givps/AutoScriptXray/master/ssh/password"
 chmod +x /etc/pam.d/common-password
 
+# reload iptables
 cat > /etc/rc.local <<'EOF'
 #!/bin/sh -e
 netfilter-persistent reload
