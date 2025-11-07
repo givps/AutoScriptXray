@@ -102,20 +102,25 @@ defaults
     timeout server 50s
 
 # ==============================
-# Frontend TLS 443
+# Frontend TLS 443 (WS TLS + gRPC)
 # ==============================
 frontend tls-in
-    bind *:443 ssl crt /etc/haproxy/certs/xray.pem
+    bind *:443 ssl crt /etc/haproxy/ssl/cert.pem
     mode tcp
     option tcplog
 
-    # gRPC passthrough (Layer 4)
-    use_backend vless_grpc_backend   if { dst_port 10005 }
-    use_backend vmess_grpc_backend   if { dst_port 10006 }
-    use_backend trojan_grpc_backend  if { dst_port 10007 }
-    use_backend ss_grpc_backend      if { dst_port 10008 }
+    # ---- gRPC passthrough (Layer4) ----
+    acl is_vless_grpc req.ssl_sni -i vless-grpc
+    acl is_vmess_grpc req.ssl_sni -i vmess-grpc
+    acl is_trojan_grpc req.ssl_sni -i trojan-grpc
+    acl is_ss_grpc req.ssl_sni -i ss-grpc
 
-    # WS TLS (Layer 7) → terminate TLS
+    use_backend vless_grpc_backend if is_vless_grpc
+    use_backend vmess_grpc_backend if is_vmess_grpc
+    use_backend trojan_grpc_backend if is_trojan_grpc
+    use_backend ss_grpc_backend if is_ss_grpc
+
+    # ---- WS TLS (Layer7) ----
     tcp-request inspect-delay 5s
     tcp-request content accept if { req.ssl_hello_type 1 }
 
@@ -130,41 +135,39 @@ frontend tls-in
     use_backend ss_ws_backend if is_ss_ws
 
 # ==============================
-# Frontend HTTP 80
-# ==============================
-frontend http-in
-    bind *:80
-    mode http
-    option httplog
-
-    acl is_vless_ws  path_beg /vless
-    acl is_vmess_ws  path_beg /vmess
-    acl is_trojan_ws path_beg /trojan-ws
-    acl is_ss_ws     path_beg /ss-ws
-
-    use_backend vless_ws_backend_http if is_vless_ws
-    use_backend vmess_ws_backend_http if is_vmess_ws
-    use_backend trojan_ws_backend_http if is_trojan_ws
-    use_backend ss_ws_backend_http if is_ss_ws
-
-# ==============================
 # Backends WS TLS (terminate TLS)
 # ==============================
 backend vless_ws_backend
     mode http
     server xray_vless_ws 127.0.0.1:10001 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend vmess_ws_backend
     mode http
     server xray_vmess_ws 127.0.0.1:10002 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend trojan_ws_backend
     mode http
     server xray_trojan_ws 127.0.0.1:10003 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend ss_ws_backend
     mode http
     server xray_ss_ws 127.0.0.1:10004 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 # ==============================
 # Backends gRPC (passthrough TCP)
@@ -186,23 +189,62 @@ backend ss_grpc_backend
     server xray_ss_grpc 127.0.0.1:10008 check
 
 # ==============================
-# Backends WS HTTP (port 80)
+# Frontend HTTP 80 (HTTP WS)
+# ==============================
+frontend http-in
+    bind *:80
+    mode http
+    option httplog
+    option forwardfor
+    option http-server-close
+    timeout client 1m
+
+    # ---- Path ACL untuk WS ----
+    acl is_vless_ws  path_beg /vless
+    acl is_vmess_ws  path_beg /vmess
+    acl is_trojan_ws path_beg /trojan-ws
+    acl is_ss_ws     path_beg /ss-ws
+
+    # ---- Routing ke backend HTTP WS ----
+    use_backend vless_ws_backend_http if is_vless_ws
+    use_backend vmess_ws_backend_http if is_vmess_ws
+    use_backend trojan_ws_backend_http if is_trojan_ws
+    use_backend ss_ws_backend_http if is_ss_ws
+
+# ==============================
+# Backends HTTP WS (port 10011-10014)
 # ==============================
 backend vless_ws_backend_http
     mode http
-    server xray_vless_ws_http 127.0.0.1:10001 check
+    server xray_vless_ws_http 127.0.0.1:10011 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend vmess_ws_backend_http
     mode http
-    server xray_vmess_ws_http 127.0.0.1:10002 check
+    server xray_vmess_ws_http 127.0.0.1:10012 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend trojan_ws_backend_http
     mode http
-    server xray_trojan_ws_http 127.0.0.1:10003 check
+    server xray_trojan_ws_http 127.0.0.1:10013 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 backend ss_ws_backend_http
     mode http
-    server xray_ss_ws_http 127.0.0.1:10004 check
+    server xray_ss_ws_http 127.0.0.1:10014 check
+    option http-server-close
+    timeout connect 5s
+    timeout client 1m
+    timeout server 1m
 
 # =============================================
 # =============================================
