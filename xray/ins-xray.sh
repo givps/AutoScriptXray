@@ -346,9 +346,8 @@ cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
     listen 127.0.0.1:8080;
     server_name _;
-    
+
     location /vless {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -359,10 +358,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /vmess {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -373,10 +378,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /trojan-ws {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -387,10 +398,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /ss-ws {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -401,6 +418,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 }
 
@@ -427,7 +451,6 @@ server {
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     
     location /vless {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -438,10 +461,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /vmess {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -452,10 +481,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /trojan-ws {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -466,10 +501,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /ss-ws {
-        proxy_buffering off;
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -480,6 +521,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_cache_bypass $http_upgrade;
+        proxy_intercept_errors off;
+        keepalive_timeout 120s;
+        tcp_nodelay on;
+        tcp_nopush on;
     }
 
     location /vless-grpc {
@@ -490,6 +538,8 @@ server {
         grpc_set_header Host $host;
         grpc_read_timeout 86400s;
         grpc_send_timeout 86400s;
+        keepalive_timeout 120s;
+        proxy_buffering off;
     }
 
     location /vmess-grpc {
@@ -500,6 +550,8 @@ server {
         grpc_set_header Host $host;
         grpc_read_timeout 86400s;
         grpc_send_timeout 86400s;
+        keepalive_timeout 120s;
+        proxy_buffering off;
     }
 
     location /trojan-grpc {
@@ -510,6 +562,8 @@ server {
         grpc_set_header Host $host;
         grpc_read_timeout 86400s;
         grpc_send_timeout 86400s;
+        keepalive_timeout 120s;
+        proxy_buffering off;
     }
 
     location /ss-grpc {
@@ -520,6 +574,8 @@ server {
         grpc_set_header Host $host;
         grpc_read_timeout 86400s;
         grpc_send_timeout 86400s;
+        keepalive_timeout 120s;
+        proxy_buffering off;
     }
 }
 EOF
