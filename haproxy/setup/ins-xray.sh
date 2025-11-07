@@ -142,120 +142,96 @@ cat > /usr/local/etc/xray/config.json <<EOF
       "listen": "127.0.0.1",
       "port": 10001,
       "protocol": "vless",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": { "path": "/vless" }
-      }
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vless" } }
     },
     {
       "tag": "vmess-ws",
       "listen": "127.0.0.1",
       "port": 10002,
       "protocol": "vmess",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ]
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": { "path": "/vmess" }
-      }
+      "settings": { "clients": [{ "id": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vmess" } }
     },
     {
       "tag": "trojan-ws",
       "listen": "127.0.0.1",
       "port": 10003,
       "protocol": "trojan",
-      "settings": {
-        "clients": [
-          { "password": "$uuid" }
-        ]
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": { "path": "/trojan-ws" }
-      }
+      "settings": { "clients": [{ "password": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/trojan-ws" } }
     },
     {
       "tag": "ss-ws",
       "listen": "127.0.0.1",
       "port": 10004,
       "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": { "path": "/ss-ws" }
-      }
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/ss-ws" } }
+    },
+    {
+      "tag": "vless-ws-http",
+      "listen": "127.0.0.1",
+      "port": 10011,
+      "protocol": "vless",
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vless" } }
+    },
+    {
+      "tag": "vmess-ws-http",
+      "listen": "127.0.0.1",
+      "port": 10012,
+      "protocol": "vmess",
+      "settings": { "clients": [{ "id": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vmess" } }
+    },
+    {
+      "tag": "trojan-ws-http",
+      "listen": "127.0.0.1",
+      "port": 10013,
+      "protocol": "trojan",
+      "settings": { "clients": [{ "password": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/trojan-ws" } }
+    },
+    {
+      "tag": "ss-ws-http",
+      "listen": "127.0.0.1",
+      "port": 10014,
+      "protocol": "shadowsocks",
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/ss-ws" } }
     },
     {
       "tag": "vless-grpc",
       "listen": "127.0.0.1",
       "port": 10005,
       "protocol": "vless",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "grpc",
-        "grpcSettings": { "serviceName": "vless-grpc" }
-      }
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
+      "streamSettings": { "network": "grpc", "grpcSettings": { "serviceName": "vless-grpc" } }
     },
     {
       "tag": "vmess-grpc",
       "listen": "127.0.0.1",
       "port": 10006,
       "protocol": "vmess",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ]
-      },
-      "streamSettings": {
-        "network": "grpc",
-        "grpcSettings": { "serviceName": "vmess-grpc" }
-      }
+      "settings": { "clients": [{ "id": "$uuid" }] },
+      "streamSettings": { "network": "grpc", "grpcSettings": { "serviceName": "vmess-grpc" } }
     },
     {
       "tag": "trojan-grpc",
       "listen": "127.0.0.1",
       "port": 10007,
       "protocol": "trojan",
-      "settings": {
-        "clients": [
-          { "password": "$uuid" }
-        ]
-      },
-      "streamSettings": {
-        "network": "grpc",
-        "grpcSettings": { "serviceName": "trojan-grpc" }
-      }
+      "settings": { "clients": [{ "password": "$uuid" }] },
+      "streamSettings": { "network": "grpc", "grpcSettings": { "serviceName": "trojan-grpc" } }
     },
     {
       "tag": "ss-grpc",
       "listen": "127.0.0.1",
       "port": 10008,
       "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
-      "streamSettings": {
-        "network": "grpc",
-        "grpcSettings": { "serviceName": "ss-grpc" }
-      }
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
+      "streamSettings": { "network": "grpc", "grpcSettings": { "serviceName": "ss-grpc" } }
     }
   ],
   "outbounds": [
