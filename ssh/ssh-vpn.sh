@@ -71,16 +71,14 @@ chmod +x /etc/rc.local
 
 cat > /etc/systemd/system/rc-local.service <<'EOF'
 [Unit]
-Description=/etc/rc.local Compatibility
+Description=/etc/rc.local compatibility
 ConditionPathExists=/etc/rc.local
 
 [Service]
 Type=forking
 ExecStart=/etc/rc.local start
 TimeoutSec=0
-StandardOutput=tty
 RemainAfterExit=yes
-SysVStartPriority=99
 
 [Install]
 WantedBy=multi-user.target
@@ -89,6 +87,12 @@ EOF
 systemctl daemon-reload
 systemctl enable rc-local
 systemctl start rc-local
+
+# disable ipv6
+grep -qxF 'net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf || echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf
+grep -qxF 'net.ipv6.conf.default.disable_ipv6 = 1' /etc/sysctl.conf || echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf
+
+sysctl -p
 
 # Remove old NGINX
 apt purge -y nginx nginx-common nginx-core nginx-full
