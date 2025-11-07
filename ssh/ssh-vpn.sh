@@ -230,6 +230,8 @@ ExecStart=/usr/sbin/sslh \
   --openvpn 127.0.0.1:1196 \
   --tls 127.0.0.1:4433 \
   --http 127.0.0.1:8080 \
+  --on-timeout ssl \
+  --timeout 2 \
   --pidfile /run/sslh/sslh.pid \
   --foreground
 Restart=on-failure
