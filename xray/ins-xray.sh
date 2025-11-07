@@ -168,7 +168,6 @@ echo "✅ Use Self-signed SSL"
 fi
 
 uuid=$(cat /proc/sys/kernel/random/uuid)
-
 cat > /usr/local/etc/xray/config.json <<EOF
 {
   "log": {
