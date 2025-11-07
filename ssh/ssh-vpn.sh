@@ -213,9 +213,6 @@ systemctl restart dropbear
 apt update -y
 apt install -y sslh wget build-essential libconfig-dev iproute2
 
-# Buat folder run sslh
-mkdir -p /run/sslh
-
 # Buat systemd service type = simple/forking
 cat > /etc/systemd/system/sslh.service <<'EOF'
 [Unit]
@@ -223,6 +220,9 @@ Description=SSL/SSH/OpenVPN/XMPP/tinc port multiplexer
 After=network.target
 
 [Service]
+Type=simple
+ExecStartPre=/bin/mkdir -p /run/sslh
+ExecStartPre=/bin/chown root:root /run/sslh
 ExecStart=/usr/sbin/sslh \
   --listen 0.0.0.0:443 \
   --listen 0.0.0.0:80 \
@@ -235,7 +235,6 @@ ExecStart=/usr/sbin/sslh \
   --pidfile /run/sslh/sslh.pid \
   --foreground
 Restart=on-failure
-Type=simple
 
 [Install]
 WantedBy=multi-user.target
