@@ -257,38 +257,28 @@ socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
-# =====================================
-# ssh openssh
-# =====================================
-[ssh-ssl]
+# --- SSH over TLS ---
+[ssh-tls]
 accept = 222
 connect = 127.0.0.1:22
 
-# =====================================
-# ssh dropbear
-# =====================================
-[dropbear-ssl]
+# --- Dropbear over TLS ---
+[dropbear-tls]
 accept = 333
 connect = 127.0.0.1:110
 
-# =====================================
-# wss
-# =====================================
-[wss-ssl]
+# --- WSS over TLS ---
+[wss-tls]
 accept = 444
 connect = 127.0.0.1:1444
 
-# =====================================
-# tor
-# =====================================
-[tor-ssl]
-accept = 0.0.0.0:777
-connect = 127.0.0.1:2222
+# --- TOR over TLS ---
+[tor-tls]
+accept = 777
+connect = 127.0.0.1:9040
 
-# =====================================
-# openvpn
-# =====================================
-[openvpn-ssl]
+# --- OpenVPN over TLS ---
+[openvpn-tls]
 accept = 8443
 connect = 127.0.0.1:1196
 EOF
