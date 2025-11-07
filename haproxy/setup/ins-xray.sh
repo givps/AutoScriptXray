@@ -135,126 +135,154 @@ cat > /usr/local/etc/xray/config.json <<EOF
     "error": "/var/log/xray/error.log",
     "loglevel": "info"
   },
+  "api": { "tag": ["api"] },
+  "stats": {},
+  "policy": {
+    "levels": {
+      "0": { "statsUserUplink": true, "statsUserDownlink": true }
+    },
+    "system": { "statsInboundUplink": true, "statsInboundDownlink": true }
+  },
   "inbounds": [
     {
-      "tag": "vless-ws",
-      "listen": "127.0.0.1",
-      "port": 10001,
+      "tag": "vless-ws-tls",
+      "port": 443,
       "protocol": "vless",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ],
-        "decryption": "none"
-      },
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
       "streamSettings": {
         "network": "ws",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "wsSettings": { "path": "/vless" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "vmess-ws",
-      "listen": "127.0.0.1",
-      "port": 10002,
+      "tag": "vmess-ws-tls",
+      "port": 443,
       "protocol": "vmess",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ]
-      },
+      "settings": { "clients": [{ "id": "$uuid" }] },
       "streamSettings": {
         "network": "ws",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "wsSettings": { "path": "/vmess" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "trojan-ws",
-      "listen": "127.0.0.1",
-      "port": 10003,
+      "tag": "trojan-ws-tls",
+      "port": 443,
       "protocol": "trojan",
-      "settings": {
-        "clients": [
-          { "password": "$uuid" }
-        ]
-      },
+      "settings": { "clients": [{ "password": "$uuid" }] },
       "streamSettings": {
         "network": "ws",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "wsSettings": { "path": "/trojan-ws" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "ss-ws",
-      "listen": "127.0.0.1",
-      "port": 10004,
+      "tag": "ss-ws-tls",
+      "port": 443,
       "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
       "streamSettings": {
         "network": "ws",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "wsSettings": { "path": "/ss-ws" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "vless-grpc",
-      "listen": "127.0.0.1",
-      "port": 10005,
+      "tag": "vless-grpc-tls",
+      "port": 443,
       "protocol": "vless",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ],
-        "decryption": "none"
-      },
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
       "streamSettings": {
         "network": "grpc",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "grpcSettings": { "serviceName": "vless-grpc" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "vmess-grpc",
-      "listen": "127.0.0.1",
-      "port": 10006,
+      "tag": "vmess-grpc-tls",
+      "port": 443,
       "protocol": "vmess",
-      "settings": {
-        "clients": [
-          { "id": "$uuid" }
-        ]
-      },
+      "settings": { "clients": [{ "id": "$uuid" }] },
       "streamSettings": {
         "network": "grpc",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "grpcSettings": { "serviceName": "vmess-grpc" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "trojan-grpc",
-      "listen": "127.0.0.1",
-      "port": 10007,
+      "tag": "trojan-grpc-tls",
+      "port": 443,
       "protocol": "trojan",
-      "settings": {
-        "clients": [
-          { "password": "$uuid" }
-        ]
-      },
+      "settings": { "clients": [{ "password": "$uuid" }] },
       "streamSettings": {
         "network": "grpc",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "grpcSettings": { "serviceName": "trojan-grpc" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
     },
     {
-      "tag": "ss-grpc",
-      "listen": "127.0.0.1",
-      "port": 10008,
+      "tag": "ss-grpc-tls",
+      "port": 443,
       "protocol": "shadowsocks",
-      "settings": {
-        "method": "aes-128-gcm",
-        "password": "$uuid"
-      },
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
       "streamSettings": {
         "network": "grpc",
+        "security": "tls",
+        "tlsSettings": { "certificates": [{ "certificateFile": "/usr/local/etc/xray/xray.crt", "keyFile": "/usr/local/etc/xray/xray.key" }] },
         "grpcSettings": { "serviceName": "ss-grpc" }
-      }
+      },
+      "mux": { "enabled": true, "concurrency": 8 }
+    },
+    {
+      "tag": "vless-ws-nontls",
+      "port": 80,
+      "protocol": "vless",
+      "settings": { "clients": [{ "id": "$uuid" }], "decryption": "none" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vless" } }
+    },
+    {
+      "tag": "vmess-ws-nontls",
+      "port": 80,
+      "protocol": "vmess",
+      "settings": { "clients": [{ "id": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/vmess" } }
+    },
+    {
+      "tag": "trojan-ws-nontls",
+      "port": 80,
+      "protocol": "trojan",
+      "settings": { "clients": [{ "password": "$uuid" }] },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/trojan-ws" } }
+    },
+    {
+      "tag": "ss-ws-nontls",
+      "port": 80,
+      "protocol": "shadowsocks",
+      "settings": { "method": "aes-128-gcm", "password": "$uuid" },
+      "streamSettings": { "network": "ws", "wsSettings": { "path": "/ss-ws" } }
+    },
+    {
+      "tag": "api-inbound",
+      "listen": "127.0.0.1",
+      "port": 8081,
+      "protocol": "dokodemo-door",
+      "settings": { "address": "127.0.0.1" },
+      "streamSettings": { "network": "tcp" }
     }
   ],
   "outbounds": [
@@ -262,18 +290,14 @@ cat > /usr/local/etc/xray/config.json <<EOF
     { "protocol": "blackhole", "tag": "blocked" }
   ],
   "routing": {
+    "domainStrategy": "AsIs",
     "rules": [
-      {
-        "type": "field",
-        "ip": ["geoip:private"],
-        "outboundTag": "blocked"
-      },
-      {
-        "type": "field",
-        "protocol": ["bittorrent"],
-        "outboundTag": "blocked"
-      }
+      { "type": "field", "ip": ["geoip:private"], "outboundTag": "blocked" }
     ]
+  },
+  "apiService": {
+    "tag": "api",
+    "services": ["StatsService", "HandlerService", "LoggerService"]
   }
 }
 EOF
@@ -310,14 +334,12 @@ systemctl start xray
 #return 301 https://$host$request_uri;
 cat > /etc/nginx/conf.d/xray.conf <<'EOF'
 server {
-    listen 80;
-    listen [::]:80;
+    listen 8080;
     server_name _;
 }
 
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
+    listen 4433 ssl;
     server_name _;
     
     # SSL certificates
@@ -333,84 +355,6 @@ server {
     add_header X-Frame-Options DENY always;
     add_header X-Content-Type-Options nosniff always;
     add_header X-XSS-Protection "1; mode=block" always;
-    
-    # WebSocket proxy configurations
-    location /vless {
-        proxy_pass http://127.0.0.1:10001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /vmess {
-        proxy_pass http://127.0.0.1:10002;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /trojan-ws {
-        proxy_pass http://127.0.0.1:10003;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    location /ss-ws {
-        proxy_pass http://127.0.0.1:10004;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    # gRPC proxy configurations
-    location /vless-grpc {
-        grpc_pass grpc://127.0.0.1:10005;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /vmess-grpc {
-        grpc_pass grpc://127.0.0.1:10006;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /trojan-grpc {
-        grpc_pass grpc://127.0.0.1:10007;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
-    
-    location /ss-grpc {
-        grpc_pass grpc://127.0.0.1:10008;
-        client_max_body_size 0;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $host;
-    }
 }
 EOF
 
