@@ -30,7 +30,7 @@ apt install -y \
   libxml-parser-perl neofetch git lsof iftop \
   libsqlite3-dev libz-dev gcc g++ libreadline-dev \
   zlib1g-dev libssl-dev dos2unix cron dnsutils \
-  tcpdump dsniff 
+  tcpdump dsniff grepcidr
 
 wget https://github.com/jgmdev/ddos-deflate/archive/master.zip -O ddos.zip
 unzip ddos.zip
